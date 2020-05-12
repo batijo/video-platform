@@ -11,7 +11,7 @@ volumes:
 
 services:
   web:
-    build: .
+    build: ./backend
     restart: unless-stopped
     environment:
       - DATABASE_NAME=postgres
