@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/Dzionys/video-platform/models"
+	"github.com/Dzionys/video-platform/backend/models"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" //Gorm postgres dialect interface

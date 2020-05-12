@@ -9,9 +9,13 @@ import (
 
 	"net/http"
 
-	"github.com/Dzionys/video-platform/controllers"
-	"github.com/Dzionys/video-platform/utils"
-	"github.com/Dzionys/video-platform/utils/auth"
+	"github.com/Dzionys/video-platform/backend/controllers"
+	"github.com/Dzionys/video-platform/backend/utils"
+	"github.com/Dzionys/video-platform/backend/utils/auth"
+)
+
+var (
+	config utils.Config
 )
 
 func handlers() *mux.Router {
@@ -21,6 +25,7 @@ func handlers() *mux.Router {
 
 	r.HandleFunc("/register", controllers.CreateUser).Methods("POST")
 	r.HandleFunc("/login", controllers.Login).Methods("POST")
+	r.HandleFunc("/upload", controllers.VideoUpload).Methods("POST")
 
 	// Auth route
 	s := r.PathPrefix("/auth").Subrouter()
@@ -48,7 +53,7 @@ func main() {
 
 	// Load config file
 	var err error
-	CONF, err = utils.GetConf()
+	config, err = utils.GetConf()
 	if err != nil {
 		log.Println("Error: failed to load config file")
 		log.Println(err)
@@ -56,16 +61,16 @@ func main() {
 	}
 
 	// Write all logs to file
-	err = lp.OpenLogFile(CONF.LogP)
+	err = utils.OpenLogFile(config.LogP)
 	if err != nil {
 		log.Println("Error: failed open log file")
 		log.Panicln(err)
 		return
 	}
-	defer lp.LogFile.Close()
+	//defer utils.LogFile.Close()
 
 	// Load .env file
-	err := godotenv.Load()
+	err = godotenv.Load()
 	if err != nil {
 		log.Println("Error: failed to load .env file")
 		log.Println(err)

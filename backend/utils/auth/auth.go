@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Dzionys/video-platform/models"
+	"github.com/Dzionys/video-platform/backend/models"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )

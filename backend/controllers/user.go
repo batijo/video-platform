@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Dzionys/video-platform/models"
-	"github.com/Dzionys/video-platform/utils"
+	"github.com/Dzionys/video-platform/backend/models"
+	"github.com/Dzionys/video-platform/backend/utils"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
