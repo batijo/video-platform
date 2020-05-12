@@ -4,8 +4,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 
-	"video-platform/controllers"
-	"video-platform/utils/auth"
+	"github.com/Dzionys/video-platform/controllers"
+	"github.com/Dzionys/video-platform/utils/auth"
 	"net/http"
 )
 
@@ -58,6 +58,4 @@ func main() {
 
 	// Handle routes
 	http.Handle("/", handlers())
-
-
 }

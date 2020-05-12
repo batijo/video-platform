@@ -1,11 +1,11 @@
-package db
+package utils
 
 import (
 	"fmt"
 	"log"
 	"os"
 
-	"video-platform/models"
+	"github.com/Dzionys/video-platform/models"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" //Gorm postgres dialect interface

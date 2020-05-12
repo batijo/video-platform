@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-	"video-platform/models"
-	"video-platform/utils"
+
+	"github.com/Dzionys/video-platform/models"
+	"github.com/Dzionys/video-platform/utils"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 )
 
+// ErrorResponse ...
 type ErrorResponse struct {
 	Err string
 }
@@ -23,10 +25,7 @@ type error interface {
 
 var db = utils.ConnectDB()
 
-func TestAPI(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("API live and kicking"))
-}
-
+// Login ...
 func Login(w http.ResponseWriter, r *http.Request) {
 	user := &models.User{}
 	err := json.NewDecoder(r.Body).Decode(user)
@@ -39,6 +38,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
+// FindOne ...
 func FindOne(email, password string) map[string]interface{} {
 	user := &models.User{}
 
@@ -102,7 +102,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(createdUser)
 }
 
-//FetchUser function
+// FetchUsers function
 func FetchUsers(w http.ResponseWriter, r *http.Request) {
 	var users []models.User
 	db.Preload("auths").Find(&users)
@@ -110,6 +110,7 @@ func FetchUsers(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(users)
 }
 
+// UpdateUser ...
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	user := &models.User{}
 	params := mux.Vars(r)
@@ -120,6 +121,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&user)
 }
 
+// DeleteUser ...
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var id = params["id"]
@@ -129,6 +131,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("User deleted")
 }
 
+// GetUser ...
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var id = params["id"]
