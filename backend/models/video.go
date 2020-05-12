@@ -20,19 +20,19 @@ type Video struct {
 }
 
 type Audio struct {
-	gorm.Model      //ID       int `json:"id,primary_key"`
-	VideoID    uint `gorm:"TYPE:integer REFERENCES Videos"`
-	StreamID   int
-	AtCodec    string
-	Language   string
-	Channels   int
+	ID       int  `json:"id,primary_key"`
+	VideoID  uint `gorm:"TYPE:integer REFERENCES Videos"`
+	StreamID int
+	AtCodec  string
+	Language string
+	Channels int
 }
 
 type Sub struct {
-	gorm.Model      //ID       int `json:"id,primary_key"`
-	VideoID    uint `gorm:"TYPE:integer REFERENCES Videos"`
-	StreamID   int
-	Language   string
+	ID       int  `json:"id,primary_key"`
+	VideoID  uint `gorm:"TYPE:integer REFERENCES Videos"`
+	StreamID int
+	Language string
 }
 
 type VideoData struct {
