@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/Dzionys/video-platform/controllers"
+	"github.com/Dzionys/video-platform/utils"
 	"github.com/Dzionys/video-platform/utils/auth"
 )
 
@@ -44,6 +45,24 @@ func commonMiddleware(next http.Handler) http.Handler {
 }
 
 func main() {
+
+	// Load config file
+	var err error
+	CONF, err = utils.GetConf()
+	if err != nil {
+		log.Println("Error: failed to load config file")
+		log.Println(err)
+		return
+	}
+
+	// Write all logs to file
+	err = lp.OpenLogFile(CONF.LogP)
+	if err != nil {
+		log.Println("Error: failed open log file")
+		log.Panicln(err)
+		return
+	}
+	defer lp.LogFile.Close()
 
 	// Load .env file
 	err := godotenv.Load()
