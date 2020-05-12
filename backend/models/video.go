@@ -5,30 +5,34 @@ import "github.com/jinzhu/gorm"
 type Video struct {
 	gorm.Model
 
-	FileName  string
-	VtId      int
-	VtCodec   string
-	FrameRate float64
-	VtRes     string
-	Save      bool
-	AudioT    []Audio
-	SubtitleT []Sub
+	//ID         int `json:"id,primary_key"`
+	StreamID   int
+	FileName   string
+	State      string
+	VideoCodec string
+	Width      int
+	Height     int
+	FrameRate  float64
+	//VtRes     string
+	//Save      bool
+	AudioT    []Audio `gorm:"ForeignKey:VideoID"`
+	SubtitleT []Sub   `gorm:"ForeignKey:VideoID"`
 }
 
 type Audio struct {
-	gorm.Model
-
-	VideoID  int
-	AtCodec  string
-	Language string
-	Channels int
+	gorm.Model      //ID       int `json:"id,primary_key"`
+	VideoID    uint `gorm:"TYPE:integer REFERENCES Videos"`
+	StreamID   int
+	AtCodec    string
+	Language   string
+	Channels   int
 }
 
 type Sub struct {
-	gorm.Model
-
-	VideoID  int
-	Language string
+	gorm.Model      //ID       int `json:"id,primary_key"`
+	VideoID    uint `gorm:"TYPE:integer REFERENCES Videos"`
+	StreamID   int
+	Language   string
 }
 
 type VideoData struct {

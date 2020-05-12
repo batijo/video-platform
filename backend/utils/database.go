@@ -12,6 +12,9 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// DB database variable
+var DB *gorm.DB
+
 //ConnectDB function: Make database connection
 func ConnectDB() *gorm.DB {
 
@@ -40,7 +43,14 @@ func ConnectDB() *gorm.DB {
 
 	// Migrate the schema
 	db.AutoMigrate(
-		&models.User{})
+		&models.User{},
+		&models.Video{},
+		models.Audio{},
+		models.Sub{},
+	)
+
+	db.Model(&models.Audio{}).AddForeignKey("video_id", "videos(id)", "CASCADE", "NO ACTION")
+	db.Model(&models.Sub{}).AddForeignKey("video_id", "videos(id)", "CASCADE", "NO ACTION")
 
 	return db
 }

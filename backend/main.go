@@ -26,6 +26,7 @@ func handlers() *mux.Router {
 	r.HandleFunc("/register", controllers.CreateUser).Methods("POST")
 	r.HandleFunc("/login", controllers.Login).Methods("POST")
 	r.HandleFunc("/upload", controllers.VideoUpload).Methods("POST")
+	r.HandleFunc("/video", controllers.FetchVideos).Methods("GET")
 
 	// Auth route
 	s := r.PathPrefix("/auth").Subrouter()
@@ -68,6 +69,10 @@ func main() {
 		return
 	}
 	//defer utils.LogFile.Close()
+
+	// Connect to database
+	utils.DB = utils.ConnectDB()
+	defer utils.DB.Close()
 
 	// Load .env file
 	err = godotenv.Load()

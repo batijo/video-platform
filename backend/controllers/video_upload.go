@@ -95,7 +95,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 
 	//utils.WLog("Upload successful", r.RemoteAddr)
 
-	_, err = writeJSONResponse(w, handler.Filename, r.RemoteAddr)
+	data, err := writeJSONResponse(w, handler.Filename, r.RemoteAddr)
 	if err != nil {
 		var resp = map[string]interface{}{"status": false, "message": "Error getting video info", "error": err}
 		json.NewEncoder(w).Encode(resp)
@@ -106,14 +106,17 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		// utils.WLog("Error: failed send video data to client", r.RemoteAddr)
 	}
 
-	// err = db.InsertVideo(data, handler.Filename, "Not transcoded", -1)
-	// if err != nil {
-	// 	utils.WLog("Error: failed to insert video data in database", r.RemoteAddr)
-	// 	log.Println(err)
-	// 	w.WriteHeader(500)
-	// 	removeFile("./videos/", handler.Filename, r.RemoteAddr)
-	// 	return
-	// }
+	err = InsertVideo(data, handler.Filename, "Not transcoded")
+	if err != nil {
+		var resp = map[string]interface{}{"status": false, "message": "Sql error", "error": err}
+		json.NewEncoder(w).Encode(resp)
+		log.Println(err)
+		removeFile("videos/", handler.Filename, r.RemoteAddr)
+		return
+
+		// utils.WLog("Error: failed to insert video data in database", r.RemoteAddr)
+		// w.WriteHeader(500)
+	}
 
 	// utils.UpdateMessage(handler.Filename)
 
@@ -179,6 +182,59 @@ func writeJSONResponse(w http.ResponseWriter, filename string, clid string) (mod
 	json.NewEncoder(w).Encode(&vidinfo)
 
 	return vidinfo, nil
+}
+
+// Fetchvideos return all
+func FetchVideos(w http.ResponseWriter, r *http.Request) {
+	var videos []models.Video
+	utils.DB.Preload("AudioT").Preload("SubtitleT").Find(&videos)
+
+	json.NewEncoder(w).Encode(videos)
+}
+
+// InsertVideo adds video to database
+func InsertVideo(vidinfo models.Vidinfo, name string, state string) error {
+
+	var audio []models.Audio
+	var subtitle []models.Sub
+
+	for _, a := range vidinfo.Audiotrack {
+		at := models.Audio{
+			StreamID: a.Index,
+			AtCodec:  a.CodecName,
+			Language: a.Language,
+			Channels: a.Channels,
+		}
+		audio = append(audio, at)
+	}
+
+	for _, s := range vidinfo.Subtitle {
+		st := models.Sub{
+			StreamID: s.Index,
+			Language: s.Language,
+		}
+		subtitle = append(subtitle, st)
+	}
+
+	video := models.Video{
+		StreamID:   vidinfo.Videotrack[0].Index,
+		FileName:   name,
+		State:      state,
+		VideoCodec: vidinfo.Videotrack[0].CodecName,
+		Width:      vidinfo.Videotrack[0].Width,
+		Height:     vidinfo.Videotrack[0].Height,
+		FrameRate:  vidinfo.Videotrack[0].FrameRate,
+		AudioT:     audio,
+		SubtitleT:  subtitle,
+	}
+
+	createdVideo := utils.DB.Create(&video)
+
+	if createdVideo.Error != nil {
+		return createdVideo.Error
+	}
+
+	return nil
 }
 
 func removeFile(path string, filename string, clid string) error {
