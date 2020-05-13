@@ -6,6 +6,7 @@ networks:
         name: localdev
 
 volumes:
+  vod:
   web:
   db:
 
@@ -20,13 +21,15 @@ services:
       - PORT=8080
     volumes:
       - web:/app
+      - vod:/vod
     ports:
       - 8080:8080
     networks:
       - default
     depends_on:
       - db
-      - nginx
+      - nginx-rtmp
+      - nginx-vod
 
   db:
     image: postgres
@@ -40,17 +43,22 @@ services:
     networks:
       - default
 
-  nginx:
+  nginx-rtmp:
     image: alfg/nginx-rtmp
     restart: unless-stopped
     # volumes:
     #   - ./nginx.conf:/etc/nginx/nginx.conf.template
     ports:
       - 1935:1935
-      - 8090:80
+      - 8081:80
     networks:
       - default
 
-    
-    
-        
+  nginx-vod:
+    image: nytimes/nginx-vod-module
+    restart: unless-stopped
+    volumes:
+      - vod:/opt/static/videos
+      - ./nginx.conf:/usr/local/nginx/conf/nginx-vod.conf
+    ports:
+      - 8082:80
