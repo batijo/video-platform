@@ -22,7 +22,6 @@ type Config struct {
 	LogP       string
 	TNTS       string
 	TNNum      int
-	Advanced   bool
 	Presets    bool
 	FileTypes  []string
 }

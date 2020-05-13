@@ -34,9 +34,7 @@ LogP = "info.log"
 TNTS = "00:00:15"
 TNNum = 5
 
-# If Advanced true but Presets false then using advanced transcoder based on client choices
-Advanced = true
-# If Advanced and Presets set to true use Presets as default
+# If Presets set to true use Presets as default
 Presets = false
 
 # Available file formats to be uploaded

@@ -61,6 +61,26 @@ func ConnectDB() *gorm.DB {
 	return db
 }
 
+func getPresets() []models.Preset {
+	var presets []models.Preset
+	DB.Find(&presets)
+
+	return presets
+}
+
+// GetPreset returns Preset data from database with given name
+func GetPreset(name string) (models.Preset, error) {
+	presets := getPresets()
+
+	for _, p := range presets {
+		if p.Name == name {
+			return p, nil
+		}
+	}
+
+	return models.Preset{}, fmt.Errorf("error: no preset found with given name")
+}
+
 // InsertPresets ...
 func InsertPresets() error {
 	var presets struct {
