@@ -9,11 +9,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gorilla/mux"
-
 	"github.com/Dzionys/video-platform/backend/models"
 	tc "github.com/Dzionys/video-platform/backend/transcode"
 	"github.com/Dzionys/video-platform/backend/utils"
+	"github.com/Dzionys/video-platform/backend/utils/auth"
+
+	"github.com/gorilla/mux"
 )
 
 // VideoUpload upload handler which only allows to upload video
@@ -108,7 +109,16 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		// utils.WLog("Error: failed send video data to client", r.RemoteAddr)
 	}
 
-	err = InsertVideo(data, handler.Filename, "Not transcoded")
+	userID, err := auth.GetUserID(r)
+	if err != nil {
+		var resp = map[string]interface{}{"status": false, "message": "Could not verify user", "error": err}
+		json.NewEncoder(w).Encode(resp)
+		log.Println(err)
+		removeFile("videos/", handler.Filename, r.RemoteAddr)
+		return
+	}
+
+	err = InsertVideo(data, handler.Filename, "Not transcoded", userID)
 	if err != nil {
 		var resp = map[string]interface{}{"status": false, "message": "Sql error", "error": err}
 		json.NewEncoder(w).Encode(resp)
@@ -122,18 +132,14 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 
 	// utils.UpdateMessage(handler.Filename)
 
-	// if CONF.Advanced {
-	// 	go func() {
-	// 		dat := <-vfnprd
-	// 		if dat.Err == nil {
-	// 			vf := dat.Video
-	// 			prd := dat.PData
-	// 			go tc.ProcessVodFile(handler.Filename, data, vf, prd, CONF, r.RemoteAddr)
-	// 		}
-	// 	}()
-	// } else {
-	// 	//go tc.ProcessVodFile(handler.Filename, data, vf, prd, CONF, r.RemoteAddr)
-	// }
+	// go func() {
+	// 	dat := <-vfnprd
+	// 	if dat.Err == nil {
+	// 		vf := dat.Video
+	// 		prd := dat.PData
+	// 		go tc.ProcessVodFile(handler.Filename, data, vf, prd, config, r.RemoteAddr)
+	// 	}
+	// }()
 }
 
 // Send json response after file upload
@@ -222,10 +228,13 @@ func GetVideo(w http.ResponseWriter, r *http.Request) {
 }
 
 // InsertVideo adds video to database
-func InsertVideo(vidinfo models.Vidinfo, name string, state string) error {
+func InsertVideo(vidinfo models.Vidinfo, name string, state string, userID uint) error {
 
+	var user models.User
 	var audio []models.Audio
 	var subtitle []models.Sub
+
+	utils.DB.First(&user, userID)
 
 	for _, a := range vidinfo.Audiotrack {
 		at := models.Audio{
@@ -257,7 +266,9 @@ func InsertVideo(vidinfo models.Vidinfo, name string, state string) error {
 		SubtitleT:  subtitle,
 	}
 
-	createdVideo := utils.DB.Create(&video)
+	user.Video = append(user.Video, video)
+
+	createdVideo := utils.DB.Save(&user)
 
 	if createdVideo.Error != nil {
 		return createdVideo.Error
@@ -274,4 +285,11 @@ func removeFile(path string, filename string, clid string) error {
 	}
 	//db.RemoveRowByName(filename, "Video")
 	return err
+}
+
+func ShowPresets(w http.ResponseWriter, r *http.Request) {
+	var presets []models.Preset
+	utils.DB.Find(&presets)
+
+	json.NewEncoder(w).Encode(presets)
 }

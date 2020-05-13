@@ -6,6 +6,7 @@ type Video struct {
 	gorm.Model
 
 	//ID         int `json:"id,primary_key"`
+	UserID     uint `gorm:"TYPE:integer REFERENCES User"`
 	StreamID   int
 	FileName   string
 	State      string

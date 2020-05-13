@@ -136,6 +136,6 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var id = params["id"]
 	var user models.User
-	utils.DB.First(&user, id)
+	utils.DB.Preload("Video").Preload("Video.AudioT").Preload("Video.SubtitleT").First(&user, id)
 	json.NewEncoder(w).Encode(&user)
 }
