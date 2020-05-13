@@ -9,8 +9,13 @@ import (
 
 	"net/http"
 
-	"github.com/Dzionys/video-platform/controllers"
-	"github.com/Dzionys/video-platform/utils/auth"
+	"github.com/Dzionys/video-platform/backend/controllers"
+	"github.com/Dzionys/video-platform/backend/utils"
+	"github.com/Dzionys/video-platform/backend/utils/auth"
+)
+
+var (
+	config utils.Config
 )
 
 func handlers() *mux.Router {
@@ -20,6 +25,7 @@ func handlers() *mux.Router {
 
 	r.HandleFunc("/register", controllers.CreateUser).Methods("POST")
 	r.HandleFunc("/login", controllers.Login).Methods("POST")
+	r.HandleFunc("/presets", controllers.ShowPresets).Methods("GET")
 
 	// Auth route
 	s := r.PathPrefix("/auth").Subrouter()
@@ -28,6 +34,11 @@ func handlers() *mux.Router {
 	s.HandleFunc("/user/{id}", controllers.GetUser).Methods("GET")
 	s.HandleFunc("/user/{id}", controllers.UpdateUser).Methods("PUT")
 	s.HandleFunc("/user/{id}", controllers.DeleteUser).Methods("DELETE")
+	s.HandleFunc("/video", controllers.FetchVideos).Methods("GET")
+	s.HandleFunc("/video/{id}", controllers.DeleteVideo).Methods("DELETE")
+	s.HandleFunc("/video/{id}", controllers.UpdateVideo).Methods("PUT")
+	s.HandleFunc("/video/{id}", controllers.GetVideo).Methods("GET")
+	s.HandleFunc("/upload", controllers.VideoUpload).Methods("POST")
 
 	return r
 }
@@ -45,8 +56,36 @@ func commonMiddleware(next http.Handler) http.Handler {
 
 func main() {
 
+	// Load config file
+	var err error
+	config, err = utils.GetConf()
+	if err != nil {
+		log.Println("Error: failed to load config file")
+		log.Println(err)
+		return
+	}
+
+	// Write all logs to file
+	err = utils.OpenLogFile(config.LogP)
+	if err != nil {
+		log.Println("Error: failed open log file")
+		log.Panicln(err)
+		return
+	}
+	//defer utils.LogFile.Close()
+
+	// Connect to database
+	utils.DB = utils.ConnectDB()
+	defer utils.DB.Close()
+
+	// Insert presets to database
+	err = utils.InsertPresets()
+	if err != nil {
+		log.Println(err)
+	}
+
 	// Load .env file
-	err := godotenv.Load()
+	err = godotenv.Load()
 	if err != nil {
 		log.Println("Error: failed to load .env file")
 		log.Println(err)

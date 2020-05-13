@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Dzionys/video-platform/models"
-	"github.com/Dzionys/video-platform/utils"
+	"github.com/Dzionys/video-platform/backend/models"
+	"github.com/Dzionys/video-platform/backend/utils"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
@@ -23,7 +23,7 @@ type error interface {
 	Error() string
 }
 
-var db = utils.ConnectDB()
+//var db = utils.ConnectDB()
 
 // Login ...
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +42,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 func FindOne(email, password string) map[string]interface{} {
 	user := &models.User{}
 
-	if err := db.Where("Email = ?", email).First(user).Error; err != nil {
+	if err := utils.DB.Where("Email = ?", email).First(user).Error; err != nil {
 		var resp = map[string]interface{}{"status": false, "message": "Email address not found"}
 		return resp
 	}
@@ -65,14 +65,14 @@ func FindOne(email, password string) map[string]interface{} {
 
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
 
-	tokenString, error := token.SignedString([]byte("secret"))
-	if error != nil {
-		fmt.Println(error)
+	tokenString, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		fmt.Println(err)
 	}
 
-	var resp = map[string]interface{}{"status": false, "message": "logged in"}
+	var resp = map[string]interface{}{"status": true, "message": "logged in"}
 	resp["token"] = tokenString //Store the token in the response
-	resp["user"] = user
+	//resp["user"] = user
 	return resp
 }
 
@@ -86,14 +86,14 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		err := ErrorResponse{
-			Err: "Password Encryption  failed",
+			Err: "Password Encryption failed",
 		}
 		json.NewEncoder(w).Encode(err)
 	}
 
 	user.Password = string(pass)
 
-	createdUser := db.Create(user)
+	createdUser := utils.DB.Create(user)
 	var errMessage = createdUser.Error
 
 	if createdUser.Error != nil {
@@ -105,7 +105,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 // FetchUsers function
 func FetchUsers(w http.ResponseWriter, r *http.Request) {
 	var users []models.User
-	db.Preload("auths").Find(&users)
+	utils.DB.Preload("auths").Find(&users)
 
 	json.NewEncoder(w).Encode(users)
 }
@@ -115,9 +115,9 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	user := &models.User{}
 	params := mux.Vars(r)
 	var id = params["id"]
-	db.First(&user, id)
+	utils.DB.First(&user, id)
 	json.NewDecoder(r.Body).Decode(user)
-	db.Save(&user)
+	utils.DB.Save(&user)
 	json.NewEncoder(w).Encode(&user)
 }
 
@@ -126,8 +126,8 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var id = params["id"]
 	var user models.User
-	db.First(&user, id)
-	db.Delete(&user)
+	utils.DB.First(&user, id)
+	utils.DB.Delete(&user)
 	json.NewEncoder(w).Encode("User deleted")
 }
 
@@ -136,6 +136,6 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var id = params["id"]
 	var user models.User
-	db.First(&user, id)
+	utils.DB.Preload("Video").Preload("Video.AudioT").Preload("Video.SubtitleT").First(&user, id)
 	json.NewEncoder(w).Encode(&user)
 }
