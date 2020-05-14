@@ -14,11 +14,10 @@ import (
 
 //"github.com/Dzionys/video-platform/backend/utils"
 
-var tcvidpath = utils.Conf.APTGD + "/go/src/github.com/Dzionys/video-platform/vod/transcoded/%v"
-
 // NginxMappingHandler ...
 func NginxMappingHandler(w http.ResponseWriter, r *http.Request) {
 
+	tcvidpath := utils.Conf.APTGD + "/go/src/github.com/Dzionys/video-platform/vod/transcoded/%v"
 	var sqncs models.Sequences
 
 	vars := mux.Vars(r)

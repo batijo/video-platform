@@ -18,11 +18,9 @@ type Config struct {
 	TempJson   string
 	TempTxt    string
 	VBW        int
-	ABW        int
 	DataGen    string
 	LogP       string
 	TNTS       string
-	TNNum      int
 	Presets    bool
 	FileTypes  []string
 }
