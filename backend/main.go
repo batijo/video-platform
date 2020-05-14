@@ -20,9 +20,10 @@ var (
 
 func handlers() *mux.Router {
 
-	r := mux.NewRouter().StrictSlash(true)
-	r.Use(commonMiddleware)
+	router := mux.NewRouter().StrictSlash(true)
+	router.Use(commonMiddleware)
 
+	r := router.PathPrefix("/api").Subrouter()
 	r.HandleFunc("/register", controllers.CreateUser).Methods("POST")
 	r.HandleFunc("/login", controllers.Login).Methods("POST")
 	r.HandleFunc("/ngx/mapping/{name}", controllers.NginxMappingHandler).Methods("GET")
@@ -41,8 +42,9 @@ func handlers() *mux.Router {
 	s.HandleFunc("/upload", controllers.VideoUpload).Methods("POST")
 	s.HandleFunc("/upload", controllers.TranscodeHandler).Methods("PUT")
 	s.HandleFunc("/tc", controllers.TcTypeHandler).Methods("POST")
+	s.HandleFunc("/list", controllers.ListHandler).Methods("GET")
 
-	return r
+	return router
 }
 
 func commonMiddleware(next http.Handler) http.Handler {

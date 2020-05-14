@@ -12,8 +12,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-//"github.com/Dzionys/video-platform/backend/utils"
-
 // NginxMappingHandler ...
 func NginxMappingHandler(w http.ResponseWriter, r *http.Request) {
 

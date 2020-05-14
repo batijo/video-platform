@@ -73,7 +73,6 @@ type VideoStream struct {
 	Stream     bool
 	StreamName string
 	State      string
-	Thumbnail  string
 	Video      []Video
 }
 

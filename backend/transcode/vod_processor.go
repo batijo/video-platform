@@ -42,11 +42,11 @@ func ProcessVodFile(source string, data models.Vidinfo, cldata models.Video, prd
 		} else {
 			log.Println(err)
 			utils.WLog("Error: file may or may not exist", clid)
-			removeFile("videos/", source, clid)
+			removeFile(utils.Conf.SD, source, clid)
 			return
 		}
 	} else {
-		removeFile("videos/", source, clid)
+		removeFile(utils.Conf.SD, source, clid)
 		return
 	}
 
@@ -55,7 +55,7 @@ func ProcessVodFile(source string, data models.Vidinfo, cldata models.Video, prd
 	if err != nil {
 		log.Println(err)
 		utils.WLog("Error: failed to get full file name", clid)
-		removeFile("videos/", source, clid)
+		removeFile(utils.Conf.SD, source, clid)
 		return
 	}
 
@@ -76,11 +76,11 @@ func ProcessVodFile(source string, data models.Vidinfo, cldata models.Video, prd
 	// Checks if transcoded file with the same name already exists
 	if _, err := os.Stat(tempfile); err == nil {
 		utils.WLog(fmt.Sprintf("Error: file \"%v\" already transcoding", sfnamewe+".mp4"), clid)
-		removeFile("videos/", source, clid)
+		removeFile(utils.Conf.SD, source, clid)
 		return
 	} else if _, err := os.Stat(destinationfile); err == nil {
 		utils.WLog(fmt.Sprintf("Error: file \"%v\" already exist in transcoded folder", sfnamewe+".mp4"), clid)
-		removeFile("videos/", source, clid)
+		removeFile(utils.Conf.SD, source, clid)
 		return
 	}
 
@@ -91,7 +91,7 @@ func ProcessVodFile(source string, data models.Vidinfo, cldata models.Video, prd
 		data, err = GetVidInfo(utils.Conf.SD, source, utils.Conf.TempJson, utils.Conf.DataGen, utils.Conf.TempTxt, clid)
 		if err != nil {
 			log.Println(err)
-			removeFile("videos/", source, clid)
+			removeFile(utils.Conf.SD, source, clid)
 			return
 		}
 	}
@@ -118,7 +118,7 @@ func ProcessVodFile(source string, data models.Vidinfo, cldata models.Video, prd
 		if err != nil {
 			utils.WLog("Error: failed to generate cmd line", clid)
 			log.Println(err)
-			removeFile("videos/", source, clid)
+			removeFile(utils.Conf.SD, source, clid)
 			return
 		}
 	} else {
@@ -173,11 +173,11 @@ func StartTranscode(source string, conf utils.Config, cmdg string, dfsl string, 
 		} else {
 			log.Println(err)
 			utils.WLog("Error: file may or may not exist", clid)
-			removeFile("videos/", source, clid)
+			removeFile(utils.Conf.SD, source, clid)
 			return
 		}
 	} else {
-		removeFile("videos/", source, clid)
+		removeFile(utils.Conf.SD, source, clid)
 		return
 	}
 
@@ -186,7 +186,7 @@ func StartTranscode(source string, conf utils.Config, cmdg string, dfsl string, 
 	if err != nil {
 		log.Println(err)
 		utils.WLog("Error: failed to get full file name", clid)
-		removeFile("videos/", source, clid)
+		removeFile(utils.Conf.SD, source, clid)
 		return
 	}
 
@@ -250,13 +250,13 @@ func StartTranscode(source string, conf utils.Config, cmdg string, dfsl string, 
 		log.Println(err)
 		utils.WLog("Error: could not start trancoding", clid)
 		log.Printf("Error cmd line: %v", cmd)
-		removeFile("videos/", source, clid)
+		removeFile(utils.Conf.SD, source, clid)
 		return
 	} else if out, err := os.Stat(tempfile); os.IsNotExist(err) || out == nil {
 		log.Println(err)
 		utils.WLog("Error: transcoder failed", clid)
 		log.Printf("Error cmd line: %v", cmd)
-		removeFile("videos/", source, clid)
+		removeFile(utils.Conf.SD, source, clid)
 		return
 	} else {
 
@@ -424,7 +424,10 @@ func removeFile(path string, filename string, clid string) {
 	if _, err := os.Stat(path + filename); os.Remove(path+filename) != nil && !os.IsNotExist(err) {
 		utils.WLog("Error: failed removing file", clid)
 	}
-	//db.RemoveRowByName(filename, "Video")
+	if err := utils.DeleteVideo(filename); err != nil {
+		utils.WLog("Error: failed to remove file from database", clid)
+	}
+
 	return
 }
 
@@ -434,6 +437,9 @@ func removeStreamFiles(path string, filenames []string, sname string, clid strin
 			utils.WLog("Error: failed removing stream file(s)", clid)
 		}
 	}
-	//db.RemoveRowByName(sname, "Stream")
+	if err := utils.DeleteStream(sname); err != nil {
+		utils.WLog("Error: failed to remove file from database", clid)
+	}
+
 	return
 }

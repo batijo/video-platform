@@ -31,10 +31,8 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		var resp = map[string]interface{}{"status": false, "message": "Failed to upload file", "error": err}
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
+		utils.WLog("Error: failed to upload file", r.RemoteAddr)
 		return
-
-		// w.WriteHeader(500)
-		// utils.WLog("Error: failed to upload file", r.RemoteAddr)
 	}
 	defer file.Close()
 
@@ -53,34 +51,28 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 	if !allowed {
 		var resp = map[string]interface{}{"status": false, "message": "This file format is not allowed " + filepath.Ext(handler.Filename), "error": nil}
 		json.NewEncoder(w).Encode(resp)
+		utils.WLog("Error: this file format is not allowed "+filepath.Ext(handler.Filename), r.RemoteAddr)
 		return
-
-		// utils.WLog("Error: this file format is not allowed "+filepath.Ext(handler.Filename), r.RemoteAddr)
-		// w.WriteHeader(403)
 	}
 
 	// Checks if uploaded file with the same name already exists
 	if _, err := os.Stat(utils.Conf.SD + handler.Filename); err == nil {
 		var resp = map[string]interface{}{"status": false, "message": fmt.Sprintf("File \"%v\" already exists", handler.Filename), "error": nil}
 		json.NewEncoder(w).Encode(resp)
+		utils.WLog(fmt.Sprintf("Error: file \"%v\" already exists", handler.Filename), r.RemoteAddr)
 		return
-
-		// utils.WLog(fmt.Sprintf("Error: file \"%v\" already exists", handler.Filename), r.RemoteAddr)
-		// w.WriteHeader(403)
 	}
 
 	//Create empty file in /videos folder
-	//utils.WLog("Creating file", r.RemoteAddr)
+	utils.WLog("Creating file", r.RemoteAddr)
 	dst, err := os.OpenFile(utils.Conf.SD+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
 	defer dst.Close()
 	if err != nil {
 		var resp = map[string]interface{}{"status": false, "message": "Could not create file", "error": err}
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
+		utils.WLog("Error: could not create file", r.RemoteAddr)
 		return
-
-		// w.WriteHeader(500)
-		// utils.WLog("Error: could not create file", r.RemoteAddr)
 	}
 
 	//Copies a temporary file to empty file in /videos folder
@@ -90,16 +82,14 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
 		removeFile(utils.Conf.SD, handler.Filename, r.RemoteAddr)
+		utils.WLog("Error: failed to write file", r.RemoteAddr)
 		return
-
-		// w.WriteHeader(500)
-		// utils.WLog("Error: failed to write file", r.RemoteAddr)
 	}
 
 	var resp = map[string]interface{}{"status": true, "message": "Upload successful", "error": nil}
 	json.NewEncoder(w).Encode(resp)
 
-	//utils.WLog("Upload successful", r.RemoteAddr)
+	utils.WLog("Upload successful", r.RemoteAddr)
 
 	data, err := writeJSONResponse(w, handler.Filename, r.RemoteAddr)
 	if err != nil {
@@ -107,10 +97,8 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
 		removeFile(utils.Conf.SD, handler.Filename, r.RemoteAddr)
+		utils.WLog("Error: failed send video data to client", r.RemoteAddr)
 		return
-
-		// w.WriteHeader(500)
-		// utils.WLog("Error: failed send video data to client", r.RemoteAddr)
 	}
 
 	userID, err := auth.GetUserID(r)
@@ -128,13 +116,11 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
 		removeFile(utils.Conf.SD, handler.Filename, r.RemoteAddr)
+		utils.WLog("Error: failed to insert video data in database", r.RemoteAddr)
 		return
-
-		// utils.WLog("Error: failed to insert video data in database", r.RemoteAddr)
-		// w.WriteHeader(500)
 	}
 
-	// utils.UpdateMessage(handler.Filename)
+	utils.UpdateMessage(handler.Filename)
 
 	go func() {
 		dat := <-vfnprd
@@ -235,7 +221,6 @@ func writeJSONResponse(w http.ResponseWriter, filename string, clid string) (mod
 		data    models.Data
 		vidinfo models.Vidinfo
 		err     error
-		//info    []byte
 	)
 
 	if err != nil {
@@ -250,23 +235,9 @@ func writeJSONResponse(w http.ResponseWriter, filename string, clid string) (mod
 	if utils.Conf.Presets {
 		data = utils.AddPresetsToJSON(vidinfo)
 		json.NewEncoder(w).Encode(&data)
-
-		// info, err = json.Marshal(data)
-		// if err != nil {
-		// 	return vidinfo, err
-		// }
 	} else {
 		json.NewEncoder(w).Encode(&vidinfo)
-		// info, err = json.Marshal(vidinfo)
-		// if err != nil {
-		// 	return vidinfo, err
-		// }
 	}
-
-	//w.WriteHeader(200)
-	//w.Write(info)
-
-	//json.NewEncoder(w).Encode(&vidinfo)
 
 	return vidinfo, nil
 }
@@ -312,6 +283,9 @@ func removeFile(path string, filename string, clid string) error {
 	if err = os.Remove(path + filename); err != nil {
 		utils.WLog("Error: failed removing source file", clid)
 	}
-	//db.RemoveRowByName(filename, "Video")
+	err = utils.DeleteVideo(filename)
+	if err != nil {
+		return err
+	}
 	return err
 }

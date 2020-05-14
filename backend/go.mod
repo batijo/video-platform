@@ -9,4 +9,5 @@ require (
 	github.com/jinzhu/gorm v1.9.12
 	github.com/joho/godotenv v1.3.0
 	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37
+	golang.org/x/tools v0.0.0-20200513201620-d5fe73897c97
 )

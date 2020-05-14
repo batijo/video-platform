@@ -132,6 +132,24 @@ func InsertVideo(vidinfo models.Vidinfo, name string, state string, userID uint,
 	return nil
 }
 
+// DeleteVideo deletes video based on its name
+func DeleteVideo(name string) error {
+	var video models.Video
+	if err := DB.Where("file_name = ?", name).Delete(&video).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// DeleteStream deletes stream based on its name
+func DeleteStream(name string) error {
+	var stream models.Vstream
+	if err := DB.Where("name = ?", name).Delete(&stream).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 // InsertStream ...
 func InsertStream(ndata []models.Vidinfo, names []string, state string, sname string, userID uint) {
 
