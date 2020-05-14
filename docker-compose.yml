@@ -21,7 +21,7 @@ services:
       - PORT=8080
     volumes:
       - web:/app
-      - vod:/vod
+      # - vod:/vod
     ports:
       - 8080:8080
     networks:
@@ -58,7 +58,7 @@ services:
     image: nytimes/nginx-vod-module
     restart: unless-stopped
     volumes:
-      - vod:/opt/static/videos
-      - ./nginx.conf:/usr/local/nginx/conf/nginx-vod.conf
+      - ./vod:/opt/static/videos
+      - ./nginx-vod.conf:/usr/local/nginx/conf/nginx.conf
     ports:
       - 8082:80
