@@ -11,7 +11,7 @@ func WLog(msg string, clid string) {
 	if strings.HasPrefix(msg, "Error:") {
 		log.Println(msg)
 	}
-	//UpdateLogMessage(msg, clid)
+	UpdateLogMessage(msg, clid)
 }
 
 // OpenLogFile opens log file and/or creates it

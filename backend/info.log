@@ -1,0 +1,17 @@
+2020/05/14 17:06:31 Server up on port '8080'
+2020/05/14 17:06:53 EOF
+2020/05/14 17:11:02 stat ../vod/transcoding/The.Good.Doctor.S02E18.HDTV.x264-KILLERS.mp4: no such file or directory
+2020/05/14 17:12:00 Server up on port '8080'
+2020/05/14 17:14:41 EOF
+2020/05/14 17:14:41 stat ../vod/transcoding/The.Good.Doctor.S02E18.HDTV.x264-KILLERS.mp4: no such file or directory
+2020/05/14 17:14:41 Error: transcoder failed
+2020/05/14 17:14:41 Error cmd line: ffmpeg -i ../vod/The.Good.Doctor.S02E18.HDTV.x264-KILLERS.mkv -ss 00:00:00 -t 00:00:30   -r 25 -filter_complex [0:v]scale=352:240[scaled];[scaled]setpts=23.976/25*PTS[v];[0:a]atempo=25/23.976[a] -map [v] -map [a]  -c:v:0 copy -metadata:s:v:0 name="../vod/The.Good.Doctor.S02E18.HDTV.x264-KILLERS.mkv"   -async 1 -vsync 1 ../vod/transcoding/The.Good.Doctor.S02E18.HDTV.x264-KILLERS.mp4
+2020/05/14 17:27:22 Server up on port '8080'
+2020/05/14 17:27:22 listen tcp :8080: bind: address already in use
+2020/05/14 17:27:53 Server up on port '8080'
+2020/05/14 17:28:42 EOF
+2020/05/14 17:31:32 Server up on port '8080'
+2020/05/14 17:31:58 pq: column "name" does not exist
+2020/05/14 17:33:03 Server up on port '8080'
+2020/05/14 17:33:06 pq: column "filename" does not exist
+2020/05/14 17:33:22 Server up on port '8080'

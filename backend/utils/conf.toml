@@ -8,6 +8,8 @@ TD = "../vod/transcoding/"
 DD = "../vod/transcoded/"
 # Thumbnail directory
 TND = "../vod/thumbnails/"
+# Absolute path to go directory
+APTGD = "/home/dzionys"
 
 # If true debug transcoder by transcoding only interval between DebugStart-DebugEnd
 Debug = true
@@ -35,7 +37,7 @@ TNTS = "00:00:15"
 TNNum = 5
 
 # If Presets set to true use Presets as default
-Presets = true
+Presets = false
 
 # Available file formats to be uploaded
 FileTypes = [".mkv", ".mp4", ".avi", ".mov", ".mpg", ".wmv"]

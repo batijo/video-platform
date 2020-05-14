@@ -25,6 +25,7 @@ func handlers() *mux.Router {
 
 	r.HandleFunc("/register", controllers.CreateUser).Methods("POST")
 	r.HandleFunc("/login", controllers.Login).Methods("POST")
+	r.HandleFunc("/ngx/mapping/{name}", controllers.NginxMappingHandler).Methods("GET")
 
 	// Auth route
 	s := r.PathPrefix("/auth").Subrouter()
@@ -56,6 +57,17 @@ func commonMiddleware(next http.Handler) http.Handler {
 }
 
 func main() {
+
+	// Make a new Broker instance
+	utils.B = &utils.Broker{
+		Clients:        make(map[chan string]string),
+		NewClients:     make(chan utils.Client),
+		DefunctClients: make(chan (chan string)),
+		Messages:       make(chan utils.Message),
+	}
+
+	// Start processing events
+	utils.B.Start()
 
 	// Load config file
 	var err error

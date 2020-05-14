@@ -204,7 +204,7 @@ func StartTranscode(source string, conf utils.Config, cmdg string, dfsl string, 
 	// f
 	destinationfile := fmt.Sprintf("%v%v.mp4", utils.Conf.DD, sfnamewe)
 
-	data, err = GetVidInfo("./videos/", source, utils.Conf.TempJson, utils.Conf.DataGen, utils.Conf.TempTxt, clid)
+	data, err = GetVidInfo(utils.Conf.SD, source, utils.Conf.TempJson, utils.Conf.DataGen, utils.Conf.TempTxt, clid)
 
 	// ===============================================================
 
@@ -345,7 +345,7 @@ func getRatio(res string, duration int, clid string) {
 			per := (sec * 100) / duration
 			if lastPer != per {
 				lastPer = per
-				//utils.UpdateLogMessage(fmt.Sprintf("Progress: %v %%", per), clid)
+				utils.UpdateLogMessage(fmt.Sprintf("Progress: %v %%", per), clid)
 			}
 			allRes = ""
 		}

@@ -11,6 +11,7 @@ type Config struct {
 	TD         string
 	DD         string
 	TND        string
+	APTGD      string
 	Debug      bool
 	DebugStart string
 	DebugEnd   string
