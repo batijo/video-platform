@@ -17,7 +17,7 @@ var prRes = map[string]string{
 	"1080p": "1920x1080",
 }
 
-func generatePresetCmdLine(prdata models.PData, vdata models.Vidinfo, sf string, sfname string, dfwe string) (string, []string, error) {
+func generatePresetCmdLine(prdata models.Pdata, vdata models.Vidinfo, sf string, sfname string, dfwe string) (string, []string, error) {
 	var (
 		cmd       = ""
 		mapping   []string
@@ -35,8 +35,8 @@ func generatePresetCmdLine(prdata models.PData, vdata models.Vidinfo, sf string,
 	)
 
 	// Checks if debuging is set to true
-	if config.Debug {
-		debugIntr += " -ss " + config.DebugStart + " -t " + config.DebugEnd
+	if utils.Conf.Debug {
+		debugIntr += " -ss " + utils.Conf.DebugStart + " -t " + utils.Conf.DebugEnd
 	}
 
 	// Video part ---------------------------------------------
@@ -103,12 +103,12 @@ func generatePresetCmdLine(prdata models.PData, vdata models.Vidinfo, sf string,
 
 		// Audio part ---------------------------------------------
 
-		if s.AudioT[0].AtId != -1 {
+		if s.AudioT[0].StreamID != -1 {
 			for i, at := range s.AudioT {
 				if !(vdata.Videotrack[0].FrameRate < 25) {
-					tempmp += fmt.Sprintf(" -map 0:%v", at.AtId)
+					tempmp += fmt.Sprintf(" -map 0:%v", at.StreamID)
 				}
-				tempac += fmt.Sprintf(" -c:a:%v libfdk_aac -ac 2 -b:a:%v %vk -metadata language=%v", i, i, audpr.Bitrate, at.Lang)
+				tempac += fmt.Sprintf(" -c:a:%v libfdk_aac -ac 2 -b:a:%v %vk -metadata language=%v", i, i, audpr.Bitrate, at.Language)
 			}
 		} else {
 			for i, at := range vdata.Audiotrack {
@@ -125,9 +125,9 @@ func generatePresetCmdLine(prdata models.PData, vdata models.Vidinfo, sf string,
 			if i > 0 {
 				break
 			}
-			if s.SubtitleT[0].StId != -1 {
+			if s.SubtitleT[0].StreamID != -1 {
 				for _, st := range s.SubtitleT {
-					tempsc += fmt.Sprintf(" -c:s:%[1]v copy -metadata:s:s:%[1]v language=%[2]v", st.StId, st.Lang)
+					tempsc += fmt.Sprintf(" -c:s:%[1]v copy -metadata:s:s:%[1]v language=%[2]v", st.StreamID, st.Language)
 				}
 			} else {
 				for _, st := range vdata.Subtitle {
@@ -174,8 +174,8 @@ func generateClientCmdLine(crdata models.Video, vdata models.Vidinfo, sf string,
 	)
 
 	// Checks if debuging is set to true
-	if config.Debug {
-		debugIntr = "-ss " + config.DebugStart + " -t " + config.DebugEnd
+	if utils.Conf.Debug {
+		debugIntr = "-ss " + utils.Conf.DebugStart + " -t " + utils.Conf.DebugEnd
 	}
 
 	// Video part ---------------------------------------------
@@ -224,7 +224,7 @@ func generateClientCmdLine(crdata models.Video, vdata models.Vidinfo, sf string,
 		vcode += fmt.Sprintf("%v -filter_complex %v %v ", fps, filterComplex, maps)
 
 	} else {
-		mapping += fmt.Sprintf(" -map 0:%v", crdata.StreamID)
+		mapping += fmt.Sprintf(" -map 0:%v", crdata.StrID)
 		for _, at := range crdata.AudioT {
 			mapping += " -map 0:" + strconv.Itoa(at.StreamID)
 		}
@@ -235,17 +235,17 @@ func generateClientCmdLine(crdata models.Video, vdata models.Vidinfo, sf string,
 		switch crdata.VideoCodec {
 
 		case "h264":
-			vcode += fmt.Sprintf(" -c:v:%[1]v libx264 -profile:v:%[1]v main -b:v:%[1]v %[2]vk -metadata:s:v:%[1]v name=\"%[3]v\"", crdata.StreamID, config.VBW, sfname)
+			vcode += fmt.Sprintf(" -c:v:%[1]v libx264 -profile:v:%[1]v main -b:v:%[1]v %[2]vk -metadata:s:v:%[1]v name=\"%[3]v\"", crdata.StrID, utils.Conf.VBW, sfname)
 			break
 
 		case "h265":
-			templ := fmt.Sprintf(" -c:v:%v libx265 -x265-params \"preset=slower:me=hex:no-rect=1:no-amp=1:rd=4:aq-mode=2:", crdata.StreamID)
+			templ := fmt.Sprintf(" -c:v:%v libx265 -x265-params \"preset=slower:me=hex:no-rect=1:no-amp=1:rd=4:aq-mode=2:", crdata.StrID)
 			templ += "aq-strength=0.5:psy-rd=1.0:psy-rdoq=0.2:bframes=3:min-keyint=1\" "
-			templ += fmt.Sprintf("-b:v:0 %vk -metadata:s:v:0 name=\"%v\"", config.VBW, sfname)
+			templ += fmt.Sprintf("-b:v:0 %vk -metadata:s:v:0 name=\"%v\"", utils.Conf.VBW, sfname)
 			vcode += templ
 		}
 	} else {
-		vcode += fmt.Sprintf(" -c:v:%[1]v copy -metadata:s:v:%[1]v name=\"%[2]v\"", crdata.StreamID, sfname)
+		vcode += fmt.Sprintf(" -c:v:%[1]v copy -metadata:s:v:%[1]v name=\"%[2]v\"", crdata.StrID, sfname)
 	}
 
 	// Audio part ---------------------------------------------

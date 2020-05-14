@@ -17,6 +17,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
+var (
+	vfnprd = make(chan models.VfNPrd)
+)
+
 // VideoUpload upload handler which only allows to upload video
 func VideoUpload(w http.ResponseWriter, r *http.Request) {
 
@@ -35,14 +39,13 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	// Check if video file format is allowed
-	config, err := utils.GetConf()
 	if err != nil {
 		var resp = map[string]interface{}{"status": false, "message": "Failed to open conf.toml", "error": nil}
 		json.NewEncoder(w).Encode(resp)
 		return
 	}
 	allowed := false
-	for _, ave := range config.FileTypes {
+	for _, ave := range utils.Conf.FileTypes {
 		if filepath.Ext(handler.Filename) == ave {
 			allowed = true
 		}
@@ -57,7 +60,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Checks if uploaded file with the same name already exists
-	if _, err := os.Stat("videos/" + handler.Filename); err == nil {
+	if _, err := os.Stat(utils.Conf.SD + handler.Filename); err == nil {
 		var resp = map[string]interface{}{"status": false, "message": fmt.Sprintf("File \"%v\" already exists", handler.Filename), "error": nil}
 		json.NewEncoder(w).Encode(resp)
 		return
@@ -68,7 +71,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 
 	//Create empty file in /videos folder
 	//utils.WLog("Creating file", r.RemoteAddr)
-	dst, err := os.OpenFile("videos/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+	dst, err := os.OpenFile(utils.Conf.SD+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
 	defer dst.Close()
 	if err != nil {
 		var resp = map[string]interface{}{"status": false, "message": "Could not create file", "error": err}
@@ -86,7 +89,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		var resp = map[string]interface{}{"status": false, "message": "Failed to write file", "error": err}
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeFile("videos/", handler.Filename, r.RemoteAddr)
+		removeFile(utils.Conf.SD, handler.Filename, r.RemoteAddr)
 		return
 
 		// w.WriteHeader(500)
@@ -103,7 +106,8 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		var resp = map[string]interface{}{"status": false, "message": "Error getting video info", "error": err}
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeFile("videos/", handler.Filename, r.RemoteAddr)
+		removeFile(utils.Conf.SD, handler.Filename, r.RemoteAddr)
+		return
 
 		// w.WriteHeader(500)
 		// utils.WLog("Error: failed send video data to client", r.RemoteAddr)
@@ -114,16 +118,16 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		var resp = map[string]interface{}{"status": false, "message": "Could not verify user", "error": err}
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeFile("videos/", handler.Filename, r.RemoteAddr)
+		removeFile(utils.Conf.SD, handler.Filename, r.RemoteAddr)
 		return
 	}
 
-	err = InsertVideo(data, handler.Filename, "Not transcoded", userID)
+	err = utils.InsertVideo(data, handler.Filename, "Not transcoded", userID, -1)
 	if err != nil {
 		var resp = map[string]interface{}{"status": false, "message": "Sql error", "error": err}
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeFile("videos/", handler.Filename, r.RemoteAddr)
+		removeFile(utils.Conf.SD, handler.Filename, r.RemoteAddr)
 		return
 
 		// utils.WLog("Error: failed to insert video data in database", r.RemoteAddr)
@@ -132,62 +136,137 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 
 	// utils.UpdateMessage(handler.Filename)
 
-	// go func() {
-	// 	dat := <-vfnprd
-	// 	if dat.Err == nil {
-	// 		vf := dat.Video
-	// 		prd := dat.PData
-	// 		go tc.ProcessVodFile(handler.Filename, data, vf, prd, config, r.RemoteAddr)
-	// 	}
-	// }()
+	go func() {
+		dat := <-vfnprd
+		if dat.Err == nil {
+			vf := dat.Video
+			prd := dat.Pdata
+			go tc.ProcessVodFile(handler.Filename, data, vf, prd, utils.Conf, r.RemoteAddr, userID)
+		}
+	}()
+}
+
+// TcTypeHandler ...
+func TcTypeHandler(w http.ResponseWriter, r *http.Request) {
+
+	if err := r.ParseForm(); err != nil {
+		log.Println(err)
+		w.WriteHeader(422)
+		return
+	}
+
+	type response struct {
+		Typechange string `json:"Tc"`
+	}
+	var rsp response
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&rsp)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(415)
+		return
+	}
+
+	if rsp.Typechange == "true" {
+		utils.Conf.Presets = false
+	} else if rsp.Typechange == "false" {
+		utils.Conf.Presets = true
+	} else {
+		log.Println(fmt.Errorf("uknown change type: '%v', expected 'true' or 'false'", rsp.Typechange))
+		w.WriteHeader(415)
+
+	}
+
+	w.WriteHeader(200)
+}
+
+// TranscodeHandler ...
+func TranscodeHandler(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	err = r.ParseForm()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	var (
+		vf  models.Video
+		prd models.Pdata
+	)
+
+	// Decode json file
+	if utils.Conf.Presets {
+		decoder := json.NewDecoder(r.Body)
+		err = decoder.Decode(&prd)
+		if err != nil {
+			var resp = map[string]interface{}{"status": false, "message": "cannot decode json", "error": err}
+			json.NewEncoder(w).Encode(resp)
+			log.Println(err)
+			return
+		}
+	} else {
+		decoder := json.NewDecoder(r.Body)
+		err = decoder.Decode(&vf)
+		if err != nil {
+			var resp = map[string]interface{}{"status": false, "message": "cannot decode json", "error": err}
+			json.NewEncoder(w).Encode(resp)
+			log.Println(err)
+			return
+		}
+	}
+
+	data := models.VfNPrd{
+		prd,
+		vf,
+		err,
+	}
+
+	vfnprd <- data
+
+	var resp = map[string]interface{}{"status": true, "message": "transcode starting", "error": nil}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // Send json response after file upload
 func writeJSONResponse(w http.ResponseWriter, filename string, clid string) (models.Vidinfo, error) {
 	var (
-		//data    models.Data
+		data    models.Data
 		vidinfo models.Vidinfo
 		err     error
 		//info    []byte
 	)
 
-	config, err := utils.GetConf()
-
-	vidinfo, err = tc.GetVidInfo("videos/", filename, config.TempJson, config.DataGen, config.TempTxt, clid)
 	if err != nil {
-		log.Println(err)
 		return vidinfo, err
 	}
 
-	// if config.Presets {
-	// 	data, err = db.AddPresetsToJson(vidinfo)
-	// 	if err != nil {
-	// 		return vidinfo, err
-	// 	}
+	vidinfo, err = tc.GetVidInfo(utils.Conf.SD, filename, utils.Conf.TempJson, utils.Conf.DataGen, utils.Conf.TempTxt, clid)
+	if err != nil {
+		return vidinfo, err
+	}
 
-	// 	info, err = json.Marshal(data)
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 		return vidinfo, err
-	// 	}
-	// } else {
-	// 	info, err = json.Marshal(vidinfo)
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 		return vidinfo, err
-	// 	}
-	// }
+	if utils.Conf.Presets {
+		data = utils.AddPresetsToJSON(vidinfo)
+		json.NewEncoder(w).Encode(&data)
 
-	// info, err = json.Marshal(vidinfo)
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return vidinfo, err
-	// }
+		// info, err = json.Marshal(data)
+		// if err != nil {
+		// 	return vidinfo, err
+		// }
+	} else {
+		json.NewEncoder(w).Encode(&vidinfo)
+		// info, err = json.Marshal(vidinfo)
+		// if err != nil {
+		// 	return vidinfo, err
+		// }
+	}
 
 	//w.WriteHeader(200)
 	//w.Write(info)
 
-	json.NewEncoder(w).Encode(&vidinfo)
+	//json.NewEncoder(w).Encode(&vidinfo)
 
 	return vidinfo, nil
 }
@@ -227,56 +306,6 @@ func GetVideo(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&video)
 }
 
-// InsertVideo adds video to database
-func InsertVideo(vidinfo models.Vidinfo, name string, state string, userID uint) error {
-
-	var user models.User
-	var audio []models.Audio
-	var subtitle []models.Sub
-
-	utils.DB.First(&user, userID)
-
-	for _, a := range vidinfo.Audiotrack {
-		at := models.Audio{
-			StreamID: a.Index,
-			AtCodec:  a.CodecName,
-			Language: a.Language,
-			Channels: a.Channels,
-		}
-		audio = append(audio, at)
-	}
-
-	for _, s := range vidinfo.Subtitle {
-		st := models.Sub{
-			StreamID: s.Index,
-			Language: s.Language,
-		}
-		subtitle = append(subtitle, st)
-	}
-
-	video := models.Video{
-		StreamID:   vidinfo.Videotrack[0].Index,
-		FileName:   name,
-		State:      state,
-		VideoCodec: vidinfo.Videotrack[0].CodecName,
-		Width:      vidinfo.Videotrack[0].Width,
-		Height:     vidinfo.Videotrack[0].Height,
-		FrameRate:  vidinfo.Videotrack[0].FrameRate,
-		AudioT:     audio,
-		SubtitleT:  subtitle,
-	}
-
-	user.Video = append(user.Video, video)
-
-	createdVideo := utils.DB.Save(&user)
-
-	if createdVideo.Error != nil {
-		return createdVideo.Error
-	}
-
-	return nil
-}
-
 func removeFile(path string, filename string, clid string) error {
 
 	var err error
@@ -285,11 +314,4 @@ func removeFile(path string, filename string, clid string) error {
 	}
 	//db.RemoveRowByName(filename, "Video")
 	return err
-}
-
-func ShowPresets(w http.ResponseWriter, r *http.Request) {
-	var presets []models.Preset
-	utils.DB.Find(&presets)
-
-	json.NewEncoder(w).Encode(presets)
 }

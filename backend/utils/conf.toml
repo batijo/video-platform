@@ -1,13 +1,13 @@
 # Configuration file
 
 # Source file directory
-SD = "videos/"
+SD = "../vod/"
 # Temporary (a.k.a file in trancoding proccess) directory
-TD = "videos/transcoding/"
+TD = "../vod/transcoding/"
 # Destination file directory
-DD = "videos/transcoded/"
+DD = "../vod/transcoded/"
 # Thumbnail directory
-TND = "views/thumbnails/"
+TND = "../vod/thumbnails/"
 
 # If true debug transcoder by transcoding only interval between DebugStart-DebugEnd
 Debug = true
@@ -35,7 +35,7 @@ TNTS = "00:00:15"
 TNNum = 5
 
 # If Presets set to true use Presets as default
-Presets = false
+Presets = true
 
 # Available file formats to be uploaded
 FileTypes = [".mkv", ".mp4", ".avi", ".mov", ".mpg", ".wmv"]

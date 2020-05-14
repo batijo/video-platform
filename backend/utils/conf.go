@@ -26,7 +26,10 @@ type Config struct {
 	FileTypes  []string
 }
 
-// Load config file
+// Conf configuration file
+var Conf Config
+
+// GetConf load and return config file
 func GetConf() (Config, error) {
 	var conf Config
 	if _, err := toml.DecodeFile("utils/conf.toml", &conf); err != nil {
