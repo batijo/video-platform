@@ -25,7 +25,6 @@ func handlers() *mux.Router {
 
 	r.HandleFunc("/register", controllers.CreateUser).Methods("POST")
 	r.HandleFunc("/login", controllers.Login).Methods("POST")
-	r.HandleFunc("/presets", controllers.ShowPresets).Methods("GET")
 
 	// Auth route
 	s := r.PathPrefix("/auth").Subrouter()
@@ -39,6 +38,8 @@ func handlers() *mux.Router {
 	s.HandleFunc("/video/{id}", controllers.UpdateVideo).Methods("PUT")
 	s.HandleFunc("/video/{id}", controllers.GetVideo).Methods("GET")
 	s.HandleFunc("/upload", controllers.VideoUpload).Methods("POST")
+	s.HandleFunc("/upload", controllers.TranscodeHandler).Methods("PUT")
+	s.HandleFunc("/tc", controllers.TcTypeHandler).Methods("POST")
 
 	return r
 }
@@ -64,6 +65,7 @@ func main() {
 		log.Println(err)
 		return
 	}
+	utils.Conf = config
 
 	// Write all logs to file
 	err = utils.OpenLogFile(config.LogP)

@@ -10,5 +10,6 @@ type User struct {
 	Gender   string `json:"Gender"`
 	Password string `json:"Password"`
 
-	Video []Video `gorm:"ForeignKey:UserID"`
+	Video  []Video   `gorm:"ForeignKey:UserID"`
+	Stream []Vstream `gorm:"ForeignKey:UserID"`
 }
