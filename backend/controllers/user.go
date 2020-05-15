@@ -46,7 +46,7 @@ func FindOne(email, password string) map[string]interface{} {
 		var resp = map[string]interface{}{"status": false, "message": "Email address not found"}
 		return resp
 	}
-	expiresAt := time.Now().Add(time.Minute * 100000).Unix()
+	expiresAt := time.Now().Add(time.Minute * time.Duration(utils.Conf.JWTExp)).Unix()
 
 	errf := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if errf != nil && errf == bcrypt.ErrMismatchedHashAndPassword { //Password does not match!
@@ -65,7 +65,7 @@ func FindOne(email, password string) map[string]interface{} {
 
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
 
-	tokenString, err := token.SignedString([]byte("secret"))
+	tokenString, err := token.SignedString([]byte(utils.Conf.JWTSecret))
 	if err != nil {
 		fmt.Println(err)
 	}

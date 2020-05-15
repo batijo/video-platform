@@ -1,5 +1,10 @@
 # Configuration file
 
+# Time in minutes when jwt token expires
+JWTExp = 10000
+# Secret used to create jwt token
+JWTSecret = "secret"
+
 # Source file directory
 SD = "../vod/"
 # Temporary (a.k.a file in trancoding proccess) directory
