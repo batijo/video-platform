@@ -33,7 +33,7 @@ var Conf Config
 // GetConf load and return config file
 func GetConf() (Config, error) {
 	var conf Config
-	if _, err := toml.DecodeFile("utils/conf.toml", &conf); err != nil {
+	if _, err := toml.DecodeFile("./utils/conf.toml", &conf); err != nil {
 		log.Println("error geting conf.toml")
 		return conf, err
 	}
