@@ -46,13 +46,15 @@ export default class Upload extends React.Component {
   constructor(props) {
     super(props)
 
-    this.handleUpload = this.handleUpload.bind(this);
-    this.handleCodec = this.handleCodec.bind(this);
-    this.handleResolution = this.handleResolution.bind(this);
-    this.handleFramerate = this.handleFramerate.bind(this);
-    this.handleAudio = this.handleAudio.bind(this);
-    this.handleAudioChannels = this.handleAudioChannels.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleUpload = this.handleUpload.bind(this)
+    this.handleCodec = this.handleCodec.bind(this)
+    this.handleResolution = this.handleResolution.bind(this)
+    this.handleFramerate = this.handleFramerate.bind(this)
+    this.handleAudio = this.handleAudio.bind(this)
+    this.handleAudioChannels = this.handleAudioChannels.bind(this)
+    this.handleAudioTracks = this.handleAudioTracks.bind(this)
+    this.handleSubtitles = this.handleSubtitles.bind(this)
+    this.handleSubmit = this.handleSubmit.bind(this)
 
     this.state = {
       video: '',
@@ -127,6 +129,15 @@ export default class Upload extends React.Component {
     this.setState({ audioChannels: event.target.value })
   }
 
+  handleAudioTracks(event) {
+    let form = {...this.state.form}
+    let AudioT = {...form.AudioT}
+  }
+
+  handleSubtitles(event) {
+
+  }
+
   handleSubmit() {
     let video = this.state.video
     let form = {...this.state.form}
@@ -150,7 +161,7 @@ export default class Upload extends React.Component {
     if (!form.FrameRate)
       form.FrameRate = video['videotrack'][0]['frameRate']
 
-    event.preventDefault();
+    event.preventDefault()
   }
 
   render() {
@@ -226,6 +237,24 @@ export default class Upload extends React.Component {
                     <option selected value="">Keep</option>
                     <option value="1">Mono</option>
                     <option value="2">Stereo</option>
+                  </Form.Control>
+                </Form.Group>
+              </Col>
+
+              <Col xs={12} md={6}>
+                <Form.Group controlId="channels-select">
+                  <Form.Label>Audio Tracks</Form.Label>
+                  <Form.Control as="select" custom onChange={this.handleAudioTracks}>
+                    <option selected value="">Keep</option>
+                  </Form.Control>
+                </Form.Group>
+              </Col>
+            
+              <Col xs={12} md={6}>
+                <Form.Group controlId="channels-select">
+                  <Form.Label>Subtitles</Form.Label>
+                  <Form.Control as="select" custom onChange={this.handleSubtitles}>
+                    <option selected value="">Keep</option>
                   </Form.Control>
                 </Form.Group>
               </Col>

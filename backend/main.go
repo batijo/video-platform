@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
 
 	"net/http"
 
@@ -100,13 +99,6 @@ func main() {
 		log.Println(err)
 	}
 
-	// Load .env file
-	err = godotenv.Load()
-	if err != nil {
-		log.Println("Error: failed to load .env file")
-		log.Println(err)
-		return
-	}
 	port := os.Getenv("PORT")
 
 	// Handle routes

@@ -6,7 +6,7 @@ import {
 } from 'react-bootstrap'
   
 export default () => (
-  <Navbar bg="light" expand="lg">
+  <Navbar bg="dark" variant="dark" expand="lg">
     <Navbar.Brand>
       <Link href="/">
         <a className="navbar-brand">Video Platform</a>
@@ -15,6 +15,11 @@ export default () => (
     <Navbar.Toggle aria-controls="navbar-nav" />
     <Navbar.Collapse id="navbar-nav">
       <Nav className="ml-auto">
+        <Navbar.Text>
+          <Link href="/video/upload">
+            <a className="nav-link">Upload</a>
+          </Link>
+        </Navbar.Text>
         <Navbar.Text>
           <Link href="/login">
             <a className="nav-link">Log in</a>
