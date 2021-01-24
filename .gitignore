@@ -1,1 +1,3 @@
-vod/
+backups/
+videos/*
+docker-compose.override.yml
