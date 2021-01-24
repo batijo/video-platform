@@ -1,3 +1,5 @@
+.vscode
+backend/info.log
 backups/
 videos/*
 docker-compose.override.yml

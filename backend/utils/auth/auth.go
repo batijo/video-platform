@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Dzionys/video-platform/backend/models"
+	"github.com/Dzionys/video-platform/backend/utils"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )
@@ -21,7 +22,7 @@ func GetUserID(r *http.Request) (uint, error) {
 	tk := &models.Token{}
 
 	_, err := jwt.ParseWithClaims(header, tk, func(token *jwt.Token) (interface{}, error) {
-		return []byte("secret"), nil
+		return []byte(utils.Conf.JWTSecret), nil
 	})
 	if err != nil {
 		return tk.UserID, err
@@ -46,7 +47,7 @@ func JwtVerify(next http.Handler) http.Handler {
 		tk := &models.Token{}
 
 		_, err := jwt.ParseWithClaims(header, tk, func(token *jwt.Token) (interface{}, error) {
-			return []byte("secret"), nil
+			return []byte(utils.Conf.JWTSecret), nil
 		})
 
 		if err != nil {
