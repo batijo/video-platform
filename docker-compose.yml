@@ -15,8 +15,6 @@ services:
       - POSTGRES_DB=${DB_NAME}
       - POSRGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
-    ports:
-      - 5432:5432
     networks:
       - internal
 
@@ -32,8 +30,6 @@ services:
       - PORT=8080
     volumes:
       - ./videos:/src/videos
-    ports:
-      - 8080:8080
     networks:
       - internal
     depends_on:
