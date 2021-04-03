@@ -28,6 +28,8 @@ services:
       - DATABASE_PASSWORD=${DB_PASSWORD}
       - DATABASE_HOST=db
       - PORT=8080
+    ports:
+      - 8080:8080
     volumes:
       - ./videos:/src/videos
     networks:

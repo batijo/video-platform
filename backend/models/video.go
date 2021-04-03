@@ -14,6 +14,7 @@ type Video struct {
 	gorm.Model
 
 	UserID     uint
+	Public     bool
 	VstreamID  uint `gorm:"DEFAULT:NULL"`
 	StrID      int
 	FileName   string
