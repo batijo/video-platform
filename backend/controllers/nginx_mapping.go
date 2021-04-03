@@ -15,7 +15,7 @@ import (
 // NginxMappingHandler ...
 func NginxMappingHandler(w http.ResponseWriter, r *http.Request) {
 
-	tcvidpath := utils.Conf.APTGD + "/go/src/github.com/Dzionys/video-platform/vod/transcoded/%v"
+	tcvidpath := utils.Conf.APTGD + "/go/src/github.com/Dzionys/video-platform/videos/transcoded/%v"
 	var sqncs models.Sequences
 
 	vars := mux.Vars(r)
