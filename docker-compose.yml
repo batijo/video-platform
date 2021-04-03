@@ -45,6 +45,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./videos:/www/static/videos
+      - ./frontend/dist:/www/static/frontend
     ports:
       - 1935:1935
       - 80:80
