@@ -45,6 +45,12 @@ func handlers() *mux.Router {
 	s.HandleFunc("/upload", controllers.VideoUpload).Methods("POST")
 	s.HandleFunc("/upload/transcode", controllers.TranscodeHandler).Methods("POST")
 
+	s.HandleFunc("/test", controllers.Test).Methods("GET")
+	a := r.PathPrefix("/admin").Subrouter()
+	a.Use(auth.AdminVerify)
+
+	a.HandleFunc("/test", controllers.Test).Methods("GET")
+
 	// s.HandleFunc("/tc", controllers.TcTypeHandler).Methods("POST")
 	// s.HandleFunc("/list", controllers.ListHandler).Methods("GET")
 
