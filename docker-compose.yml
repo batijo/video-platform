@@ -1,58 +1,45 @@
 version: '3'
 
-# volumes:
-#   videos:
+networks:
+  internal:
+    external: false
+  web:
+    external: true
 
 services:
-  backend:
-    build:
-      context: backend
-      dockerfile: Dockerfile
+  db:
+    container_name: ${DB_CONTAINER_NAME}
+    image: postgres:alpine
     restart: unless-stopped
     environment:
-      - DATABASE_NAME=postgres
-      - DATABASE_PASSWORD=postgres
-      - DATABASE_USER=postgres
+      - POSTGRES_DB=${DB_NAME}
+      - POSRGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - 5432:5432
+    networks:
+      - internal
+
+  backend:
+    container_name: ${BACKEND_CONTAINER_NAME}
+    build: backend
+    restart: unless-stopped
+    environment:
+      - DATABASE_NAME=${DB_NAME}
+      - DATABASE_USER=${DB_USER}
+      - DATABASE_PASSWORD=${DB_PASSWORD}
       - DATABASE_HOST=db
       - PORT=8080
     ports:
       - 8080:8080
     networks:
-      - default
+      - internal
     depends_on:
       - db
 
-  frontend:
-    build:
-      context: frontend
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=development
-      - GATSBY_WEBPACK_PUBLICPATH=/
-    ports:
-      - 8000:8000
-      - 9929:9929
-      - 9230:9230
-    networks:
-      - default
-
-  db:
-    image: postgres:alpine
-    restart: unless-stopped
-    environment:
-      - POSTGRES_DB=postgres
-      - POSRGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    ports:
-      - 5432:5432
-    networks:
-      - default
-
   nginx:
-    build:
-      context: nginx
-      dockerfile: Dockerfile 
+    container_name: ${NGINX_CONTAINER_NAME}
+    build: nginx
     restart: unless-stopped
     volumes:
       - ./videos:/www/static/videos
@@ -60,4 +47,27 @@ services:
       - 1935:1935
       - 8090:80
     networks:
-      - default
+      - internal
+      - web
+    depends_on:
+      - backend
+
+  frontend:
+    container_name: ${FRONTEND_CONTAINER_NAME}
+    build: frontend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - GATSBY_WEBPACK_PUBLICPATH=/
+      - GATSBY_TELEMETRY_DISABLED=1
+    volumes:
+      - /app/node_modules
+      - ./frontend:/app
+    ports:
+      - 8000:8000
+      - 9929:9929
+      - 9230:9230
+    networks:
+      - web
+    depends_on:
+      - nginx
