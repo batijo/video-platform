@@ -4,6 +4,7 @@ networks:
   internal:
     external: false
   web:
+    external: true
 
 services:
   db:
