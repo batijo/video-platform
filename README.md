@@ -1,14 +1,16 @@
 # video-platform
 
-Install `go`
+## Dependencies
+- `go`
+- `python`
+- `docker`
+- `docker-compose`
 
-Install `docker`
+## Setup `docker`
 - `sudo systemctl enable docker --force`
 - `sudo usermod -aG docker ${USER}`
 
-Install python
-Install docker-compose
-
+## Setup project
 ```sh
 docker network create web
 docker-compose up -d
