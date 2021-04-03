@@ -25,23 +25,28 @@ func handlers() *mux.Router {
 	r := router.PathPrefix("/api").Subrouter()
 	r.HandleFunc("/register", controllers.CreateUser).Methods("POST")
 	r.HandleFunc("/login", controllers.Login).Methods("POST")
-	r.HandleFunc("/ngx/mapping/{name}", controllers.NginxMappingHandler).Methods("GET")
+
+	// r.HandleFunc("/ngx/mapping/{name}", controllers.NginxMappingHandler).Methods("GET")
 
 	// Auth route
 	s := r.PathPrefix("/auth").Subrouter()
 	s.Use(auth.JwtVerify)
+
 	s.HandleFunc("/user", controllers.FetchUsers).Methods("GET")
 	s.HandleFunc("/user/{id}", controllers.GetUser).Methods("GET")
-	s.HandleFunc("/user/{id}", controllers.UpdateUser).Methods("PUT")
-	s.HandleFunc("/user/{id}", controllers.DeleteUser).Methods("DELETE")
+	s.HandleFunc("/user/update/{id}", controllers.UpdateUser).Methods("POST")
+	s.HandleFunc("/user/delete/{id}", controllers.DeleteUser).Methods("POST")
+
 	s.HandleFunc("/video", controllers.FetchVideos).Methods("GET")
-	s.HandleFunc("/video/{id}", controllers.DeleteVideo).Methods("DELETE")
-	s.HandleFunc("/video/{id}", controllers.UpdateVideo).Methods("PUT")
 	s.HandleFunc("/video/{id}", controllers.GetVideo).Methods("GET")
+	s.HandleFunc("/video/update/{id}", controllers.UpdateVideo).Methods("POST")
+	s.HandleFunc("/video/delete/{id}", controllers.DeleteVideo).Methods("POST")
+
 	s.HandleFunc("/upload", controllers.VideoUpload).Methods("POST")
-	s.HandleFunc("/upload", controllers.TranscodeHandler).Methods("PUT")
-	s.HandleFunc("/tc", controllers.TcTypeHandler).Methods("POST")
-	s.HandleFunc("/list", controllers.ListHandler).Methods("GET")
+	s.HandleFunc("/upload/transcode", controllers.TranscodeHandler).Methods("POST")
+
+	// s.HandleFunc("/tc", controllers.TcTypeHandler).Methods("POST")
+	// s.HandleFunc("/list", controllers.ListHandler).Methods("GET")
 
 	return router
 }
