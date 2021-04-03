@@ -107,7 +107,7 @@ func (b *Broker) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func UpdateMessage(msg string) {
 	if !started {
-		log.Println("SSE has not been server started")
+		log.Println("SSE server has not been started")
 		return
 	}
 	message := Message{
@@ -119,7 +119,7 @@ func UpdateMessage(msg string) {
 
 func UpdateLogMessage(msg string, clid string) {
 	if !started {
-		log.Println("SSE has not been server started")
+		log.Println("SSE server has not been started")
 		return
 	}
 	curentTime := time.Now().Format("15:04:05")

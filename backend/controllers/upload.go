@@ -13,8 +13,6 @@ import (
 	tc "github.com/Dzionys/video-platform/backend/transcode"
 	"github.com/Dzionys/video-platform/backend/utils"
 	"github.com/Dzionys/video-platform/backend/utils/auth"
-
-	"github.com/gorilla/mux"
 )
 
 var (
@@ -132,89 +130,6 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 	}()
 }
 
-// TcTypeHandler ...
-func TcTypeHandler(w http.ResponseWriter, r *http.Request) {
-
-	if err := r.ParseForm(); err != nil {
-		log.Println(err)
-		w.WriteHeader(422)
-		return
-	}
-
-	type response struct {
-		Typechange string `json:"Tc"`
-	}
-	var rsp response
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&rsp)
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(415)
-		return
-	}
-
-	if rsp.Typechange == "true" {
-		utils.Conf.Presets = false
-	} else if rsp.Typechange == "false" {
-		utils.Conf.Presets = true
-	} else {
-		log.Println(fmt.Errorf("uknown change type: '%v', expected 'true' or 'false'", rsp.Typechange))
-		w.WriteHeader(415)
-
-	}
-
-	w.WriteHeader(200)
-}
-
-// TranscodeHandler ...
-func TranscodeHandler(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	err = r.ParseForm()
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	var (
-		vf  models.Video
-		prd models.Pdata
-	)
-
-	// Decode json file
-	if utils.Conf.Presets {
-		decoder := json.NewDecoder(r.Body)
-		err = decoder.Decode(&prd)
-		if err != nil {
-			var resp = map[string]interface{}{"status": false, "message": "cannot decode json", "error": err}
-			json.NewEncoder(w).Encode(resp)
-			log.Println(err)
-			return
-		}
-	} else {
-		decoder := json.NewDecoder(r.Body)
-		err = decoder.Decode(&vf)
-		if err != nil {
-			var resp = map[string]interface{}{"status": false, "message": "cannot decode json", "error": err}
-			json.NewEncoder(w).Encode(resp)
-			log.Println(err)
-			return
-		}
-	}
-
-	data := models.VfNPrd{
-		prd,
-		vf,
-		err,
-	}
-
-	vfnprd <- data
-
-	var resp = map[string]interface{}{"status": true, "message": "transcode starting", "error": nil}
-	json.NewEncoder(w).Encode(resp)
-}
-
 // Send json response after file upload
 func writeJSONResponse(w http.ResponseWriter, filename string, clid string) (models.Vidinfo, error) {
 	var (
@@ -240,41 +155,6 @@ func writeJSONResponse(w http.ResponseWriter, filename string, clid string) (mod
 	}
 
 	return vidinfo, nil
-}
-
-// FetchVideos return all
-func FetchVideos(w http.ResponseWriter, r *http.Request) {
-	var videos []models.Video
-	utils.DB.Preload("AudioT").Preload("SubtitleT").Find(&videos)
-
-	json.NewEncoder(w).Encode(videos)
-}
-
-// UpdateVideo ...
-func UpdateVideo(w http.ResponseWriter, r *http.Request) {
-	video := &models.Video{}
-	var id = mux.Vars(r)["id"]
-	utils.DB.First(&video, id)
-	json.NewDecoder(r.Body).Decode(video)
-	utils.DB.Save(&video)
-	json.NewEncoder(w).Encode(video)
-}
-
-// DeleteVideo ...
-func DeleteVideo(w http.ResponseWriter, r *http.Request) {
-	var id = mux.Vars(r)["id"]
-	var video models.Video
-	utils.DB.First(&video, id)
-	utils.DB.Delete(&video)
-	json.NewEncoder(w).Encode("Video Deleted")
-}
-
-// GetVideo ...
-func GetVideo(w http.ResponseWriter, r *http.Request) {
-	var id = mux.Vars(r)["id"]
-	var video models.Video
-	utils.DB.Preload("AudioT").Preload("SubtitleT").First(&video, id)
-	json.NewEncoder(w).Encode(&video)
 }
 
 func removeFile(path string, filename string, clid string) error {
