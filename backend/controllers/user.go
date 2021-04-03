@@ -58,6 +58,7 @@ func FindOne(email, password string) map[string]interface{} {
 		UserID: user.ID,
 		Name:   user.Name,
 		Email:  user.Email,
+		Role:   user.Role,
 		StandardClaims: &jwt.StandardClaims{
 			ExpiresAt: expiresAt,
 		},
