@@ -4,7 +4,6 @@ networks:
   internal:
     external: false
   web:
-    external: true
 
 services:
   db:
@@ -30,6 +29,8 @@ services:
       - DATABASE_PASSWORD=${DB_PASSWORD}
       - DATABASE_HOST=db
       - PORT=8080
+    volumes:
+      - ./videos:/src/videos
     ports:
       - 8080:8080
     networks:
@@ -45,7 +46,7 @@ services:
       - ./videos:/www/static/videos
     ports:
       - 1935:1935
-      - 8090:80
+      - 80:80
     networks:
       - internal
       - web
