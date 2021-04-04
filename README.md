@@ -15,3 +15,8 @@
 docker network create web
 docker-compose up -d
 ```
+
+To run the Ingest client alongside the server for a local Demo
+```sh
+docker-compose -f docker-compose.yml -f docker-compose.client.yml up -d
+```
