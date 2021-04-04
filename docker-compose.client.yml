@@ -5,5 +5,7 @@ services:
     container_name: ${INGEST_CONTAINER_NAME}
     build: lightspeed-ingest
     restart: unless-stopped
+    ports:
+    - 8084:8084
     networks:
     - web
