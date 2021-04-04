@@ -60,7 +60,7 @@ type Stream struct {
 type Preset struct {
 	ID         uint
 	Name       string
-	Type       int `gorm:"tinyint(1)`
+	Type       int `gorm:"tinyint(1)"`
 	Resolution string
 	Codec      string
 	Bitrate    string

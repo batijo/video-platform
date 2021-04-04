@@ -29,8 +29,8 @@ func NginxMappingHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		temp := models.Clip{
-			"source",
-			fmt.Sprintf(tcvidpath, vars["name"]),
+			Type: "source",
+			Path: fmt.Sprintf(tcvidpath, vars["name"]),
 		}
 		var tempclip models.Clips
 		tempclip.Clips = append(tempclip.Clips, temp)
@@ -46,8 +46,8 @@ func NginxMappingHandler(w http.ResponseWriter, r *http.Request) {
 
 		for _, n := range names {
 			temp := models.Clip{
-				"source",
-				fmt.Sprintf(tcvidpath, n),
+				Type: "source",
+				Path: fmt.Sprintf(tcvidpath, n),
 			}
 			var tempclip models.Clips
 			tempclip.Clips = append(tempclip.Clips, temp)
