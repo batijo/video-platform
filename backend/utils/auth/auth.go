@@ -39,7 +39,7 @@ func AdminVerify(next http.Handler) http.Handler {
 			return
 		}
 
-		if tk.Role != "admin" {
+		if tk.Admin {
 			w.WriteHeader(http.StatusForbidden)
 			json.NewEncoder(w).Encode(Exception{Message: "No administration privilage"})
 			return

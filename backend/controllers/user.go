@@ -23,7 +23,7 @@ type error interface {
 	Error() string
 }
 
-//var db = utils.ConnectDB()
+// var db = utils.ConnectDB()
 
 // Login ...
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -34,12 +34,12 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(resp)
 		return
 	}
-	resp := FindOne(user.Email, user.Password)
+	resp := findOne(user.Email, user.Password)
 	json.NewEncoder(w).Encode(resp)
 }
 
 // FindOne ...
-func FindOne(email, password string) map[string]interface{} {
+func findOne(email, password string) map[string]interface{} {
 	user := &models.User{}
 
 	if err := utils.DB.Where("Email = ?", email).First(user).Error; err != nil {
@@ -49,7 +49,7 @@ func FindOne(email, password string) map[string]interface{} {
 	expiresAt := time.Now().Add(time.Minute * time.Duration(utils.Conf.JWTExp)).Unix()
 
 	errf := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-	if errf != nil && errf == bcrypt.ErrMismatchedHashAndPassword { //Password does not match!
+	if errf != nil || errf == bcrypt.ErrMismatchedHashAndPassword { //Password does not match!
 		var resp = map[string]interface{}{"status": false, "message": "Invalid login credentials. Please try again"}
 		return resp
 	}
@@ -58,7 +58,7 @@ func FindOne(email, password string) map[string]interface{} {
 		UserID: user.ID,
 		Name:   user.Name,
 		Email:  user.Email,
-		Role:   user.Role,
+		Admin:  user.Admin,
 		StandardClaims: &jwt.StandardClaims{
 			ExpiresAt: expiresAt,
 		},
@@ -72,16 +72,27 @@ func FindOne(email, password string) map[string]interface{} {
 	}
 
 	var resp = map[string]interface{}{"status": true, "message": "logged in"}
-	resp["token"] = tokenString //Store the token in the response
-	//resp["user"] = user
+	resp["token"] = tokenString // Store the token in the response
+	// resp["user"] = user
 	return resp
 }
 
-//CreateUser function -- create a new user
+// CreateUser function -- create a new user
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	user := &models.User{}
 	json.NewDecoder(r.Body).Decode(user)
+
+	// Check if user trying to gain admin access
+	if user.Admin {
+		json.NewEncoder(w).Encode("Nice try, but you can not make yourself an admin")
+		return
+	}
+
+	if user.Email == "" || user.Password == "" {
+		json.NewEncoder(w).Encode("Email and/or Password must be provided")
+		return
+	}
 
 	pass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -113,13 +124,41 @@ func FetchUsers(w http.ResponseWriter, r *http.Request) {
 
 // UpdateUser ...
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	user := &models.User{}
+
+	var user models.User
+
 	params := mux.Vars(r)
 	var id = params["id"]
 	utils.DB.First(&user, id)
-	json.NewDecoder(r.Body).Decode(user)
+
+	if user.Email == "" {
+		json.NewEncoder(w).Encode("User not found")
+		return
+	}
+
+	json.NewDecoder(r.Body).Decode(&user)
+
+	// Check if user trying to gain admin access
+	if user.Admin {
+		json.NewEncoder(w).Encode("Nice try, but you can not make yourself an admin")
+		return
+	}
+
+	if user.Password != "" {
+		pass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		if err != nil {
+			fmt.Println(err)
+			err := ErrorResponse{
+				Err: "Password Encryption failed",
+			}
+			json.NewEncoder(w).Encode(err)
+		}
+
+		user.Password = string(pass)
+	}
+
 	utils.DB.Save(&user)
-	json.NewEncoder(w).Encode(&user)
+	json.NewEncoder(w).Encode(user)
 }
 
 // DeleteUser ...
@@ -128,8 +167,16 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	var id = params["id"]
 	var user models.User
 	utils.DB.First(&user, id)
+
+	// For some reason if you try to delete user which does not exist it deletes all users
+	if user.Email == "" {
+		json.NewEncoder(w).Encode("User not found")
+		return
+	}
+
 	utils.DB.Delete(&user)
 	json.NewEncoder(w).Encode("User deleted")
+	json.NewEncoder(w).Encode(&user)
 }
 
 // GetUser ...
@@ -138,5 +185,14 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	var id = params["id"]
 	var user models.User
 	utils.DB.Preload("Video").Preload("Video.AudioT").Preload("Video.SubtitleT").First(&user, id)
+	json.NewEncoder(w).Encode(&user)
+}
+
+func GetUserByEmail(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	var email = params["email"]
+	println(email)
+	var user models.User
+	utils.DB.Where("email = ?", email).First(&user)
 	json.NewEncoder(w).Encode(&user)
 }

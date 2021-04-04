@@ -25,6 +25,7 @@ func handlers() *mux.Router {
 	r := router.PathPrefix("/api").Subrouter()
 	r.HandleFunc("/register", controllers.CreateUser).Methods("POST")
 	r.HandleFunc("/login", controllers.Login).Methods("POST")
+	r.HandleFunc("/user/{email}", controllers.GetUserByEmail).Methods("GET")
 
 	// r.HandleFunc("/ngx/mapping/{name}", controllers.NginxMappingHandler).Methods("GET")
 
