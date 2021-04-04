@@ -82,9 +82,9 @@ func TranscodeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := models.VfNPrd{
-		prd,
-		vf,
-		err,
+		Pdata: prd,
+		Video: vf,
+		Err:   err,
 	}
 
 	vfnprd <- data

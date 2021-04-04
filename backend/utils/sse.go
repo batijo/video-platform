@@ -45,7 +45,7 @@ func (b *Broker) Start() {
 
 			case msg := <-b.Messages:
 				// there is a new message to send to all clients
-				for s, _ := range b.Clients {
+				for s := range b.Clients {
 					s <- msg.Msg
 				}
 				// log.Printf("Broadcast message to %d clients", len(b.Clients))
