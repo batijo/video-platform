@@ -1,0 +1,3 @@
+[submodule "lightspeed-ingest"]
+	path = lightspeed-ingest
+	url = https://github.com/GRVYDEV/Lightspeed-ingest

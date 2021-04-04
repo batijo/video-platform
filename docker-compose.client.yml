@@ -1,0 +1,7 @@
+version: '3'
+
+services:
+  client:
+    container_name: ${INGEST_CONTAINER_NAME}
+    build: lightspeed-ingest
+    restart: unless-stopped
