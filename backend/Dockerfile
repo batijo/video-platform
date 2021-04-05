@@ -82,6 +82,11 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 FROM alpine:3.13
 
+RUN apk add --update libuuid
+
+COPY --from=build-ffmpeg /usr/local /usr/local
+COPY --from=build-ffmpeg /usr/lib/ /usr/lib
+
 WORKDIR /build/utils
 
 COPY --from=builder /src/utils/conf.toml .
