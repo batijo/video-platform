@@ -29,7 +29,7 @@ services:
       - DATABASE_HOST=db
       - PORT=8080
     volumes:
-      - ./videos:/src/videos
+      - ./videos:/videos
     networks:
       - internal
     depends_on:
