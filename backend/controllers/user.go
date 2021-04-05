@@ -23,8 +23,6 @@ type error interface {
 	Error() string
 }
 
-// var db = utils.ConnectDB()
-
 // Login ...
 func Login(w http.ResponseWriter, r *http.Request) {
 	user := &models.User{}
@@ -36,6 +34,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 	resp := findOne(user.Email, user.Password)
 	json.NewEncoder(w).Encode(resp)
+}
+
+// LogOut ...
+func LogOut(w http.ResponseWriter, r *http.Request) {
+	// TO DO ...
 }
 
 // FindOne ...
@@ -144,6 +147,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Create new hash if pasword is changed
 	if user.Password != "" {
 		pass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 		if err != nil {
@@ -188,6 +192,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&user)
 }
 
+// GetUserByEmail ...
 func GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var email = params["email"]

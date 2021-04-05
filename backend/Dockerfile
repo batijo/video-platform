@@ -82,7 +82,9 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 FROM alpine:3.13
 
-RUN apk add --update libuuid
+RUN apk add --update \
+  python3 \
+  libuuid
 
 COPY --from=build-ffmpeg /usr/local /usr/local
 COPY --from=build-ffmpeg /usr/lib/ /usr/lib
@@ -94,6 +96,7 @@ COPY --from=builder /src/utils/preset_values.toml .
 
 WORKDIR /build
 
+COPY --from=builder /src/transcode/generate_data.py .
 COPY --from=builder /src/main .
 COPY --from=builder /src/.env .
 

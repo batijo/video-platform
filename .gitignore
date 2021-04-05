@@ -1,5 +1,7 @@
 .vscode
 backend/info.log
 backups/
+uploaded/*
+transcoding/*
 videos/*
 docker-compose.override.yml

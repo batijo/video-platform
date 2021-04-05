@@ -117,7 +117,7 @@ func UpdateMessage(msg string) {
 	B.Messages <- message
 }
 
-func UpdateLogMessage(msg string, clid string) {
+func UpdateLogMessage(msg string, ClientID string) {
 	if !started {
 		log.Println("SSE server has not been started")
 		return
@@ -125,7 +125,7 @@ func UpdateLogMessage(msg string, clid string) {
 	curentTime := time.Now().Format("15:04:05")
 	message := Message{
 		fmt.Sprintf("<%v> %v", curentTime, msg),
-		clid,
+		ClientID,
 	}
 	B.Messages <- message
 }

@@ -49,7 +49,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 	if !allowed {
 		var resp = map[string]interface{}{"status": false, "message": "This file format is not allowed " + filepath.Ext(handler.Filename), "error": nil}
 		json.NewEncoder(w).Encode(resp)
-		utils.WLog("Error: this file format is not allowed "+filepath.Ext(handler.Filename), r.RemoteAddr)
+		utils.WLog("Error: this file format is not allowed: "+filepath.Ext(handler.Filename), r.RemoteAddr)
 		return
 	}
 
@@ -131,7 +131,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 }
 
 // Send json response after file upload
-func writeJSONResponse(w http.ResponseWriter, filename string, clid string) (models.Vidinfo, error) {
+func writeJSONResponse(w http.ResponseWriter, filename string, ClientID string) (models.Vidinfo, error) {
 	var (
 		data    models.Data
 		vidinfo models.Vidinfo
@@ -142,7 +142,7 @@ func writeJSONResponse(w http.ResponseWriter, filename string, clid string) (mod
 		return vidinfo, err
 	}
 
-	vidinfo, err = tc.GetVidInfo(utils.Conf.SD, filename, utils.Conf.TempJson, utils.Conf.DataGen, utils.Conf.TempTxt, clid)
+	vidinfo, err = tc.GetVidInfo(utils.Conf.SD, filename, utils.Conf.TempJson, utils.Conf.DataGen, utils.Conf.TempTxt, ClientID)
 	if err != nil {
 		return vidinfo, err
 	}
@@ -157,11 +157,12 @@ func writeJSONResponse(w http.ResponseWriter, filename string, clid string) (mod
 	return vidinfo, nil
 }
 
-func removeFile(path string, filename string, clid string) error {
+func removeFile(path string, filename string, ClientID string) error {
 
 	var err error
 	if err = os.Remove(path + filename); err != nil {
-		utils.WLog("Error: failed removing source file", clid)
+		log.Println(err)
+		utils.WLog("Error: failed removing source file", ClientID)
 	}
 	err = utils.DeleteVideo(filename)
 	if err != nil {

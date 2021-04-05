@@ -17,8 +17,8 @@ vc = 0
 ac = 0
 sc = 0
 
-jsonfile = 'transcode/temp.json'
-jsondata = 'transcode/data.json'
+jsonfile = 'temp.json'
+jsondata = 'data.json'
 
 with open(jsonfile) as f:
     data = json.load(f)
@@ -113,7 +113,7 @@ def parseData():
                     sc = sc+1
         print(True)
         os.remove(jsonfile)
-    except Exception as e:
+    except:
         print(False)
         return
 

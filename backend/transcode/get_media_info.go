@@ -29,9 +29,7 @@ func getMediaInfoJSON(source string, wg *sync.WaitGroup) ([]byte, error) {
 
 	out, err := exec.Command(head, parts...).Output()
 
-	ej := `{
-
-	}`
+	ej := `{}`
 	if string(out) == ej {
 		return out, errors.New("json data is empty")
 	}
@@ -53,8 +51,12 @@ func generateDataFile(wg *sync.WaitGroup, gpath string) error {
 
 	out, err := exec.Command("python3", gpath).Output()
 	if err != nil {
+		log.Println(err)
 		out, err = exec.Command("python", gpath).Output()
 		if err != nil {
+			if err := os.Remove(utils.Conf.TempJson); err != nil {
+				log.Println(err)
+			}
 			return err
 		}
 	}
@@ -69,7 +71,7 @@ func generateDataFile(wg *sync.WaitGroup, gpath string) error {
 }
 
 // GetVidInfo retruns struct with information about video file
-func GetVidInfo(path string, filename string, tempjson string, datagen string, tempdata string, clid string) (models.Vidinfo, error) {
+func GetVidInfo(path string, filename string, tempjson string, datagen string, tempdata string, ClientID string) (models.Vidinfo, error) {
 	var (
 		wg sync.WaitGroup
 		vi models.Vidinfo
@@ -79,8 +81,8 @@ func GetVidInfo(path string, filename string, tempjson string, datagen string, t
 	wg.Add(1)
 	infob, err := getMediaInfoJSON(path+filename, &wg)
 	if err != nil {
-		utils.WLog("Error: could not get json data from file", clid)
-		removeFile(path, filename, clid)
+		utils.WLog("Error: could not get json data from file", ClientID)
+		removeFile(path, filename, ClientID)
 		return vi, err
 	}
 	wg.Wait()
@@ -90,35 +92,33 @@ func GetVidInfo(path string, filename string, tempjson string, datagen string, t
 	json.Unmarshal(infob, &raw)
 	info, err := json.Marshal(raw)
 	if err != nil {
-		utils.WLog("Error: failed to marshal json file", clid)
-		removeFile(path, filename, clid)
+		utils.WLog("Error: failed to marshal json file", ClientID)
+		removeFile(path, filename, ClientID)
 		return vi, err
 	}
 	err = ioutil.WriteFile(tempjson, info, 0666)
 	if err != nil {
-		utils.WLog("Error: could not create json file", clid)
-		removeFile(path, filename, clid)
+		utils.WLog("Error: could not create json file", ClientID)
+		removeFile(path, filename, ClientID)
 		return vi, err
 	}
 
-	// Run python file to get nesessary data from json file
+	// Run python script to get nesessary data from json file
 	gpath, err := filepath.Abs(datagen)
 	wg.Add(1)
 	err = generateDataFile(&wg, gpath)
 	wg.Wait()
 	if err != nil {
-		log.Println(err)
-		utils.WLog("Error: failed to generate video data", clid)
-		removeFile(path, filename, clid)
+		utils.WLog("Error: failed to generate video data", ClientID)
+		removeFile(path, filename, ClientID)
 		return vi, err
 	}
 
 	// Write data to Vidinfo struct
 	vi, err = parseFile(tempdata)
 	if err != nil || vi.IsEmpty() {
-		log.Println(err)
-		utils.WLog("Error: failed parsing data file", clid)
-		removeFile(path, filename, clid)
+		utils.WLog("Error: failed parsing data file", ClientID)
+		removeFile(path, filename, ClientID)
 		return vi, err
 	}
 

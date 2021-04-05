@@ -25,7 +25,6 @@ func handlers() *mux.Router {
 	r := router.PathPrefix("/api").Subrouter()
 	r.HandleFunc("/register", controllers.CreateUser).Methods("POST")
 	r.HandleFunc("/login", controllers.Login).Methods("POST")
-	r.HandleFunc("/user/{email}", controllers.GetUserByEmail).Methods("GET")
 
 	// r.HandleFunc("/ngx/mapping/{name}", controllers.NginxMappingHandler).Methods("GET")
 
@@ -93,12 +92,12 @@ func main() {
 	utils.Conf = config
 
 	// Write all logs to file
-	err = utils.OpenLogFile(config.LogP)
-	if err != nil {
-		log.Println("Error: failed open log file")
-		log.Panicln(err)
-		return
-	}
+	// err = utils.OpenLogFile(config.LogP)
+	// if err != nil {
+	// 	log.Println("Error: failed open log file")
+	// 	log.Panicln(err)
+	// 	return
+	// }
 	//defer utils.LogFile.Close()
 
 	// Connect to database
