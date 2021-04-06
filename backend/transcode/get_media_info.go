@@ -82,7 +82,7 @@ func GetVidInfo(path string, filename string, tempjson string, datagen string, t
 	infob, err := getMediaInfoJSON(path+filename, &wg)
 	if err != nil {
 		utils.WLog("Error: could not get json data from file", ClientID)
-		removeFile(path, filename, ClientID)
+		removeVideo(path, filename, ClientID)
 		return vi, err
 	}
 	wg.Wait()
@@ -93,13 +93,13 @@ func GetVidInfo(path string, filename string, tempjson string, datagen string, t
 	info, err := json.Marshal(raw)
 	if err != nil {
 		utils.WLog("Error: failed to marshal json file", ClientID)
-		removeFile(path, filename, ClientID)
+		removeVideo(path, filename, ClientID)
 		return vi, err
 	}
 	err = ioutil.WriteFile(tempjson, info, 0666)
 	if err != nil {
 		utils.WLog("Error: could not create json file", ClientID)
-		removeFile(path, filename, ClientID)
+		removeVideo(path, filename, ClientID)
 		return vi, err
 	}
 
@@ -110,7 +110,7 @@ func GetVidInfo(path string, filename string, tempjson string, datagen string, t
 	wg.Wait()
 	if err != nil {
 		utils.WLog("Error: failed to generate video data", ClientID)
-		removeFile(path, filename, ClientID)
+		removeVideo(path, filename, ClientID)
 		return vi, err
 	}
 
@@ -118,7 +118,7 @@ func GetVidInfo(path string, filename string, tempjson string, datagen string, t
 	vi, err = parseFile(tempdata)
 	if err != nil || vi.IsEmpty() {
 		utils.WLog("Error: failed parsing data file", ClientID)
-		removeFile(path, filename, ClientID)
+		removeVideo(path, filename, ClientID)
 		return vi, err
 	}
 

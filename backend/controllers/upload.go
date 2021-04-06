@@ -79,7 +79,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		var resp = map[string]interface{}{"status": false, "message": "Failed to write file", "error": err}
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeFile(utils.Conf.SD, handler.Filename, r.RemoteAddr)
+		removeVideo(utils.Conf.SD, handler.Filename, r.RemoteAddr)
 		utils.WLog("Error: failed to write file", r.RemoteAddr)
 		return
 	}
@@ -94,7 +94,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		var resp = map[string]interface{}{"status": false, "message": "Error getting video info", "error": err}
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeFile(utils.Conf.SD, handler.Filename, r.RemoteAddr)
+		removeVideo(utils.Conf.SD, handler.Filename, r.RemoteAddr)
 		utils.WLog("Error: failed send video data to client", r.RemoteAddr)
 		return
 	}
@@ -104,16 +104,16 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		var resp = map[string]interface{}{"status": false, "message": "Could not verify user", "error": err}
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeFile(utils.Conf.SD, handler.Filename, r.RemoteAddr)
+		removeVideo(utils.Conf.SD, handler.Filename, r.RemoteAddr)
 		return
 	}
 
-	err = utils.InsertVideo(data, handler.Filename, "Not transcoded", userID, -1)
+	err = utils.InsertVideo(data, handler.Filename, "not_transcoded", userID, -1)
 	if err != nil {
 		var resp = map[string]interface{}{"status": false, "message": "Sql error", "error": err}
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeFile(utils.Conf.SD, handler.Filename, r.RemoteAddr)
+		removeVideo(utils.Conf.SD, handler.Filename, r.RemoteAddr)
 		utils.WLog("Error: failed to insert video data in database", r.RemoteAddr)
 		return
 	}
@@ -125,7 +125,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		if dat.Err == nil {
 			vf := dat.Video
 			prd := dat.Pdata
-			go tc.ProcessVodFile(handler.Filename, data, vf, prd, utils.Conf, r.RemoteAddr, userID)
+			go tc.ProcessVodFile(handler.Filename, data, vf, prd, r.RemoteAddr, userID)
 		}
 	}()
 }
@@ -157,7 +157,7 @@ func writeJSONResponse(w http.ResponseWriter, filename string, ClientID string) 
 	return vidinfo, nil
 }
 
-func removeFile(path string, filename string, ClientID string) error {
+func removeVideo(path string, filename string, ClientID string) error {
 
 	var err error
 	if err = os.Remove(path + filename); err != nil {
