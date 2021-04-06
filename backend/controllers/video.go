@@ -16,7 +16,12 @@ import (
 // FetchVideos return all
 func FetchVideos(w http.ResponseWriter, r *http.Request) {
 	var videos []models.Video
-	utils.DB.Preload("AudioT").Preload("SubtitleT").Find(&videos)
+	result := utils.DB.Preload("AudioT").Preload("SubtitleT").Find(&videos)
+
+	if result.Error != nil {
+		json.NewEncoder(w).Encode(result.Error.Error())
+		return
+	}
 
 	json.NewEncoder(w).Encode(videos)
 }
@@ -25,7 +30,13 @@ func FetchVideos(w http.ResponseWriter, r *http.Request) {
 func UpdateVideo(w http.ResponseWriter, r *http.Request) {
 	video := &models.Video{}
 	var id = mux.Vars(r)["id"]
-	utils.DB.First(&video, id)
+	result := utils.DB.First(&video, id)
+
+	if result.Error != nil {
+		json.NewEncoder(w).Encode(result.Error.Error())
+		return
+	}
+
 	json.NewDecoder(r.Body).Decode(video)
 	utils.DB.Save(&video)
 	json.NewEncoder(w).Encode(video)
@@ -35,7 +46,12 @@ func UpdateVideo(w http.ResponseWriter, r *http.Request) {
 func DeleteVideo(w http.ResponseWriter, r *http.Request) {
 	var id = mux.Vars(r)["id"]
 	var video models.Video
-	utils.DB.First(&video, id)
+	result := utils.DB.First(&video, id)
+
+	if result.Error != nil {
+		json.NewEncoder(w).Encode(result.Error.Error())
+		return
+	}
 
 	var filePath string
 	switch video.State {
@@ -49,7 +65,7 @@ func DeleteVideo(w http.ResponseWriter, r *http.Request) {
 		filePath = utils.Conf.DD
 		break
 	default:
-		json.NewEncoder(w).Encode(fmt.Sprintf("Unkown video file state: \"%s\"", video.State))
+		json.NewEncoder(w).Encode(fmt.Sprintf("Unkown video file state: %s", video.State))
 		filePath = utils.Conf.SD
 	}
 
@@ -66,6 +82,12 @@ func DeleteVideo(w http.ResponseWriter, r *http.Request) {
 func GetVideo(w http.ResponseWriter, r *http.Request) {
 	var id = mux.Vars(r)["id"]
 	var video models.Video
-	utils.DB.Preload("AudioT").Preload("SubtitleT").First(&video, id)
+	result := utils.DB.Preload("AudioT").Preload("SubtitleT").First(&video, id)
+
+	if result.Error != nil {
+		json.NewEncoder(w).Encode(result.Error.Error())
+		return
+	}
+
 	json.NewEncoder(w).Encode(&video)
 }

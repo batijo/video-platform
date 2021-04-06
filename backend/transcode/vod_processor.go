@@ -88,7 +88,7 @@ func ProcessVodFile(fileName string, data models.Vidinfo, clientData models.Vide
 
 	// If data is empty get video info
 	if data.IsEmpty() {
-		data, err = GetVidInfo(utils.Conf.SD, fileName, utils.Conf.TempJson, utils.Conf.DataGen, utils.Conf.TempTxt, ClientID)
+		data, err = GetVidInfo(utils.Conf.SD, fileName, ClientID)
 		if err != nil {
 			log.Println(err)
 			removeVideo(utils.Conf.SD, fileName, ClientID)
@@ -113,7 +113,8 @@ func ProcessVodFile(fileName string, data models.Vidinfo, clientData models.Vide
 	var tempdfs []string
 
 	if utils.Conf.Presets {
-		cmd, tempdfs, err = generatePresetCmdLine(presetData, data, sourceFileWithPath, fullSourceFilePathAndName, fmt.Sprintf("%v%v", utils.Conf.TD, sourceFileNameWithoutExt))
+		cmd, tempdfs, err = generatePresetCmdLine(presetData, data, sourceFileWithPath, fullSourceFilePathAndName,
+			fmt.Sprintf("%v%v", utils.Conf.TD, sourceFileNameWithoutExt))
 		tempfile = tempdfs[0]
 		if err != nil {
 			utils.WLog("Error: failed to generate cmd line", ClientID)
@@ -202,7 +203,7 @@ func StartTranscode(fileName string, cmdg string, dfsl string, ClientID string, 
 	// f
 	destinationFile := fmt.Sprintf("%v%v.mp4", utils.Conf.DD, sourceFileNameWithoutExt)
 
-	data, err = GetVidInfo(utils.Conf.SD, fileName, utils.Conf.TempJson, utils.Conf.DataGen, utils.Conf.TempTxt, ClientID)
+	data, err = GetVidInfo(utils.Conf.SD, fileName, ClientID)
 
 	// ===============================================================
 
@@ -268,8 +269,8 @@ func StartTranscode(fileName string, cmdg string, dfsl string, ClientID string, 
 			)
 			removeVideo(utils.Conf.SD, fileName, ClientID)
 			for i := range tempdfs {
-				os.Rename(utils.Conf.TD+dfs[i], utils.Conf.DD+dfs[i])
-				nd, err := GetVidInfo(utils.Conf.DD, dfs[i], utils.Conf.TempJson, utils.Conf.DataGen, utils.Conf.TempTxt, ClientID)
+				utils.MoveFile(utils.Conf.TD+dfs[i], utils.Conf.DD+dfs[i])
+				nd, err := GetVidInfo(utils.Conf.DD, dfs[i], ClientID)
 				if err != nil {
 					utils.WLog("Error: failed getting video data", ClientID)
 					log.Println(err)
@@ -293,9 +294,13 @@ func StartTranscode(fileName string, cmdg string, dfsl string, ClientID string, 
 
 		} else {
 			removeVideo(utils.Conf.SD, fileName, ClientID)
-			os.Rename(tempfile, destinationFile)
+			if err := utils.MoveFile(tempfile, destinationFile); err != nil {
+				log.Println(err)
+				removeVideo(utils.Conf.TD, sourceFileNameWithoutExt+".mp4", ClientID)
+				return
+			}
 			dfn := sourceFileNameWithoutExt + ".mp4"
-			ndata, err := GetVidInfo(utils.Conf.DD, dfn, utils.Conf.TempJson, utils.Conf.DataGen, utils.Conf.TempTxt, ClientID)
+			ndata, err := GetVidInfo(utils.Conf.DD, dfn, ClientID)
 			if err != nil {
 				utils.WLog("Error: failed getting video data", ClientID)
 				log.Println(err)

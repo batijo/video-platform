@@ -142,7 +142,7 @@ func writeJSONResponse(w http.ResponseWriter, filename string, ClientID string) 
 		return vidinfo, err
 	}
 
-	vidinfo, err = tc.GetVidInfo(utils.Conf.SD, filename, utils.Conf.TempJson, utils.Conf.DataGen, utils.Conf.TempTxt, ClientID)
+	vidinfo, err = tc.GetVidInfo(utils.Conf.SD, filename, ClientID)
 	if err != nil {
 		return vidinfo, err
 	}

@@ -71,7 +71,7 @@ func generateDataFile(wg *sync.WaitGroup, gpath string) error {
 }
 
 // GetVidInfo retruns struct with information about video file
-func GetVidInfo(path string, filename string, tempjson string, datagen string, tempdata string, ClientID string) (models.Vidinfo, error) {
+func GetVidInfo(path string, filename string, ClientID string) (models.Vidinfo, error) {
 	var (
 		wg sync.WaitGroup
 		vi models.Vidinfo
@@ -96,7 +96,7 @@ func GetVidInfo(path string, filename string, tempjson string, datagen string, t
 		removeVideo(path, filename, ClientID)
 		return vi, err
 	}
-	err = ioutil.WriteFile(tempjson, info, 0666)
+	err = ioutil.WriteFile(utils.Conf.TempJson, info, 0666)
 	if err != nil {
 		utils.WLog("Error: could not create json file", ClientID)
 		removeVideo(path, filename, ClientID)
@@ -104,7 +104,7 @@ func GetVidInfo(path string, filename string, tempjson string, datagen string, t
 	}
 
 	// Run python script to get nesessary data from json file
-	gpath, err := filepath.Abs(datagen)
+	gpath, err := filepath.Abs(utils.Conf.DataGen)
 	wg.Add(1)
 	err = generateDataFile(&wg, gpath)
 	wg.Wait()
@@ -115,7 +115,7 @@ func GetVidInfo(path string, filename string, tempjson string, datagen string, t
 	}
 
 	// Write data to Vidinfo struct
-	vi, err = parseFile(tempdata)
+	vi, err = parseFile(utils.Conf.TempTxt)
 	if err != nil || vi.IsEmpty() {
 		utils.WLog("Error: failed parsing data file", ClientID)
 		removeVideo(path, filename, ClientID)
