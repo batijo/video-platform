@@ -9,10 +9,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Dzionys/video-platform/backend/models"
-	tc "github.com/Dzionys/video-platform/backend/transcode"
-	"github.com/Dzionys/video-platform/backend/utils"
-	"github.com/Dzionys/video-platform/backend/utils/auth"
+	"github.com/batijo/video-platform/backend/models"
+	tc "github.com/batijo/video-platform/backend/transcode"
+	"github.com/batijo/video-platform/backend/utils"
+	"github.com/batijo/video-platform/backend/utils/auth"
 )
 
 var (

@@ -7,14 +7,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Dzionys/video-platform/backend/models"
-	"github.com/Dzionys/video-platform/backend/utils"
+	"github.com/batijo/video-platform/backend/models"
+	"github.com/batijo/video-platform/backend/utils"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )
-
-//Exception struct
-type Exception models.Exception
 
 func GetUserID(r *http.Request) (uint, error) {
 	var header = r.Header.Get("x-access-token") //Grab the token from the header

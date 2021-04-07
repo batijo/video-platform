@@ -8,9 +8,9 @@ import (
 
 	"net/http"
 
-	"github.com/Dzionys/video-platform/backend/controllers"
-	"github.com/Dzionys/video-platform/backend/utils"
-	"github.com/Dzionys/video-platform/backend/utils/auth"
+	"github.com/batijo/video-platform/backend/controllers"
+	"github.com/batijo/video-platform/backend/utils"
+	"github.com/batijo/video-platform/backend/utils/auth"
 )
 
 var (

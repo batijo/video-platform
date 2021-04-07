@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/Dzionys/video-platform/backend/models"
+	"github.com/batijo/video-platform/backend/models"
 
 	"github.com/BurntSushi/toml"
 	"github.com/jinzhu/gorm"

@@ -1,4 +1,4 @@
-module github.com/Dzionys/video-platform/backend
+module github.com/batijo/video-platform/backend
 
 go 1.14
 
