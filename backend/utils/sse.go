@@ -66,6 +66,11 @@ func (b *Broker) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	messageChan := make(chan string)
 
 	// Add this client to the map of those that should receive updates
+	// ClientId, err := auth.GetUserID(r)
+	// if err != nil {
+	// 	http.Error(w, "Error geting client ID", http.StatusInternalServerError)
+	// 	return
+	// }
 	client := Client{
 		messageChan,
 		r.RemoteAddr,
@@ -86,7 +91,6 @@ func (b *Broker) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
-	//w.Header().Set("Transfer-Encoding", "chunked")
 
 	// Don't close the connection, instead loop endlessly
 	for {

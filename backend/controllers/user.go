@@ -28,7 +28,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	user := &models.User{}
 	err := json.NewDecoder(r.Body).Decode(user)
 	if err != nil {
-		var resp = map[string]interface{}{"status": false, "message": "Invalid request"}
+		resp := models.Response{Status: false, Message: "Invalid request", Error: err.Error()}
 		json.NewEncoder(w).Encode(resp)
 		return
 	}
@@ -42,18 +42,18 @@ func LogOut(w http.ResponseWriter, r *http.Request) {
 }
 
 // FindOne ...
-func findOne(email, password string) map[string]interface{} {
+func findOne(email, password string) models.Response {
 	user := &models.User{}
 
 	if err := utils.DB.Where("Email = ?", email).First(user).Error; err != nil {
-		var resp = map[string]interface{}{"status": false, "message": "Email address not found"}
+		resp := models.Response{Status: false, Message: "Email address not found", Error: err.Error()}
 		return resp
 	}
 	expiresAt := time.Now().Add(time.Minute * time.Duration(utils.Conf.JWTExp)).Unix()
 
 	errf := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if errf != nil || errf == bcrypt.ErrMismatchedHashAndPassword { //Password does not match!
-		var resp = map[string]interface{}{"status": false, "message": "Invalid login credentials. Please try again"}
+		resp := models.Response{Status: false, Message: "Invalid login credentials. Please try again", Error: errf.Error()}
 		return resp
 	}
 
@@ -74,8 +74,8 @@ func findOne(email, password string) map[string]interface{} {
 		fmt.Println(err)
 	}
 
-	var resp = map[string]interface{}{"status": true, "message": "logged in"}
-	resp["token"] = tokenString // Store the token in the response
+	resp := models.Response{Status: true, Message: "logged in", Data: tokenString}
+	// resp["token"] = tokenString // Store the token in the response
 	// resp["user"] = user
 	return resp
 }
@@ -88,22 +88,22 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	// Check if user trying to gain admin access
 	if user.Admin {
-		json.NewEncoder(w).Encode("Nice try, but you can not make yourself an admin")
+		resp := models.Response{Status: false, Message: "You can not make yourself an admin"}
+		json.NewEncoder(w).Encode(resp)
 		return
 	}
 
 	if user.Email == "" || user.Password == "" {
-		json.NewEncoder(w).Encode("Email and/or Password must be provided")
+		resp := models.Response{Status: false, Message: "Email and/or Password must be provided"}
+		json.NewEncoder(w).Encode(resp)
 		return
 	}
 
 	pass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		fmt.Println(err)
-		err := ErrorResponse{
-			Err: "Password Encryption failed",
-		}
-		json.NewEncoder(w).Encode(err)
+		resp := models.Response{Status: false, Message: "Password Encryption failed", Error: err.Error()}
+		json.NewEncoder(w).Encode(resp)
+		return
 	}
 
 	user.Password = string(pass)
@@ -113,8 +113,11 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	if createdUser.Error != nil {
 		fmt.Println(errMessage)
+		resp := models.Response{Status: false, Message: "Error ocured while creating user", Error: errMessage.Error(), Data: createdUser}
+		json.NewEncoder(w).Encode(resp)
 	}
-	json.NewEncoder(w).Encode(createdUser)
+	resp := models.Response{Status: true, Message: "User created", Data: createdUser}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // FetchUsers function
@@ -122,7 +125,8 @@ func FetchUsers(w http.ResponseWriter, r *http.Request) {
 	var users []models.User
 	utils.DB.Preload("auths").Find(&users)
 
-	json.NewEncoder(w).Encode(users)
+	resp := models.Response{Status: true, Message: "Success", Data: users}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // UpdateUser ...
@@ -132,18 +136,19 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	var id = params["id"]
-	utils.DB.First(&user, id)
+	res := utils.DB.First(&user, id)
 
-	if user.Email == "" {
-		json.NewEncoder(w).Encode("User not found")
+	if res.Error != nil {
+		resp := models.Response{Status: false, Message: "User not found", Error: res.Error.Error()}
+		json.NewEncoder(w).Encode(resp)
 		return
 	}
-
 	json.NewDecoder(r.Body).Decode(&user)
 
 	// Check if user trying to gain admin access
 	if user.Admin {
-		json.NewEncoder(w).Encode("Nice try, but you can not make yourself an admin")
+		resp := models.Response{Status: false, Message: "You can not make yourself an admin"}
+		json.NewEncoder(w).Encode(resp)
 		return
 	}
 
@@ -151,18 +156,17 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if user.Password != "" {
 		pass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 		if err != nil {
-			fmt.Println(err)
-			err := ErrorResponse{
-				Err: "Password Encryption failed",
-			}
-			json.NewEncoder(w).Encode(err)
+			resp := models.Response{Status: false, Message: "Password Encryption failed", Error: err.Error()}
+			json.NewEncoder(w).Encode(resp)
+			return
 		}
 
 		user.Password = string(pass)
 	}
 
 	utils.DB.Save(&user)
-	json.NewEncoder(w).Encode(user)
+	resp := models.Response{Status: true, Message: "User updated", Data: user}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // DeleteUser ...
@@ -170,17 +174,19 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var id = params["id"]
 	var user models.User
-	utils.DB.First(&user, id)
+	res := utils.DB.First(&user, id)
 
 	// For some reason if you try to delete user which does not exist it deletes all users
-	if user.Email == "" {
-		json.NewEncoder(w).Encode("User not found")
+	if res.Error != nil {
+		resp := models.Response{Status: false, Message: "User not found", Error: res.Error.Error()}
+		json.NewEncoder(w).Encode(resp)
 		return
 	}
 
 	utils.DB.Delete(&user)
-	json.NewEncoder(w).Encode("User deleted")
-	json.NewEncoder(w).Encode(&user)
+
+	resp := models.Response{Status: true, Message: "User deleted", Data: user}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // GetUser ...
@@ -188,16 +194,31 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var id = params["id"]
 	var user models.User
-	utils.DB.Preload("Video").Preload("Video.AudioT").Preload("Video.SubtitleT").First(&user, id)
-	json.NewEncoder(w).Encode(&user)
+	res := utils.DB.Preload("Video").Preload("Video.AudioT").Preload("Video.SubtitleT").First(&user, id)
+
+	if res.Error != nil {
+		resp := models.Response{Status: false, Message: "User not found", Error: res.Error.Error()}
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+
+	resp := models.Response{Status: true, Message: "Success", Data: user}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // GetUserByEmail ...
 func GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var email = params["email"]
-	println(email)
 	var user models.User
-	utils.DB.Where("email = ?", email).First(&user)
-	json.NewEncoder(w).Encode(&user)
+	res := utils.DB.Where("email = ?", email).First(&user)
+
+	if res.Error != nil {
+		resp := models.Response{Status: false, Message: "User not found", Error: res.Error.Error()}
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+
+	resp := models.Response{Status: true, Message: "Success", Data: user}
+	json.NewEncoder(w).Encode(resp)
 }

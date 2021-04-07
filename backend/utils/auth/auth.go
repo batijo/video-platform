@@ -41,7 +41,8 @@ func AdminVerify(next http.Handler) http.Handler {
 
 		if tk.Admin {
 			w.WriteHeader(http.StatusForbidden)
-			json.NewEncoder(w).Encode(Exception{Message: "No administration privilage"})
+			resp := models.Response{Status: false, Message: "No administration privilage"}
+			json.NewEncoder(w).Encode(resp)
 			return
 		}
 
@@ -74,7 +75,8 @@ func jwtParser(w http.ResponseWriter, r *http.Request) (models.Token, error) {
 	if header == "" {
 		//Token is missing, returns with error code 403 Unauthorized
 		w.WriteHeader(http.StatusForbidden)
-		json.NewEncoder(w).Encode(Exception{Message: "Missing auth token"})
+		resp := models.Response{Status: false, Message: "Missing auth token"}
+		json.NewEncoder(w).Encode(resp)
 		return *tk, errors.New("Missing auth token")
 	}
 
@@ -84,7 +86,8 @@ func jwtParser(w http.ResponseWriter, r *http.Request) (models.Token, error) {
 
 	if err != nil {
 		w.WriteHeader(http.StatusForbidden)
-		json.NewEncoder(w).Encode(Exception{Message: err.Error()})
+		resp := models.Response{Status: false, Message: "Not authorised", Error: err.Error()}
+		json.NewEncoder(w).Encode(resp)
 		return *tk, errors.New("Not authorised")
 	}
 

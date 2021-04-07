@@ -65,7 +65,7 @@ func TranscodeHandler(w http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
 		err = decoder.Decode(&prd)
 		if err != nil {
-			var resp = map[string]interface{}{"status": false, "message": "cannot decode json", "error": err}
+			resp := models.Response{Status: false, Message: "cannot decode json", Error: err.Error()}
 			json.NewEncoder(w).Encode(resp)
 			log.Println(err)
 			return
@@ -74,7 +74,7 @@ func TranscodeHandler(w http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
 		err = decoder.Decode(&vf)
 		if err != nil {
-			var resp = map[string]interface{}{"status": false, "message": "cannot decode json", "error": err}
+			resp := models.Response{Status: false, Message: "cannot decode json", Error: err.Error()}
 			json.NewEncoder(w).Encode(resp)
 			log.Println(err)
 			return
@@ -89,6 +89,6 @@ func TranscodeHandler(w http.ResponseWriter, r *http.Request) {
 
 	vfnprd <- data
 
-	var resp = map[string]interface{}{"status": true, "message": "transcode starting", "error": nil}
+	resp := models.Response{Status: true, Message: "transcode starting", Error: err.Error()}
 	json.NewEncoder(w).Encode(resp)
 }

@@ -26,6 +26,8 @@ func handlers() *mux.Router {
 	r.HandleFunc("/register", controllers.CreateUser).Methods("POST")
 	r.HandleFunc("/login", controllers.Login).Methods("POST")
 
+	r.Handle("/sse/dashboard", utils.B)
+
 	// r.HandleFunc("/ngx/mapping/{name}", controllers.NginxMappingHandler).Methods("GET")
 
 	// Auth route
