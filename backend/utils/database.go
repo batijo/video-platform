@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 
@@ -29,8 +30,7 @@ func ConnectDB() *gorm.DB {
 	db, err := gorm.Open("postgres", dbURI)
 
 	if err != nil {
-		fmt.Println("error", err)
-		panic(err)
+		log.Panicln(err)
 	}
 
 	db.DropTableIfExists(&models.Preset{})

@@ -13,7 +13,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-func GetUserID(r *http.Request) (uint, error) {
+func GetUserID(r *http.Request) (uint, bool, error) {
 	var header = r.Header.Get("x-access-token") //Grab the token from the header
 	header = strings.TrimSpace(header)
 
@@ -23,9 +23,9 @@ func GetUserID(r *http.Request) (uint, error) {
 		return []byte(utils.Conf.JWTSecret), nil
 	})
 	if err != nil {
-		return tk.UserID, err
+		return tk.UserID, false, err
 	}
-	return tk.UserID, nil
+	return tk.UserID, tk.Admin, nil
 }
 
 func AdminVerify(next http.Handler) http.Handler {
@@ -43,7 +43,7 @@ func AdminVerify(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "user", tk)
+		ctx := context.WithValue(r.Context(), "admin", tk)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -52,12 +52,19 @@ func AdminVerify(next http.Handler) http.Handler {
 func JwtVerify(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
+		var key string
 		tk, err := jwtParser(w, r)
 		if err != nil {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "user", tk)
+		if tk.Admin {
+			key = "admin"
+		} else {
+			key = "user"
+		}
+
+		ctx := context.WithValue(r.Context(), key, tk)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

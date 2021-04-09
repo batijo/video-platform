@@ -47,11 +47,8 @@ func handlers() *mux.Router {
 	s.HandleFunc("/upload", controllers.VideoUpload).Methods("POST")
 	s.HandleFunc("/upload/transcode", controllers.TranscodeHandler).Methods("POST")
 
-	s.HandleFunc("/test", controllers.Test).Methods("GET")
 	a := r.PathPrefix("/admin").Subrouter()
 	a.Use(auth.AdminVerify)
-
-	a.HandleFunc("/test", controllers.Test).Methods("GET")
 
 	// s.HandleFunc("/tc", controllers.TcTypeHandler).Methods("POST")
 	// s.HandleFunc("/list", controllers.ListHandler).Methods("GET")
@@ -64,7 +61,7 @@ func commonMiddleware(next http.Handler) http.Handler {
 		w.Header().Add("Content-Type", "application/json")
 		// Allow CORS
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET")
 		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Access-Control-Request-Headers, Access-Control-Request-Method, Connection, Host, Origin, User-Agent, Referer, Cache-Control, X-header")
 		next.ServeHTTP(w, r)
 	})
@@ -72,7 +69,7 @@ func commonMiddleware(next http.Handler) http.Handler {
 
 func main() {
 
-	// Make a new Broker instance
+	// Make a new Broker instance for SSE
 	utils.B = &utils.Broker{
 		Clients:        make(map[chan string]string),
 		NewClients:     make(chan utils.Client),
