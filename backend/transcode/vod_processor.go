@@ -202,6 +202,7 @@ func StartTranscode(fileName string, cmdg string, dfsl string, ClientID string, 
 
 	// f
 	destinationFile := fmt.Sprintf("%v%v.mp4", utils.Conf.DD, sourceFileNameWithoutExt)
+	destinationFile = utils.ReturnDifNameIfDublicate(destinationFile, "")
 
 	data, err = GetVidInfo(utils.Conf.SD, fileName, ClientID)
 
@@ -269,7 +270,24 @@ func StartTranscode(fileName string, cmdg string, dfsl string, ClientID string, 
 			)
 			removeVideo(utils.Conf.SD, fileName, ClientID)
 			for i := range tempdfs {
-				utils.MoveFile(utils.Conf.TD+dfs[i], utils.Conf.DD+dfs[i])
+
+				if newName := utils.ReturnDifNameIfDublicate(dfs[i], utils.Conf.DD); newName != fileName {
+					if err := utils.MoveFile(utils.Conf.TD+dfs[i], utils.Conf.TD+newName); err != nil {
+						utils.WLog("Error: failed while moving files", ClientID)
+						log.Println(err)
+						removeStreamVideos(utils.Conf.DD, dfs, sourceFileNameWithoutExt, ClientID)
+						return
+					}
+					dfs[i] = newName
+				}
+
+				if err := utils.MoveFile(utils.Conf.TD+dfs[i], utils.Conf.DD+dfs[i]); err != nil {
+					utils.WLog("Error: failed while moving files", ClientID)
+					log.Println(err)
+					removeStreamVideos(utils.Conf.DD, dfs, sourceFileNameWithoutExt, ClientID)
+					return
+				}
+
 				nd, err := GetVidInfo(utils.Conf.DD, dfs[i], ClientID)
 				if err != nil {
 					utils.WLog("Error: failed getting video data", ClientID)
@@ -293,13 +311,25 @@ func StartTranscode(fileName string, cmdg string, dfsl string, ClientID string, 
 			utils.WLog(msg, ClientID)
 
 		} else {
+
+			dfn := sourceFileNameWithoutExt + ".mp4"
+			if newName := utils.ReturnDifNameIfDublicate(dfn, utils.Conf.DD); newName != fileName {
+				if err := utils.MoveFile(utils.Conf.TD+dfn, utils.Conf.TD+newName); err != nil {
+					utils.WLog("Error: failed while moving file", ClientID)
+					log.Println(err)
+					removeVideo(utils.Conf.DD, dfn, ClientID)
+					return
+				}
+				dfn = newName
+			}
+
 			removeVideo(utils.Conf.SD, fileName, ClientID)
 			if err := utils.MoveFile(tempfile, destinationFile); err != nil {
 				log.Println(err)
-				removeVideo(utils.Conf.TD, sourceFileNameWithoutExt+".mp4", ClientID)
+				removeVideo(utils.Conf.TD, dfn, ClientID)
 				return
 			}
-			dfn := sourceFileNameWithoutExt + ".mp4"
+
 			ndata, err := GetVidInfo(utils.Conf.DD, dfn, ClientID)
 			if err != nil {
 				utils.WLog("Error: failed getting video data", ClientID)

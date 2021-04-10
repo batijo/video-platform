@@ -13,18 +13,20 @@ type Vstream struct {
 type Video struct {
 	gorm.Model
 
-	UserID     uint
-	Public     bool
-	VstreamID  uint `gorm:"DEFAULT:NULL"`
-	StrID      int
-	FileName   string
-	State      string
-	VideoCodec string
-	Width      int
-	Height     int
-	FrameRate  float64
-	AudioT     []Audio `gorm:"ForeignKey:VideoID"`
-	SubtitleT  []Sub   `gorm:"ForeignKey:VideoID"`
+	Title       string
+	Description string
+	UserID      uint
+	Public      bool
+	VstreamID   uint `gorm:"DEFAULT:NULL"`
+	StrID       int
+	FileName    string
+	State       string
+	VideoCodec  string
+	Width       int
+	Height      int
+	FrameRate   float64
+	AudioT      []Audio `gorm:"ForeignKey:VideoID"`
+	SubtitleT   []Sub   `gorm:"ForeignKey:VideoID"`
 }
 
 type Audio struct {

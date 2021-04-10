@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -51,17 +50,14 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Checks if uploaded file with the same name already exists
-	if _, err := os.Stat(utils.Conf.SD + handler.Filename); err == nil {
-		resp := models.Response{Status: false, Message: fmt.Sprintf("File \"%v\" already exists", handler.Filename), Error: err.Error()}
-		w.WriteHeader(http.StatusConflict)
-		json.NewEncoder(w).Encode(resp)
-		utils.WLog(fmt.Sprintf("Error: file \"%v\" already exists", handler.Filename), r.RemoteAddr)
-		return
+	fileName := utils.ReturnDifNameIfDublicate(handler.Filename, utils.Conf.SD)
+	if fileName != handler.Filename {
+		utils.WLog("File with the same name already exist so it has been changed", r.RemoteAddr)
 	}
 
 	//Create empty file in /videos folder
 	utils.WLog("Creating file", r.RemoteAddr)
-	dst, err := os.OpenFile(utils.Conf.SD+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+	dst, err := os.OpenFile(utils.Conf.SD+fileName, os.O_WRONLY|os.O_CREATE, 0666)
 	defer dst.Close()
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Could not create file", Error: err.Error()}
@@ -79,7 +75,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeVideo(utils.Conf.SD, handler.Filename, r.RemoteAddr)
+		removeVideo(utils.Conf.SD, fileName, r.RemoteAddr)
 		utils.WLog("Error: failed to write file", r.RemoteAddr)
 		return
 	}
@@ -91,13 +87,13 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 
 	utils.WLog("Upload successful", r.RemoteAddr)
 
-	data, err := writeJSONResponse(w, handler.Filename, r.RemoteAddr)
+	data, err := writeJSONResponse(w, fileName, r.RemoteAddr)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Error getting video info", Error: err.Error()}
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeVideo(utils.Conf.SD, handler.Filename, r.RemoteAddr)
+		removeVideo(utils.Conf.SD, fileName, r.RemoteAddr)
 		utils.WLog("Error: failed send video data to client", r.RemoteAddr)
 		return
 	}
@@ -108,22 +104,22 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeVideo(utils.Conf.SD, handler.Filename, r.RemoteAddr)
+		removeVideo(utils.Conf.SD, fileName, r.RemoteAddr)
 		return
 	}
 
-	err = utils.InsertVideo(data, handler.Filename, "not_transcoded", userID, -1)
+	err = utils.InsertVideo(data, fileName, "not_transcoded", userID, -1)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Sql error", Error: err.Error()}
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeVideo(utils.Conf.SD, handler.Filename, r.RemoteAddr)
+		removeVideo(utils.Conf.SD, fileName, r.RemoteAddr)
 		utils.WLog("Error: failed to insert video data in database", r.RemoteAddr)
 		return
 	}
 
-	utils.UpdateMessage(handler.Filename)
+	utils.UpdateMessage(fileName)
 
 	go func() {
 		dat := <-vfnprd
@@ -131,7 +127,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 			vf := dat.Video
 			prd := dat.Pdata
 
-			go tc.ProcessVodFile(handler.Filename, data, vf, prd, r.RemoteAddr, userID)
+			go tc.ProcessVodFile(fileName, data, vf, prd, r.RemoteAddr, userID)
 		}
 	}()
 }
@@ -155,11 +151,11 @@ func writeJSONResponse(w http.ResponseWriter, filename string, ClientID string) 
 
 	if utils.Conf.Presets {
 		data = utils.AddPresetsToJSON(vidinfo)
-		resp := models.Response{Status: true, Data: data}
+		resp := models.Response{Status: true, Message: filename, Data: data}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(resp)
 	} else {
-		resp := models.Response{Status: true, Data: vidinfo}
+		resp := models.Response{Status: true, Message: filename, Data: vidinfo}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(resp)
 	}

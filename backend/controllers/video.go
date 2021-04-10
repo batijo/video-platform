@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -137,8 +136,6 @@ func DeleteVideo(w http.ResponseWriter, r *http.Request) {
 		filePath = utils.Conf.DD
 		break
 	default:
-		resp := models.Response{Message: fmt.Sprintf("Unkown video file state: %s", video.State)}
-		json.NewEncoder(w).Encode(resp)
 		filePath = utils.Conf.SD
 	}
 
