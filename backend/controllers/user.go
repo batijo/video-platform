@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -40,7 +41,7 @@ func LogOut(w http.ResponseWriter, r *http.Request) {
 func findOne(email, password string) models.Response {
 	user := &models.User{}
 
-	if err := utils.DB.Where("Email = ?", email).First(user).Error; err != nil {
+	if err := utils.DB.Where("email = ?", email).First(user).Error; err != nil {
 		resp := models.Response{Status: false, Message: "Email address not found", Error: err.Error()}
 		return resp
 	}
@@ -89,12 +90,14 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	// Check if user trying to gain admin access
 	if user.Admin {
 		resp := models.Response{Status: false, Message: "You can not make yourself an admin"}
+		w.WriteHeader(http.StatusForbidden)
 		json.NewEncoder(w).Encode(resp)
 		return
 	}
 
 	if user.Email == "" || user.Password == "" {
 		resp := models.Response{Status: false, Message: "Email and/or Password must be provided"}
+		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(resp)
 		return
 	}
@@ -102,6 +105,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	pass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Password Encryption failed", Error: err.Error()}
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		return
 	}
@@ -109,14 +113,16 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	user.Password = string(pass)
 
 	createdUser := utils.DB.Create(user)
-	var errMessage = createdUser.Error
-
 	if createdUser.Error != nil {
-		fmt.Println(errMessage)
-		resp := models.Response{Status: false, Message: "Error ocured while creating user", Error: errMessage.Error(), Data: createdUser}
+		log.Println(createdUser.Error)
+		resp := models.Response{Status: false, Message: "Error ocured while creating user", Error: createdUser.Error.Error(), Data: createdUser}
+		w.WriteHeader(http.StatusConflict)
 		json.NewEncoder(w).Encode(resp)
+		return
 	}
+
 	resp := models.Response{Status: true, Message: "User created", Data: createdUser}
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)
 }
 
@@ -138,7 +144,7 @@ func FetchUsers(w http.ResponseWriter, r *http.Request) {
 	if admin {
 		res = utils.DB.Preload("auths").Find(&users)
 	} else {
-		res = utils.DB.Preload("auths").Where("ID = ? AND Public = ?", userId, true).Find(&users)
+		res = utils.DB.Preload("auths").Where("id = ? OR public = ?", userId, true).Find(&users)
 	}
 	if res.Error != nil {
 		resp := models.Response{Status: false, Message: "Could not fetch users", Error: res.Error.Error()}

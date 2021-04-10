@@ -32,7 +32,7 @@ func FetchVideos(w http.ResponseWriter, r *http.Request) {
 	if admin {
 		res = utils.DB.Preload("AudioT").Preload("SubtitleT").Find(&videos)
 	} else {
-		res = utils.DB.Preload("AudioT").Preload("SubtitleT").Where("UserID = ? AND Public = ?", userId, true).Find(&videos)
+		res = utils.DB.Preload("AudioT").Preload("SubtitleT").Where("user_id = ? OR public = ?", userId, true).Find(&videos)
 	}
 	if res.Error != nil {
 		resp := models.Response{Status: false, Message: "Could not fetch videos", Error: res.Error.Error()}

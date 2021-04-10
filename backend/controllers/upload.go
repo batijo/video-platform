@@ -84,9 +84,10 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := models.Response{Status: true, Message: "Upload successful"}
-	w.WriteHeader(http.StatusAccepted)
-	json.NewEncoder(w).Encode(resp)
+	// Can not overide response gives superfluous error. Needs to be fixed
+	//resp := models.Response{Status: true, Message: "Upload successful"}
+	//w.WriteHeader(http.StatusAccepted)
+	//json.NewEncoder(w).Encode(resp)
 
 	utils.WLog("Upload successful", r.RemoteAddr)
 

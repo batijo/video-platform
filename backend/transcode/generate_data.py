@@ -2,6 +2,7 @@ import json
 from pprint import pprint
 import re
 import os
+import sys
 
 CDX = {
     'video': ['amv', 'mpeg2video', 'mpeg4', 'msmpeg4v2', 'msmpeg4v3', 'msmpeg4v2', 'h264', 'hevc', 'theora', 'wmv1', 'wmv2', 'vp8', 'vp9'],
@@ -17,8 +18,10 @@ vc = 0
 ac = 0
 sc = 0
 
-jsonfile = 'temp.json'
-jsondata = 'data.json'
+prefix = sys.argv[1]
+
+jsonfile = prefix + 'S.json'
+jsondata = prefix + 'D.json'
 
 with open(jsonfile) as f:
     data = json.load(f)
