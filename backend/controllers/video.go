@@ -73,7 +73,7 @@ func UpdateVideo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = json.NewDecoder(r.Body).Decode(video)
+	err = json.NewDecoder(r.Body).Decode(&video)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Invalid request", Error: err.Error()}
 		w.WriteHeader(http.StatusBadRequest)

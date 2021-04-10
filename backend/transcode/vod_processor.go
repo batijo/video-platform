@@ -13,6 +13,7 @@ import (
 
 	"github.com/batijo/video-platform/backend/models"
 	"github.com/batijo/video-platform/backend/utils"
+	"github.com/jinzhu/gorm"
 )
 
 var (
@@ -22,7 +23,7 @@ var (
 )
 
 // ProcessVodFile ...
-func ProcessVodFile(fileName string, data models.Vidinfo, clientData models.Video, presetData models.Pdata, ClientID string, userID uint) {
+func ProcessVodFile(fileName string, data models.Vidinfo, clientData models.Video, presetData models.Pdata, ClientID string, vidId, userID uint) {
 	utils.WLog("Starting VOD Processor..", ClientID)
 	var (
 		err error
@@ -145,11 +146,11 @@ func ProcessVodFile(fileName string, data models.Vidinfo, clientData models.Vide
 			dfsl += d
 		}
 	}
-	go StartTranscode(fileName, cmd, dfsl, ClientID, userID)
+	go StartTranscode(fileName, cmd, dfsl, ClientID, vidId, userID)
 }
 
 // StartTranscode ...
-func StartTranscode(fileName string, cmdg string, dfsl string, ClientID string, userID uint) {
+func StartTranscode(fileName, cmdg, dfsl, ClientID string, vidId, userID uint) {
 	var (
 		err     error
 		cmd     string
@@ -235,13 +236,14 @@ func StartTranscode(fileName string, cmdg string, dfsl string, ClientID string, 
 		dur = data.Videotrack[0].Duration
 	}
 
-	// err = db.UpdateState(fileName, "Transcoding")
-	// if err != nil {
-	// 	utils.WLog("Error: failed to update state in database", ClientID)
-	// 	log.Println(err)
-	// 	removeVideo(utils.Conf.SD, fileName, ClientID)
-	// 	return
-	// }
+	video := models.Video{Model: gorm.Model{ID: vidId}}
+	err = utils.DB.Model(&video).Update("state", "transcoding").Error
+	if err != nil {
+		utils.WLog("Error: failed to update state in database", ClientID)
+		log.Println(err)
+		removeVideo(utils.Conf.SD, fileName, ClientID)
+		return
+	}
 
 	wg.Add(1)
 	err = runCmdCommand(cmd, dur, &wg, ClientID)
@@ -337,7 +339,7 @@ func StartTranscode(fileName string, cmdg string, dfsl string, ClientID string, 
 				removeVideo(utils.Conf.DD, dfn, ClientID)
 				return
 			}
-			utils.InsertVideo(ndata, dfn, "Transcoded", userID, -1)
+			utils.InsertVideo(ndata, dfn, "transcoded", userID, -1)
 
 			// err = db.InsertVideo(ndata, dfn, "Transcoded", -1)
 			// if err != nil {

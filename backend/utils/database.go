@@ -55,7 +55,7 @@ func ConnectDB() *gorm.DB {
 }
 
 // InsertVideo adds video to database
-func InsertVideo(vidinfo models.Vidinfo, name string, state string, userID uint, streamID int) error {
+func InsertVideo(vidinfo models.Vidinfo, name string, state string, userID uint, streamID int) (uint, error) {
 
 	var (
 		user     models.User
@@ -113,12 +113,21 @@ func InsertVideo(vidinfo models.Vidinfo, name string, state string, userID uint,
 
 	user.Video = append(user.Video, video)
 
-	createdVideo := DB.Save(&user)
+	res := DB.Save(&user)
 
-	if createdVideo.Error != nil {
-		return createdVideo.Error
+	if res.Error != nil {
+		return user.Video[0].ID, res.Error
 	}
 
+	return user.Video[0].ID, nil
+}
+
+// Unfinished
+func UpdateVideo(id uint, updatedVideo models.Video) error {
+	var video models.Video
+	if err := DB.First(&video, id).Error; err != nil {
+		return err
+	}
 	return nil
 }
 
