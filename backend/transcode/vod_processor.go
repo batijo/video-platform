@@ -339,15 +339,13 @@ func StartTranscode(fileName, cmdg, dfsl, ClientID string, vidId, userID uint) {
 				removeVideo(utils.Conf.DD, dfn, ClientID)
 				return
 			}
-			utils.InsertVideo(ndata, dfn, "transcoded", userID, -1)
-
-			// err = db.InsertVideo(ndata, dfn, "Transcoded", -1)
-			// if err != nil {
-			// 	utils.WLog("Error: failed to insert video data in database", ClientID)
-			// 	log.Println(err)
-			// 	removeVideo(utils.Conf.DD, dfn, ClientID)
-			// 	return
-			// }
+			_, err = utils.InsertVideo(ndata, dfn, "transcoded", userID, -1)
+			if err != nil {
+				utils.WLog("Error: failed to insert video data in database", ClientID)
+				log.Println(err)
+				removeVideo(utils.Conf.DD, dfn, ClientID)
+				return
+			}
 
 			msg := fmt.Sprintf("Transcoding coplete, file name: %v", filepath.Base(tempfile))
 			utils.WLog(msg, ClientID)

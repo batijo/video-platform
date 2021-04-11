@@ -4,15 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"math/rand"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/batijo/video-platform/backend/models"
 	"github.com/batijo/video-platform/backend/utils"
@@ -21,7 +17,7 @@ import (
 func getMediaInfoJSON(source string, wg *sync.WaitGroup) ([]byte, error) {
 	defer wg.Done()
 
-	cmd := "ffprobe -v quiet -print_format json -show_streams"
+	cmd := "ffprobe -v quiet -print_format json -show_streams -show_format"
 	cmd += " " + source
 
 	//Splitting head => g++ parts => rest of the command
@@ -34,9 +30,7 @@ func getMediaInfoJSON(source string, wg *sync.WaitGroup) ([]byte, error) {
 	ej := `{}`
 	if string(out) == ej {
 		return out, errors.New("json data is empty")
-	}
-
-	if err != nil {
+	} else if err != nil {
 		return out, err
 	}
 
@@ -92,71 +86,74 @@ func GetVidInfo(path string, filename string, ClientID string) (models.Vidinfo, 
 	}
 	wg.Wait()
 
-	// Writing data to temporary json file
-	var raw map[string]interface{}
-	json.Unmarshal(infob, &raw)
-	info, err := json.Marshal(raw)
+	// Unmarshal data into Ffprobe struct
+	//var raw map[string]interface{}
+	var metadata models.Ffprobe
+	err = json.Unmarshal(infob, &metadata)
+	//info, err := json.Marshal(raw)
 	if err != nil {
-		utils.WLog("Error: failed to marshal json file", ClientID)
+		utils.WLog("Error: failed to unmarshal json file", ClientID)
 		removeVideo(path, filename, ClientID)
 		return vi, err
 	}
 
-	// random number
-	rand.Seed(time.Now().UnixNano())
-	prefix := fmt.Sprint(rand.Intn(10000))
-	tempSoureFileName := fmt.Sprintf(utils.Conf.SourceJson, prefix)
+	vi.ParseFFprobeData(metadata)
 
-	err = ioutil.WriteFile(tempSoureFileName, info, 0666)
-	if err != nil {
-		utils.WLog("Error: could not create json file", ClientID)
-		removeVideo(path, filename, ClientID)
-		return vi, err
-	}
+	// // random number
+	// rand.Seed(time.Now().UnixNano())
+	// prefix := fmt.Sprint(rand.Intn(10000))
+	// tempSoureFileName := fmt.Sprintf(utils.Conf.SourceJson, prefix)
 
-	// Run python script to get nesessary data from json file
-	gpath, err := filepath.Abs(utils.Conf.DataGen)
-	wg.Add(1)
-	err = generateDataFile(&wg, gpath, prefix)
-	wg.Wait()
-	if err != nil {
-		utils.WLog("Error: failed to generate video data", ClientID)
-		removeVideo(path, filename, ClientID)
-		return vi, err
-	}
+	// err = ioutil.WriteFile(tempSoureFileName, info, 0666)
+	// if err != nil {
+	// 	utils.WLog("Error: could not create json file", ClientID)
+	// 	removeVideo(path, filename, ClientID)
+	// 	return vi, err
+	// }
 
-	// Write data to Vidinfo struct
-	tempDataFileName := fmt.Sprintf(utils.Conf.DataJson, prefix)
-	vi, err = parseFile(tempDataFileName)
-	if err != nil || vi.IsEmpty() {
-		utils.WLog("Error: failed parsing data file", ClientID)
-		removeVideo(path, filename, ClientID)
-		return vi, err
-	}
+	// // Run python script to get nesessary data from json file
+	// gpath, err := filepath.Abs(utils.Conf.DataGen)
+	// wg.Add(1)
+	// err = generateDataFile(&wg, gpath, prefix)
+	// wg.Wait()
+	// if err != nil {
+	// 	utils.WLog("Error: failed to generate video data", ClientID)
+	// 	removeVideo(path, filename, ClientID)
+	// 	return vi, err
+	// }
+
+	// // Write data to Vidinfo struct
+	// tempDataFileName := fmt.Sprintf(utils.Conf.DataJson, prefix)
+	// vi, err = parseFile(tempDataFileName)
+	// if err != nil || vi.IsEmpty() {
+	// 	utils.WLog("Error: failed parsing data file", ClientID)
+	// 	removeVideo(path, filename, ClientID)
+	// 	return vi, err
+	// }
 
 	return vi, nil
 }
 
-func parseFile(f string) (models.Vidinfo, error) {
-	var (
-		vi models.Vidinfo
-	)
-	file, err := os.Open(f)
-	if err != nil {
-		return vi, err
-	}
-	defer file.Close()
-	defer os.Remove(f)
+// func parseFile(f string) (models.Vidinfo, error) {
+// 	var (
+// 		vi models.Vidinfo
+// 	)
+// 	file, err := os.Open(f)
+// 	if err != nil {
+// 		return vi, err
+// 	}
+// 	defer file.Close()
+// 	defer os.Remove(f)
 
-	byteValue, err := ioutil.ReadAll(file)
-	if err != nil {
-		return vi, err
-	}
+// 	byteValue, err := ioutil.ReadAll(file)
+// 	if err != nil {
+// 		return vi, err
+// 	}
 
-	err = json.Unmarshal(byteValue, &vi)
-	if err != nil {
-		return vi, err
-	}
+// 	err = json.Unmarshal(byteValue, &vi)
+// 	if err != nil {
+// 		return vi, err
+// 	}
 
-	return vi, nil
-}
+// 	return vi, nil
+// }

@@ -1,6 +1,10 @@
 package models
 
-import "reflect"
+import (
+	"reflect"
+	"strconv"
+	"strings"
+)
 
 type videotrack struct {
 	Index       int     `json:"index"`
@@ -40,4 +44,57 @@ type Vidinfo struct {
 // IsEmpty method which checks if Vidinfo is empty struct
 func (s Vidinfo) IsEmpty() bool {
 	return reflect.DeepEqual(s, Vidinfo{})
+}
+
+func (v *Vidinfo) ParseFFprobeData(out Ffprobe) {
+	var (
+		vc = 0
+		ac = 0
+		sc = 0
+	)
+	for _, s := range out.Streams {
+		if s.CodecType == "video" {
+			v.Videotrack = append(v.Videotrack, videotrack{})
+			v.Videotrack[vc].Index = s.Index
+			v.Videotrack[vc].CodecName = s.CodecName
+			v.Videotrack[vc].Duration = s.Tags.Duration
+			v.Videotrack[vc].Width = s.Width
+			v.Videotrack[vc].Height = s.Height
+			if s.RFrameRrate != "" {
+				split := strings.Split(s.RFrameRrate, "/")
+				fr, _ := strconv.ParseFloat(split[0], 64)
+				sk, _ := strconv.ParseFloat(split[1], 64)
+				v.Videotrack[vc].FrameRate = fr / sk
+			} else {
+				v.Videotrack[vc].FrameRate = 0
+			}
+			v.Videotrack[vc].AspectRatio = s.DisplayAspectRatio
+			v.Videotrack[vc].FieldOrder = ""
+
+			vc = vc + 1
+		} else if s.CodecType == "audio" {
+			v.Audiotrack = append(v.Audiotrack, audiotrack{})
+			v.Audiotrack[ac].Index = s.Index
+			if s.Tags.Language == "" || s.Tags.Language == "und" {
+				v.Audiotrack[ac].Language = "undefined"
+			} else {
+				v.Audiotrack[ac].Language = s.Tags.Language
+			}
+			v.Audiotrack[ac].CodecName = s.CodecName
+			v.Audiotrack[ac].Channels = s.Channels
+			v.Audiotrack[ac].SampleRate, _ = strconv.Atoi(s.SampleRate)
+			v.Audiotrack[ac].BitRate, _ = strconv.Atoi(s.BitRate)
+
+			ac = ac + 1
+		} else if s.CodecType == "srt" || s.CodecType == "subrip" {
+			v.Subtitle = append(v.Subtitle, subtitle{})
+			v.Subtitle[sc].Index = s.Index
+			v.Subtitle[sc].Language = s.Tags.Language
+
+			sc = sc + 1
+		}
+	}
+	v.Videotracks = vc
+	v.Audiotracks = ac
+	v.Subtitles = sc
 }

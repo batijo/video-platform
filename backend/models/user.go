@@ -5,6 +5,8 @@ import "github.com/jinzhu/gorm"
 //User struct declaration
 type User struct {
 	gorm.Model
+
+	Username string `gorm:"unique_index"`
 	Name     string `json:"name"`
 	LastName string `json:"lastname"`
 	Email    string `gorm:"type:varchar(100);unique_index"`

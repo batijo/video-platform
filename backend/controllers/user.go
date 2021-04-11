@@ -95,8 +95,8 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.Email == "" || user.Password == "" {
-		resp := models.Response{Status: false, Message: "Email and/or Password must be provided"}
+	if user.Email == "" || user.Password == "" || user.Username == "" {
+		resp := models.Response{Status: false, Message: "Username, Email and Password must be provided"}
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(resp)
 		return
@@ -187,6 +187,18 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(resp)
 		return
 	}
+
+	// Forgot what I wanted to do here
+	// if user.Email != "" {
+	// 	if rows := utils.DB.Where("email = ?", user.Email).First(&user).RowsAffected; rows != 0 && userId != user.ID {
+
+	// 	}
+	// }
+	// if user.Username != "" {
+	// 	if rows := utils.DB.Where("username = ?", user.Email).First(&user).RowsAffected; rows != 0 {
+
+	// 	}
+	// }
 
 	err = json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
@@ -316,6 +328,21 @@ func GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	var email = params["email"]
 	var user models.User
 	res := utils.DB.Where("email = ?", email).First(&user)
+
+	if res.Error != nil {
+		resp := models.Response{Status: false, Message: "User not found", Error: res.Error.Error()}
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+
+	resp := models.Response{Status: true, Message: "Success", Data: user}
+	json.NewEncoder(w).Encode(resp)
+}
+
+func GetUserByUsername(w http.ResponseWriter, r *http.Request) {
+	var username = mux.Vars(r)["username"]
+	var user models.User
+	res := utils.DB.Where("username = ?", username).First(&user)
 
 	if res.Error != nil {
 		resp := models.Response{Status: false, Message: "User not found", Error: res.Error.Error()}
