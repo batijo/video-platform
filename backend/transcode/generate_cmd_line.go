@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Dzionys/video-platform/backend/models"
-	"github.com/Dzionys/video-platform/backend/utils"
+	"github.com/batijo/video-platform/backend/models"
+	"github.com/batijo/video-platform/backend/utils"
 )
 
 var prRes = map[string]string{
@@ -17,7 +17,7 @@ var prRes = map[string]string{
 	"1080p": "1920x1080",
 }
 
-func generatePresetCmdLine(prdata models.Pdata, vdata models.Vidinfo, sf string, sfname string, dfwe string) (string, []string, error) {
+func generatePresetCmdLine(prdata models.Pdata, videoData models.Vidinfo, sourceFileWithPath string, sourceFileName string, dfwe string) (string, []string, error) {
 	var (
 		cmd       = ""
 		mapping   []string
@@ -41,7 +41,7 @@ func generatePresetCmdLine(prdata models.Pdata, vdata models.Vidinfo, sf string,
 
 	// Video part ---------------------------------------------
 
-	if vdata.Videotrack[0].FrameRate < 25 {
+	if videoData.Videotrack[0].FrameRate < 25 {
 		var (
 			vo string
 			ao string
@@ -54,10 +54,10 @@ func generatePresetCmdLine(prdata models.Pdata, vdata models.Vidinfo, sf string,
 			ao += fmt.Sprintf("[ao%v]", i)
 		}
 
-		fc = fmt.Sprintf(fc, vdata.Videotrack[0].FrameRate, len(prdata.Streams), vo, ao)
+		fc = fmt.Sprintf(fc, videoData.Videotrack[0].FrameRate, len(prdata.Streams), vo, ao)
 	}
 
-	cmd = fmt.Sprintf("ffmpeg -i %v %v", sf, fc)
+	cmd = fmt.Sprintf("ffmpeg -i %v %v", sourceFileWithPath, fc)
 
 	for i, s := range prdata.Streams {
 
@@ -70,34 +70,34 @@ func generatePresetCmdLine(prdata models.Pdata, vdata models.Vidinfo, sf string,
 			return cmd, dfs, err
 		}
 
-		svtres := strconv.Itoa(vdata.Videotrack[0].Width) + "x" + strconv.Itoa(vdata.Videotrack[0].Height)
+		svtres := strconv.Itoa(videoData.Videotrack[0].Width) + "x" + strconv.Itoa(videoData.Videotrack[0].Height)
 		if prRes[vidpr.Resolution] != svtres {
 			tempvc += fmt.Sprintf(" -s %v", prRes[vidpr.Resolution])
 		}
 
-		if vdata.Videotrack[0].FrameRate < 25 && i != 0 {
+		if videoData.Videotrack[0].FrameRate < 25 && i != 0 {
 			tempvc += " -r 25"
 		}
 
-		if vidpr.Codec != vdata.Videotrack[0].CodecName {
+		if vidpr.Codec != videoData.Videotrack[0].CodecName {
 			switch vidpr.Codec {
 
 			case "h264":
-				tempvc += fmt.Sprintf(" -c:v:%[1]v libx264 -profile:v:%[1]v main -b:v:%[1]v %[2]vk -metadata:s:v:%[1]v name=\"%[3]v\"", s.VtId, vidpr.Bitrate, sfname)
+				tempvc += fmt.Sprintf(" -c:v:%[1]v libx264 -profile:v:%[1]v main -b:v:%[1]v %[2]vk -metadata:s:v:%[1]v name=\"%[3]v\"", s.VtId, vidpr.Bitrate, sourceFileName)
 				break
 
 			case "hevc":
 				templ := fmt.Sprintf(" -c:v:%v libx265 -x265-params \"preset=slower:me=hex:no-rect=1:no-amp=1:rd=4:aq-mode=2:", s.VtId)
 				templ += "aq-strength=0.5:psy-rd=1.0:psy-rdoq=0.2:bframes=3:min-keyint=1\" "
-				templ += fmt.Sprintf("-b:v:0 %vk -metadata:s:v:0 name=\"%v\"", vidpr.Bitrate, sfname)
+				templ += fmt.Sprintf("-b:v:0 %vk -metadata:s:v:0 name=\"%v\"", vidpr.Bitrate, sourceFileName)
 				tempvc += templ
 
 			case "default":
-				if !(vdata.Videotrack[0].FrameRate < 25) {
+				if !(videoData.Videotrack[0].FrameRate < 25) {
 					tempmp += fmt.Sprintf(" -map 0:%v", s.VtId)
 				}
 			}
-		} else if !(vdata.Videotrack[0].FrameRate < 25) {
+		} else if !(videoData.Videotrack[0].FrameRate < 25) {
 			tempmp += fmt.Sprintf(" -map 0:%v", s.VtId)
 		}
 
@@ -105,14 +105,14 @@ func generatePresetCmdLine(prdata models.Pdata, vdata models.Vidinfo, sf string,
 
 		if s.AudioT[0].StreamID != -1 {
 			for i, at := range s.AudioT {
-				if !(vdata.Videotrack[0].FrameRate < 25) {
+				if !(videoData.Videotrack[0].FrameRate < 25) {
 					tempmp += fmt.Sprintf(" -map 0:%v", at.StreamID)
 				}
 				tempac += fmt.Sprintf(" -c:a:%v libfdk_aac -ac 2 -b:a:%v %vk -metadata language=%v", i, i, audpr.Bitrate, at.Language)
 			}
 		} else {
-			for i, at := range vdata.Audiotrack {
-				if !(vdata.Videotrack[0].FrameRate < 25) {
+			for i, at := range videoData.Audiotrack {
+				if !(videoData.Videotrack[0].FrameRate < 25) {
 					tempmp += fmt.Sprintf(" -map 0:%v", at.Index)
 				}
 				tempac += fmt.Sprintf(" -c:a:%v libfdk_aac -ac 2 -b:a:%v %vk -metadata language=%v", i, i, audpr.Bitrate, at.Language)
@@ -130,7 +130,7 @@ func generatePresetCmdLine(prdata models.Pdata, vdata models.Vidinfo, sf string,
 					tempsc += fmt.Sprintf(" -c:s:%[1]v copy -metadata:s:s:%[1]v language=%[2]v", st.StreamID, st.Language)
 				}
 			} else {
-				for _, st := range vdata.Subtitle {
+				for _, st := range videoData.Subtitle {
 					tempsc += fmt.Sprintf(" -c:s:%[1]v copy -metadata:s:s:%[1]v language=%[2]v", st.Index, st.Language)
 				}
 			}
@@ -163,7 +163,7 @@ func generatePresetCmdLine(prdata models.Pdata, vdata models.Vidinfo, sf string,
 	return cmd, dfs, nil
 }
 
-func generateClientCmdLine(crdata models.Video, vdata models.Vidinfo, sf string, sfname string, df string) string {
+func generateClientCmdLine(clientData models.Video, videoData models.Vidinfo, sourceFileWithPath string, sourceFileName string, destinationFile string) string {
 	var (
 		cmd       = ""
 		mapping   = ""
@@ -181,9 +181,9 @@ func generateClientCmdLine(crdata models.Video, vdata models.Vidinfo, sf string,
 	// Video part ---------------------------------------------
 
 	// Change frames per second and/or resolution
-	svtres := strconv.Itoa(vdata.Videotrack[0].Width) + ":" + strconv.Itoa(vdata.Videotrack[0].Height)
-	crres := strconv.Itoa(crdata.Width) + ":" + strconv.Itoa(crdata.Height)
-	if crdata.FrameRate != vdata.Videotrack[0].FrameRate || crres != svtres {
+	svtres := strconv.Itoa(videoData.Videotrack[0].Width) + ":" + strconv.Itoa(videoData.Videotrack[0].Height)
+	crres := strconv.Itoa(clientData.Width) + ":" + strconv.Itoa(clientData.Height)
+	if clientData.FrameRate != videoData.Videotrack[0].FrameRate || crres != svtres {
 
 		res := strings.Split(crres, ":")
 		var (
@@ -201,21 +201,21 @@ func generateClientCmdLine(crdata models.Video, vdata models.Vidinfo, sf string,
 		}
 
 		// Change frame rate
-		if crdata.FrameRate != vdata.Videotrack[0].FrameRate {
+		if clientData.FrameRate != videoData.Videotrack[0].FrameRate {
 			maps = "-map [v] -map [a]"
-			fps = fmt.Sprintf(" -r %v", crdata.FrameRate)
+			fps = fmt.Sprintf(" -r %v", clientData.FrameRate)
 			var bline string
 			if vpipe == "scaled" {
 				bline = ";[%[3]v]setpts=%[2]v/%[1]v*PTS[v];[0:a]atempo=%[1]v/%[2]v[a]"
 			} else {
 				bline = "[%[3]v]setpts=%[2]v/%[1]v*PTS[v];[0:a]atempo=%[1]v/%[2]v[a]"
 			}
-			filterComplex += fmt.Sprintf(bline, crdata.FrameRate, vdata.Videotrack[0].FrameRate, vpipe)
+			filterComplex += fmt.Sprintf(bline, clientData.FrameRate, videoData.Videotrack[0].FrameRate, vpipe)
 
 		} else {
 
 			// Map all audio tracks if not mapped while changing fps
-			for _, at := range crdata.AudioT {
+			for _, at := range clientData.AudioT {
 				mapping += " -map 0:" + strconv.Itoa(at.StreamID)
 			}
 		}
@@ -224,41 +224,41 @@ func generateClientCmdLine(crdata models.Video, vdata models.Vidinfo, sf string,
 		vcode += fmt.Sprintf("%v -filter_complex %v %v ", fps, filterComplex, maps)
 
 	} else {
-		mapping += fmt.Sprintf(" -map 0:%v", crdata.StrID)
-		for _, at := range crdata.AudioT {
+		mapping += fmt.Sprintf(" -map 0:%v", clientData.StrID)
+		for _, at := range clientData.AudioT {
 			mapping += " -map 0:" + strconv.Itoa(at.StreamID)
 		}
 	}
 
 	// Changes video codec
-	if crdata.VideoCodec != "nochange" {
-		switch crdata.VideoCodec {
+	if clientData.VideoCodec != "nochange" {
+		switch clientData.VideoCodec {
 
 		case "h264":
-			vcode += fmt.Sprintf(" -c:v:%[1]v libx264 -profile:v:%[1]v main -b:v:%[1]v %[2]vk -metadata:s:v:%[1]v name=\"%[3]v\"", crdata.StrID, utils.Conf.VBW, sfname)
+			vcode += fmt.Sprintf(" -c:v:%[1]v libx264 -profile:v:%[1]v main -b:v:%[1]v %[2]vk -metadata:s:v:%[1]v name=\"%[3]v\"", clientData.StrID, utils.Conf.VBW, sourceFileName)
 			break
 
 		case "h265":
-			templ := fmt.Sprintf(" -c:v:%v libx265 -x265-params \"preset=slower:me=hex:no-rect=1:no-amp=1:rd=4:aq-mode=2:", crdata.StrID)
+			templ := fmt.Sprintf(" -c:v:%v libx265 -x265-params \"preset=slower:me=hex:no-rect=1:no-amp=1:rd=4:aq-mode=2:", clientData.StrID)
 			templ += "aq-strength=0.5:psy-rd=1.0:psy-rdoq=0.2:bframes=3:min-keyint=1\" "
-			templ += fmt.Sprintf("-b:v:0 %vk -metadata:s:v:0 name=\"%v\"", utils.Conf.VBW, sfname)
+			templ += fmt.Sprintf("-b:v:0 %vk -metadata:s:v:0 name=\"%v\"", utils.Conf.VBW, sourceFileName)
 			vcode += templ
 		}
 	} else {
-		vcode += fmt.Sprintf(" -c:v:%[1]v copy -metadata:s:v:%[1]v name=\"%[2]v\"", crdata.StrID, sfname)
+		vcode += fmt.Sprintf(" -c:v:%[1]v copy -metadata:s:v:%[1]v name=\"%[2]v\"", clientData.StrID, sourceFileName)
 	}
 
 	// Audio part ---------------------------------------------
 
-	for _, cAt := range crdata.AudioT {
-		for _, sAt := range vdata.Audiotrack {
+	for _, cAt := range clientData.AudioT {
+		for _, sAt := range videoData.Audiotrack {
 			if cAt.StreamID == sAt.Index {
 
 				channels := ""
 				bline := " -c:a:%[1]v libfdk_aac%[4]v -b:a:%[1]v %[2]vk -metadata language=%[3]v"
 
 				// If frame rates changed do not map
-				if !(crdata.FrameRate != vdata.Videotrack[0].FrameRate) {
+				if !(clientData.FrameRate != videoData.Videotrack[0].FrameRate) {
 					mapping += fmt.Sprintf(" -map 0:%v", cAt.StreamID)
 				}
 
@@ -287,11 +287,11 @@ func generateClientCmdLine(crdata models.Video, vdata models.Vidinfo, sf string,
 
 	// Subtitle part ------------------------------------------
 
-	for _, st := range crdata.SubtitleT {
+	for _, st := range clientData.SubtitleT {
 		scode += fmt.Sprintf(" -c:s:%[1]v copy -metadata:s:s:%[1]v language=%[2]v", st.StreamID, st.Language)
 	}
 
-	cmd = fmt.Sprintf("ffmpeg -i %v %v %v %v %v %v -async 1 -vsync 1 %v", sf, debugIntr, acode, vcode, scode, mapping, df)
+	cmd = fmt.Sprintf("ffmpeg -i %v %v %v %v %v %v -async 1 -vsync 1 %v", sourceFileWithPath, debugIntr, acode, vcode, scode, mapping, destinationFile)
 
 	return cmd
 }

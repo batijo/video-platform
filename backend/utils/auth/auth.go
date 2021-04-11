@@ -7,16 +7,13 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Dzionys/video-platform/backend/models"
-	"github.com/Dzionys/video-platform/backend/utils"
+	"github.com/batijo/video-platform/backend/models"
+	"github.com/batijo/video-platform/backend/utils"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-//Exception struct
-type Exception models.Exception
-
-func GetUserID(r *http.Request) (uint, error) {
+func GetUserID(r *http.Request) (uint, bool, error) {
 	var header = r.Header.Get("x-access-token") //Grab the token from the header
 	header = strings.TrimSpace(header)
 
@@ -26,9 +23,9 @@ func GetUserID(r *http.Request) (uint, error) {
 		return []byte(utils.Conf.JWTSecret), nil
 	})
 	if err != nil {
-		return tk.UserID, err
+		return tk.UserID, false, err
 	}
-	return tk.UserID, nil
+	return tk.UserID, tk.Admin, nil
 }
 
 func AdminVerify(next http.Handler) http.Handler {
@@ -41,11 +38,12 @@ func AdminVerify(next http.Handler) http.Handler {
 
 		if tk.Admin {
 			w.WriteHeader(http.StatusForbidden)
-			json.NewEncoder(w).Encode(Exception{Message: "No administration privilage"})
+			resp := models.Response{Status: false, Message: "No administration privilage"}
+			json.NewEncoder(w).Encode(resp)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "user", tk)
+		ctx := context.WithValue(r.Context(), "admin", tk)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -54,12 +52,19 @@ func AdminVerify(next http.Handler) http.Handler {
 func JwtVerify(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
+		var key string
 		tk, err := jwtParser(w, r)
 		if err != nil {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "user", tk)
+		if tk.Admin {
+			key = "admin"
+		} else {
+			key = "user"
+		}
+
+		ctx := context.WithValue(r.Context(), key, tk)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -74,7 +79,8 @@ func jwtParser(w http.ResponseWriter, r *http.Request) (models.Token, error) {
 	if header == "" {
 		//Token is missing, returns with error code 403 Unauthorized
 		w.WriteHeader(http.StatusForbidden)
-		json.NewEncoder(w).Encode(Exception{Message: "Missing auth token"})
+		resp := models.Response{Status: false, Message: "Missing auth token"}
+		json.NewEncoder(w).Encode(resp)
 		return *tk, errors.New("Missing auth token")
 	}
 
@@ -84,7 +90,8 @@ func jwtParser(w http.ResponseWriter, r *http.Request) (models.Token, error) {
 
 	if err != nil {
 		w.WriteHeader(http.StatusForbidden)
-		json.NewEncoder(w).Encode(Exception{Message: err.Error()})
+		resp := models.Response{Status: false, Message: "Not authorised", Error: err.Error()}
+		json.NewEncoder(w).Encode(resp)
 		return *tk, errors.New("Not authorised")
 	}
 

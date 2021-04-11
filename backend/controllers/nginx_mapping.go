@@ -7,15 +7,15 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/Dzionys/video-platform/backend/models"
-	"github.com/Dzionys/video-platform/backend/utils"
+	"github.com/batijo/video-platform/backend/models"
+	"github.com/batijo/video-platform/backend/utils"
 	"github.com/gorilla/mux"
 )
 
 // NginxMappingHandler ...
 func NginxMappingHandler(w http.ResponseWriter, r *http.Request) {
 
-	tcvidpath := utils.Conf.APTGD + "/go/src/github.com/Dzionys/video-platform/videos/transcoded/%v"
+	tcvidpath := utils.Conf.APTGD + "/go/src/github.com/batijo/video-platform/videos/transcoded/%v"
 	var sqncs models.Sequences
 
 	vars := mux.Vars(r)

@@ -2,10 +2,11 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 
-	"github.com/Dzionys/video-platform/backend/models"
+	"github.com/batijo/video-platform/backend/models"
 
 	"github.com/BurntSushi/toml"
 	"github.com/jinzhu/gorm"
@@ -29,8 +30,7 @@ func ConnectDB() *gorm.DB {
 	db, err := gorm.Open("postgres", dbURI)
 
 	if err != nil {
-		fmt.Println("error", err)
-		panic(err)
+		log.Panicln(err)
 	}
 
 	db.DropTableIfExists(&models.Preset{})

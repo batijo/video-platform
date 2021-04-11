@@ -17,8 +17,8 @@ type Config struct {
 	Debug      bool
 	DebugStart string
 	DebugEnd   string
-	TempJson   string
-	TempTxt    string
+	SourceJson string
+	DataJson   string
 	VBW        int
 	DataGen    string
 	LogP       string

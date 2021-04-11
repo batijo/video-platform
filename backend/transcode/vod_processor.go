@@ -11,8 +11,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Dzionys/video-platform/backend/models"
-	"github.com/Dzionys/video-platform/backend/utils"
+	"github.com/batijo/video-platform/backend/models"
+	"github.com/batijo/video-platform/backend/utils"
 )
 
 var (
@@ -22,7 +22,7 @@ var (
 )
 
 // ProcessVodFile ...
-func ProcessVodFile(source string, data models.Vidinfo, cldata models.Video, prdata models.Pdata, conf utils.Config, ClientID string, userID uint) {
+func ProcessVodFile(fileName string, data models.Vidinfo, clientData models.Video, presetData models.Pdata, ClientID string, userID uint) {
 	utils.WLog("Starting VOD Processor..", ClientID)
 	var (
 		err error
@@ -30,11 +30,11 @@ func ProcessVodFile(source string, data models.Vidinfo, cldata models.Video, prd
 	)
 
 	// Path to source file
-	sfpath := utils.Conf.SD + source
+	sourceFileWithPath := utils.Conf.SD + fileName
 
 	// Checks if source file exists
-	if source != "" {
-		if _, err := os.Stat(sfpath); err == nil {
+	if fileName != "" {
+		if _, err := os.Stat(sourceFileWithPath); err == nil {
 			utils.WLog("File found", ClientID)
 		} else if os.IsNotExist(err) {
 			utils.WLog("Error: file does not exist", ClientID)
@@ -42,25 +42,25 @@ func ProcessVodFile(source string, data models.Vidinfo, cldata models.Video, prd
 		} else {
 			log.Println(err)
 			utils.WLog("Error: file may or may not exist", ClientID)
-			removeFile(utils.Conf.SD, source, ClientID)
+			removeVideo(utils.Conf.SD, fileName, ClientID)
 			return
 		}
 	} else {
-		removeFile(utils.Conf.SD, source, ClientID)
+		removeVideo(utils.Conf.SD, fileName, ClientID)
 		return
 	}
 
 	// Full source file name
-	fullsfname, err := filepath.EvalSymlinks(sfpath)
+	fullSourceFilePathAndName, err := filepath.EvalSymlinks(sourceFileWithPath)
 	if err != nil {
 		log.Println(err)
 		utils.WLog("Error: failed to get full file name", ClientID)
-		removeFile(utils.Conf.SD, source, ClientID)
+		removeVideo(utils.Conf.SD, fileName, ClientID)
 		return
 	}
 
-	// Source file name without extension
-	sfnamewe := strings.Split(source, filepath.Ext(fullsfname))[0]
+	// source file name without extension
+	sourceFileNameWithoutExt := strings.Split(fileName, filepath.Ext(fullSourceFilePathAndName))[0]
 
 	// If transcoding directory does not exist creat it
 	if _, err = os.Stat(utils.Conf.TD); os.IsNotExist(err) {
@@ -68,30 +68,30 @@ func ProcessVodFile(source string, data models.Vidinfo, cldata models.Video, prd
 	}
 
 	// File name after transcoding
-	tempfile := fmt.Sprintf("%v%v.mp4", utils.Conf.TD, sfnamewe)
+	tempfile := fmt.Sprintf("%v%v.mp4", utils.Conf.TD, sourceFileNameWithoutExt)
 
 	// f
-	destinationfile := fmt.Sprintf("%v%v.mp4", utils.Conf.DD, sfnamewe)
+	destinationFile := fmt.Sprintf("%v%v.mp4", utils.Conf.DD, sourceFileNameWithoutExt)
 
 	// Checks if transcoded file with the same name already exists
 	if _, err := os.Stat(tempfile); err == nil {
-		utils.WLog(fmt.Sprintf("Error: file \"%v\" already transcoding", sfnamewe+".mp4"), ClientID)
-		removeFile(utils.Conf.SD, source, ClientID)
+		utils.WLog(fmt.Sprintf("Error: file \"%v\" already transcoding", sourceFileNameWithoutExt+".mp4"), ClientID)
+		removeVideo(utils.Conf.SD, fileName, ClientID)
 		return
-	} else if _, err := os.Stat(destinationfile); err == nil {
-		utils.WLog(fmt.Sprintf("Error: file \"%v\" already exist in transcoded folder", sfnamewe+".mp4"), ClientID)
-		removeFile(utils.Conf.SD, source, ClientID)
+	} else if _, err := os.Stat(destinationFile); err == nil {
+		utils.WLog(fmt.Sprintf("Error: file \"%v\" already exist in transcoded folder", sourceFileNameWithoutExt+".mp4"), ClientID)
+		removeVideo(utils.Conf.SD, fileName, ClientID)
 		return
 	}
 
-	utils.WLog(fmt.Sprintf("Starting to process %s", source), ClientID)
+	utils.WLog(fmt.Sprintf("Starting to process %s", fileName), ClientID)
 
 	// If data is empty get video info
 	if data.IsEmpty() {
-		data, err = GetVidInfo(utils.Conf.SD, source, utils.Conf.TempJson, utils.Conf.DataGen, utils.Conf.TempTxt, ClientID)
+		data, err = GetVidInfo(utils.Conf.SD, fileName, ClientID)
 		if err != nil {
 			log.Println(err)
-			removeFile(utils.Conf.SD, source, ClientID)
+			removeVideo(utils.Conf.SD, fileName, ClientID)
 			return
 		}
 	}
@@ -99,7 +99,7 @@ func ProcessVodFile(source string, data models.Vidinfo, cldata models.Video, prd
 	// Generate thumbnails
 	// utils.WLog("Generating thumbnail", ClientID)
 	// wg.Add(1)
-	// err = generateThumbnail(&wg, fullsfname, sfnamewe, data)
+	// err = generateThumbnail(&wg, fullSourceFilePathAndName, sourceFileNameWithoutExt, data)
 	// if err != nil {
 	// 	log.Printf("Generate thumbnail exited with error: %v", err)
 	// }
@@ -113,25 +113,26 @@ func ProcessVodFile(source string, data models.Vidinfo, cldata models.Video, prd
 	var tempdfs []string
 
 	if utils.Conf.Presets {
-		cmd, tempdfs, err = generatePresetCmdLine(prdata, data, sfpath, fullsfname, fmt.Sprintf("%v%v", utils.Conf.TD, sfnamewe))
+		cmd, tempdfs, err = generatePresetCmdLine(presetData, data, sourceFileWithPath, fullSourceFilePathAndName,
+			fmt.Sprintf("%v%v", utils.Conf.TD, sourceFileNameWithoutExt))
 		tempfile = tempdfs[0]
 		if err != nil {
 			utils.WLog("Error: failed to generate cmd line", ClientID)
 			log.Println(err)
-			removeFile(utils.Conf.SD, source, ClientID)
+			removeVideo(utils.Conf.SD, fileName, ClientID)
 			return
 		}
 	} else {
-		cmd = generateClientCmdLine(cldata, data, sfpath, fullsfname, tempfile)
+		cmd = generateClientCmdLine(clientData, data, sourceFileWithPath, fullSourceFilePathAndName, tempfile)
 	}
 
 	// check if client wants to save cmd line
 	// if save {
-	// 	err := db.AddCmdLine(source, cmd, tempdfs)
+	// 	err := db.AddCmdLine(fileName, cmd, tempdfs)
 	// 	if err != nil {
 	// 		utils.WLog("Error: failed to insert command line in database", ClientID)
 	// 		log.Println(err)
-	// 		removeFile(utils.Conf.SD, source, ClientID)
+	// 		removeVideo(utils.Conf.SD, fileName, ClientID)
 	// 	} else {
 	// 		utils.WLog("Transcoding parameters saved", ClientID)
 	// 	}
@@ -144,11 +145,11 @@ func ProcessVodFile(source string, data models.Vidinfo, cldata models.Video, prd
 			dfsl += d
 		}
 	}
-	go StartTranscode(source, utils.Conf, cmd, dfsl, ClientID, userID)
+	go StartTranscode(fileName, cmd, dfsl, ClientID, userID)
 }
 
 // StartTranscode ...
-func StartTranscode(source string, conf utils.Config, cmdg string, dfsl string, ClientID string, userID uint) {
+func StartTranscode(fileName string, cmdg string, dfsl string, ClientID string, userID uint) {
 	var (
 		err     error
 		cmd     string
@@ -158,14 +159,12 @@ func StartTranscode(source string, conf utils.Config, cmdg string, dfsl string, 
 		data    models.Vidinfo
 	)
 
-	utils.Conf = conf
-
 	// Path to source file
-	sfpath := utils.Conf.SD + source
+	sourceFileWithPath := utils.Conf.SD + fileName
 
 	// Checks if source file exists
-	if source != "" {
-		if _, err := os.Stat(sfpath); err == nil {
+	if fileName != "" {
+		if _, err := os.Stat(sourceFileWithPath); err == nil {
 			utils.WLog("File found", ClientID)
 		} else if os.IsNotExist(err) {
 			utils.WLog("Error: file does not exist", ClientID)
@@ -173,25 +172,25 @@ func StartTranscode(source string, conf utils.Config, cmdg string, dfsl string, 
 		} else {
 			log.Println(err)
 			utils.WLog("Error: file may or may not exist", ClientID)
-			removeFile(utils.Conf.SD, source, ClientID)
+			removeVideo(utils.Conf.SD, fileName, ClientID)
 			return
 		}
 	} else {
-		removeFile(utils.Conf.SD, source, ClientID)
+		removeVideo(utils.Conf.SD, fileName, ClientID)
 		return
 	}
 
 	// Full source file name
-	fullsfname, err := filepath.EvalSymlinks(sfpath)
+	fullSourceFilePathAndName, err := filepath.EvalSymlinks(sourceFileWithPath)
 	if err != nil {
 		log.Println(err)
 		utils.WLog("Error: failed to get full file name", ClientID)
-		removeFile(utils.Conf.SD, source, ClientID)
+		removeVideo(utils.Conf.SD, fileName, ClientID)
 		return
 	}
 
-	// Source file name without extension
-	sfnamewe := strings.Split(source, filepath.Ext(fullsfname))[0]
+	// source file name without extension
+	sourceFileNameWithoutExt := strings.Split(fileName, filepath.Ext(fullSourceFilePathAndName))[0]
 
 	// If transcoding directory does not exist creat it
 	if _, err = os.Stat(utils.Conf.TD); os.IsNotExist(err) {
@@ -199,12 +198,13 @@ func StartTranscode(source string, conf utils.Config, cmdg string, dfsl string, 
 	}
 
 	// File name after transcoding
-	tempfile := fmt.Sprintf("%v%v.mp4", utils.Conf.TD, sfnamewe)
+	tempfile := fmt.Sprintf("%v%v.mp4", utils.Conf.TD, sourceFileNameWithoutExt)
 
 	// f
-	destinationfile := fmt.Sprintf("%v%v.mp4", utils.Conf.DD, sfnamewe)
+	destinationFile := fmt.Sprintf("%v%v.mp4", utils.Conf.DD, sourceFileNameWithoutExt)
+	destinationFile = utils.ReturnDifNameIfDublicate(destinationFile, "")
 
-	data, err = GetVidInfo(utils.Conf.SD, source, utils.Conf.TempJson, utils.Conf.DataGen, utils.Conf.TempTxt, ClientID)
+	data, err = GetVidInfo(utils.Conf.SD, fileName, ClientID)
 
 	// ===============================================================
 
@@ -212,7 +212,7 @@ func StartTranscode(source string, conf utils.Config, cmdg string, dfsl string, 
 		cmd = cmdg
 		dfsline = dfsl
 	} else {
-		//cmd, dfsline, err = db.GetTranscodingInfo(source)
+		//cmd, dfsline, err = db.GetTranscodingInfo(fileName)
 	}
 
 	tempdfs := strings.Split(dfsline, " ")
@@ -235,11 +235,11 @@ func StartTranscode(source string, conf utils.Config, cmdg string, dfsl string, 
 		dur = data.Videotrack[0].Duration
 	}
 
-	// err = db.UpdateState(source, "Transcoding")
+	// err = db.UpdateState(fileName, "Transcoding")
 	// if err != nil {
 	// 	utils.WLog("Error: failed to update state in database", ClientID)
 	// 	log.Println(err)
-	// 	removeFile(utils.Conf.SD, source, ClientID)
+	// 	removeVideo(utils.Conf.SD, fileName, ClientID)
 	// 	return
 	// }
 
@@ -250,13 +250,13 @@ func StartTranscode(source string, conf utils.Config, cmdg string, dfsl string, 
 		log.Println(err)
 		utils.WLog("Error: could not start trancoding", ClientID)
 		log.Printf("Error cmd line: %v", cmd)
-		removeFile(utils.Conf.SD, source, ClientID)
+		removeVideo(utils.Conf.SD, fileName, ClientID)
 		return
 	} else if out, err := os.Stat(tempfile); os.IsNotExist(err) || out == nil {
 		log.Println(err)
 		utils.WLog("Error: transcoder failed", ClientID)
 		log.Printf("Error cmd line: %v", cmd)
-		removeFile(utils.Conf.SD, source, ClientID)
+		removeVideo(utils.Conf.SD, fileName, ClientID)
 		return
 	} else {
 
@@ -268,40 +268,73 @@ func StartTranscode(source string, conf utils.Config, cmdg string, dfsl string, 
 			var (
 				ndata []models.Vidinfo
 			)
-			removeFile(utils.Conf.SD, source, ClientID)
+			removeVideo(utils.Conf.SD, fileName, ClientID)
 			for i := range tempdfs {
-				os.Rename(utils.Conf.TD+dfs[i], utils.Conf.DD+dfs[i])
-				nd, err := GetVidInfo(utils.Conf.DD, dfs[i], utils.Conf.TempJson, utils.Conf.DataGen, utils.Conf.TempTxt, ClientID)
+
+				if newName := utils.ReturnDifNameIfDublicate(dfs[i], utils.Conf.DD); newName != fileName {
+					if err := utils.MoveFile(utils.Conf.TD+dfs[i], utils.Conf.TD+newName); err != nil {
+						utils.WLog("Error: failed while moving files", ClientID)
+						log.Println(err)
+						removeStreamVideos(utils.Conf.DD, dfs, sourceFileNameWithoutExt, ClientID)
+						return
+					}
+					dfs[i] = newName
+				}
+
+				if err := utils.MoveFile(utils.Conf.TD+dfs[i], utils.Conf.DD+dfs[i]); err != nil {
+					utils.WLog("Error: failed while moving files", ClientID)
+					log.Println(err)
+					removeStreamVideos(utils.Conf.DD, dfs, sourceFileNameWithoutExt, ClientID)
+					return
+				}
+
+				nd, err := GetVidInfo(utils.Conf.DD, dfs[i], ClientID)
 				if err != nil {
 					utils.WLog("Error: failed getting video data", ClientID)
 					log.Println(err)
-					removeStreamFiles(utils.Conf.DD, dfs, sfnamewe, ClientID)
+					removeStreamVideos(utils.Conf.DD, dfs, sourceFileNameWithoutExt, ClientID)
 					return
 				}
 				ndata = append(ndata, nd)
 			}
 
-			utils.InsertStream(ndata, dfs, "Transcoded", sfnamewe, userID)
-			// err = db.InsertStream(ndata, dfs, "Transcoded", sfnamewe)
+			utils.InsertStream(ndata, dfs, "transcoded", sourceFileNameWithoutExt, userID)
+			// err = db.InsertStream(ndata, dfs, "Transcoded", sourceFileNameWithoutExt)
 			// if err != nil {
 			// 	utils.WLog("Error: failed to insert stream data in database", ClientID)
 			// 	log.Println(err)
-			// 	removeStreamFiles(utils.Conf.DD, dfs, sfnamewe, ClientID)
+			// 	removeStreamVideos(utils.Conf.DD, dfs, sourceFileNameWithoutExt, ClientID)
 			// 	return
 			// }
 
-			msg := fmt.Sprintf("Transcoding coplete, stream name: %v", sfnamewe)
+			msg := fmt.Sprintf("Transcoding coplete, stream name: %v", sourceFileNameWithoutExt)
 			utils.WLog(msg, ClientID)
 
 		} else {
-			removeFile(utils.Conf.SD, source, ClientID)
-			os.Rename(tempfile, destinationfile)
-			dfn := sfnamewe + ".mp4"
-			ndata, err := GetVidInfo(utils.Conf.DD, dfn, utils.Conf.TempJson, utils.Conf.DataGen, utils.Conf.TempTxt, ClientID)
+
+			dfn := sourceFileNameWithoutExt + ".mp4"
+			if newName := utils.ReturnDifNameIfDublicate(dfn, utils.Conf.DD); newName != fileName {
+				if err := utils.MoveFile(utils.Conf.TD+dfn, utils.Conf.TD+newName); err != nil {
+					utils.WLog("Error: failed while moving file", ClientID)
+					log.Println(err)
+					removeVideo(utils.Conf.DD, dfn, ClientID)
+					return
+				}
+				dfn = newName
+			}
+
+			removeVideo(utils.Conf.SD, fileName, ClientID)
+			if err := utils.MoveFile(tempfile, destinationFile); err != nil {
+				log.Println(err)
+				removeVideo(utils.Conf.TD, dfn, ClientID)
+				return
+			}
+
+			ndata, err := GetVidInfo(utils.Conf.DD, dfn, ClientID)
 			if err != nil {
 				utils.WLog("Error: failed getting video data", ClientID)
 				log.Println(err)
-				removeFile(utils.Conf.DD, dfn, ClientID)
+				removeVideo(utils.Conf.DD, dfn, ClientID)
 				return
 			}
 			utils.InsertVideo(ndata, dfn, "Transcoded", userID, -1)
@@ -310,7 +343,7 @@ func StartTranscode(source string, conf utils.Config, cmdg string, dfsl string, 
 			// if err != nil {
 			// 	utils.WLog("Error: failed to insert video data in database", ClientID)
 			// 	log.Println(err)
-			// 	removeFile(utils.Conf.DD, dfn, ClientID)
+			// 	removeVideo(utils.Conf.DD, dfn, ClientID)
 			// 	return
 			// }
 
@@ -398,7 +431,7 @@ func runCmdCommand(cmdl string, dur string, wg *sync.WaitGroup, ClientID string)
 	return nil
 }
 
-func generateThumbnail(wg *sync.WaitGroup, source string, sourcewe string, data models.Vidinfo) error {
+func generateThumbnail(wg *sync.WaitGroup, fileName string, sourcewe string, data models.Vidinfo) error {
 	defer wg.Done()
 
 	//var timeStamp = (durToSec(data.Videotrack[0].Duration)) / utils.Conf.TNNum
@@ -408,7 +441,7 @@ func generateThumbnail(wg *sync.WaitGroup, source string, sourcewe string, data 
 	//var baseCmd = "ffmpeg -i %v -vf thumbnail=%v,setpts=N/TB -r 1 -vframes %v %v%v%%03d.jpg"
 
 	var baseCmd = "ffmpeg -i %v -ss %v -vframes 1 %v%v.jpg"
-	cmdl := fmt.Sprintf(baseCmd, source, utils.Conf.TNTS, utils.Conf.TND, sourcewe)
+	cmdl := fmt.Sprintf(baseCmd, fileName, utils.Conf.TNTS, utils.Conf.TND, sourcewe)
 
 	parts := strings.Fields(cmdl)
 	head := parts[0]
@@ -420,7 +453,7 @@ func generateThumbnail(wg *sync.WaitGroup, source string, sourcewe string, data 
 	return err
 }
 
-func removeFile(path string, filename string, ClientID string) {
+func removeVideo(path string, filename string, ClientID string) {
 	if _, err := os.Stat(path + filename); os.Remove(path+filename) != nil && !os.IsNotExist(err) {
 		utils.WLog("Error: failed removing file", ClientID)
 	}
@@ -431,7 +464,7 @@ func removeFile(path string, filename string, ClientID string) {
 	return
 }
 
-func removeStreamFiles(path string, filenames []string, sname string, ClientID string) {
+func removeStreamVideos(path string, filenames []string, sname string, ClientID string) {
 	for _, filename := range filenames {
 		if os.Remove(path+filename) != nil {
 			utils.WLog("Error: failed removing stream file(s)", ClientID)

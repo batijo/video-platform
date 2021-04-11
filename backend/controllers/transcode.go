@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Dzionys/video-platform/backend/models"
-	"github.com/Dzionys/video-platform/backend/utils"
+	"github.com/batijo/video-platform/backend/models"
+	"github.com/batijo/video-platform/backend/utils"
 )
 
 // TcTypeHandler ...
@@ -65,7 +65,8 @@ func TranscodeHandler(w http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
 		err = decoder.Decode(&prd)
 		if err != nil {
-			var resp = map[string]interface{}{"status": false, "message": "cannot decode json", "error": err}
+			resp := models.Response{Status: false, Message: "Cannot decode json", Error: err.Error()}
+			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(resp)
 			log.Println(err)
 			return
@@ -74,7 +75,8 @@ func TranscodeHandler(w http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
 		err = decoder.Decode(&vf)
 		if err != nil {
-			var resp = map[string]interface{}{"status": false, "message": "cannot decode json", "error": err}
+			resp := models.Response{Status: false, Message: "Cannot decode json", Error: err.Error()}
+			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(resp)
 			log.Println(err)
 			return
@@ -89,6 +91,7 @@ func TranscodeHandler(w http.ResponseWriter, r *http.Request) {
 
 	vfnprd <- data
 
-	var resp = map[string]interface{}{"status": true, "message": "transcode starting", "error": nil}
+	resp := models.Response{Status: true, Message: "Starting to transcode"}
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)
 }
