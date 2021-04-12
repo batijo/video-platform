@@ -6,9 +6,9 @@ import '../index.css'
 
 import thumbnail from 'url:../thumbnail.jpg'
 
-import Login from './Login'
-import Register from './Register'
-import Video from './Video'
+import { Login, Register } from './Auth'
+import { Video, VideoList } from './Video'
+import { Profile, Settings } from './User'
 
 const MenuButton = () => (
   <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
@@ -105,8 +105,9 @@ const App: React.FC = () => {
         <Route exact path="/"><LandingVideos /></Route>
         <Route exact path="/login"><Login /></Route>
         <Route exact path="/register"><Register /></Route>
-
+        <Route exact path="settings"><Settings /></Route>
         <Route path="/video"><Video /></Route>
+        <Route path="/user"><Profile /></Route>
       </Container>
       <Footer />
     </div>
