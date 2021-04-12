@@ -142,9 +142,9 @@ func FetchUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if admin {
-		res = utils.DB.Preload("auths").Find(&users)
+		res = utils.DB.Find(&users)
 	} else {
-		res = utils.DB.Preload("auths").Where("id = ? OR public = ?", userId, true).Find(&users)
+		res = utils.DB.Where("id = ? OR public = ?", userId, true).Find(&users)
 	}
 	if res.Error != nil {
 		resp := models.Response{Status: false, Message: "Could not fetch users", Error: res.Error.Error()}
