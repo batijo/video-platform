@@ -132,9 +132,9 @@ func UpdateVideo(id uint, updatedVideo models.Video) error {
 }
 
 // DeleteVideo deletes video based on its name
-func DeleteVideo(name string) error {
+func DeleteVideo(id uint) error {
 	var video models.Video
-	if err := DB.Where("file_name = ?", name).Delete(&video).Error; err != nil {
+	if err := DB.Where("id = ?", id).Delete(&video).Error; err != nil {
 		return err
 	}
 	return nil

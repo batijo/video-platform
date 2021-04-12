@@ -70,7 +70,7 @@ func generateDataFile(wg *sync.WaitGroup, gpath string, prefix string) error {
 }
 
 // GetVidInfo retruns struct with information about video file
-func GetVidInfo(path string, filename string, ClientID string) (models.Vidinfo, error) {
+func GetVidInfo(path string, filename string, ClientID string, vidId int) (models.Vidinfo, error) {
 	var (
 		wg sync.WaitGroup
 		vi models.Vidinfo
@@ -81,7 +81,7 @@ func GetVidInfo(path string, filename string, ClientID string) (models.Vidinfo, 
 	infob, err := getMediaInfoJSON(path+filename, &wg)
 	if err != nil {
 		utils.WLog("Error: could not get json data from file", ClientID)
-		removeVideo(path, filename, ClientID)
+		removeVideo(path+filename, vidId, ClientID)
 		return vi, err
 	}
 	wg.Wait()
@@ -93,7 +93,7 @@ func GetVidInfo(path string, filename string, ClientID string) (models.Vidinfo, 
 	//info, err := json.Marshal(raw)
 	if err != nil {
 		utils.WLog("Error: failed to unmarshal json file", ClientID)
-		removeVideo(path, filename, ClientID)
+		removeVideo(path+filename, vidId, ClientID)
 		return vi, err
 	}
 

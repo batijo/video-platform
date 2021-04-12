@@ -75,7 +75,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeVideo(utils.Conf.SD, fileName, r.RemoteAddr)
+		removeVideo(utils.Conf.SD+fileName, -1, r.RemoteAddr)
 		utils.WLog("Error: failed to write file", r.RemoteAddr)
 		return
 	}
@@ -93,7 +93,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeVideo(utils.Conf.SD, fileName, r.RemoteAddr)
+		removeVideo(utils.Conf.SD+fileName, -1, r.RemoteAddr)
 		utils.WLog("Error: failed send video data to client", r.RemoteAddr)
 		return
 	}
@@ -104,7 +104,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeVideo(utils.Conf.SD, fileName, r.RemoteAddr)
+		removeVideo(utils.Conf.SD+fileName, -1, r.RemoteAddr)
 		return
 	}
 
@@ -114,7 +114,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeVideo(utils.Conf.SD, fileName, r.RemoteAddr)
+		removeVideo(utils.Conf.SD+fileName, int(vidId), r.RemoteAddr)
 		utils.WLog("Error: failed to insert video data in database", r.RemoteAddr)
 		return
 	}
@@ -126,6 +126,8 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		if dat.Err == nil {
 			vf := dat.Video
 			prd := dat.Pdata
+
+			// TO DO.. add video to Queue
 
 			go tc.ProcessVodFile(fileName, data, vf, prd, r.RemoteAddr, vidId, userID)
 		}
@@ -144,7 +146,7 @@ func writeJSONResponse(w http.ResponseWriter, filename string, ClientID string) 
 		return vidinfo, err
 	}
 
-	vidinfo, err = tc.GetVidInfo(utils.Conf.SD, filename, ClientID)
+	vidinfo, err = tc.GetVidInfo(utils.Conf.SD, filename, ClientID, -1)
 	if err != nil {
 		return vidinfo, err
 	}
@@ -163,16 +165,19 @@ func writeJSONResponse(w http.ResponseWriter, filename string, ClientID string) 
 	return vidinfo, nil
 }
 
-func removeVideo(path string, filename string, ClientID string) error {
-
+func removeVideo(path string, vidId int, ClientID string) error {
 	var err error
-	if err = os.Remove(path + filename); err != nil {
+
+	if err = os.Remove(path); err != nil {
 		log.Println(err)
 		utils.WLog("Error: failed removing source file", ClientID)
 	}
-	err = utils.DeleteVideo(filename)
-	if err != nil {
-		return err
+	if vidId >= 0 {
+		err = utils.DeleteVideo(uint(vidId))
+		if err != nil {
+			return err
+		}
 	}
+
 	return err
 }
