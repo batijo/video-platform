@@ -14,7 +14,7 @@ import (
 )
 
 func GetUserID(r *http.Request) (uint, bool, error) {
-	var header = r.Header.Get("x-access-token") //Grab the token from the header
+	var header = strings.Split(r.Header.Get("Authorization"), " ")[1] //Grab the token from the header
 	header = strings.TrimSpace(header)
 
 	tk := &models.Token{}
@@ -73,7 +73,7 @@ func jwtParser(w http.ResponseWriter, r *http.Request) (models.Token, error) {
 
 	tk := &models.Token{}
 
-	var header = r.Header.Get("x-access-token") //Grab the token from the header
+	var header = strings.Split(r.Header.Get("Authorization"), " ")[1] //Grab the token from the header
 	header = strings.TrimSpace(header)
 
 	if header == "" {

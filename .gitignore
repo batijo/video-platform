@@ -5,4 +5,5 @@ uploaded/*
 transcoding/*
 videos/*
 docker-compose.override.yml
-.old
+
+node_modules/
