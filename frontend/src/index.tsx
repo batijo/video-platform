@@ -1,35 +1,22 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { BrowserRouter } from 'react-router-dom';
-import { createSlice, configureStore } from '@reduxjs/toolkit'
+import React from 'react'
+import ReactDOM from 'react-dom'
+import { BrowserRouter } from 'react-router-dom'
+import { combineReducers, configureStore } from '@reduxjs/toolkit'
+import App from './components/App'
+import "tailwindcss/tailwind.css"
+import './index.css'
 
-import "tailwindcss/tailwind.css";
-import './index.css';
-import App from './components/App';
+import user from './store/user'
 
-// Example only, remove later
-const counterSlice = createSlice({
-  name: 'counter',
-  initialState: {
-    value: 0
-  },
-  reducers: {
-    incremented: state => {
-      // Redux Toolkit allows us to write "mutating" logic in reducers. It
-      // doesn't actually mutate the state because it uses the Immer library,
-      // which detects changes to a "draft state" and produces a brand new
-      // immutable state based off those changes
-      state.value += 1
-    },
-    decremented: state => {
-      state.value -= 1
-    }
-  }
+const rootReducer = combineReducers({
+  user
 })
 
-const store = configureStore({
-  reducer: counterSlice.reducer
+export const store = configureStore({
+  reducer: rootReducer
 })
+
+store.subscribe(() => console.log(store.getState()))
 
 ReactDOM.render(
   <React.StrictMode>
