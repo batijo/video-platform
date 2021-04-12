@@ -51,22 +51,18 @@ services:
     depends_on:
       - backend
 
-  frontend:
-    container_name: ${FRONTEND_CONTAINER_NAME}
-    build: frontend
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=${NODE_ENV}
-      - GATSBY_WEBPACK_PUBLICPATH=/
-      - GATSBY_TELEMETRY_DISABLED=1
-    volumes:
-      - /app/node_modules
-      - ./frontend:/app
-    ports:
-      - 8000:8000
-      - 9929:9929
-      - 9230:9230
-    networks:
-      - web
-    depends_on:
-      - nginx
+  # frontend:
+  #   container_name: ${FRONTEND_CONTAINER_NAME}
+  #   build: frontend
+  #   restart: unless-stopped
+  #   environment:
+  #     - NODE_ENV=${NODE_ENV}
+  #   volumes:
+  #     - /app/node_modules
+  #     - ./frontend:/app
+  #   ports:
+  #     - 1234:1234
+  #   networks:
+  #     - web
+  #   depends_on:
+  #     - nginx
