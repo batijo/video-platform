@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -27,8 +26,17 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(resp)
 		return
 	}
-	resp := findOne(user.Email, user.Password)
-	w.WriteHeader(http.StatusOK)
+
+	if user.Email == "" || user.Password == "" {
+		resp := models.Response{Status: false, Message: "Email and Password must be provided"}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+
+	resp, status := findOne(user.Email, user.Password)
+
+	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(resp)
 }
 
@@ -38,19 +46,19 @@ func LogOut(w http.ResponseWriter, r *http.Request) {
 }
 
 // FindOne ...
-func findOne(email, password string) models.Response {
+func findOne(email, password string) (models.Response, int) {
 	user := &models.User{}
 
 	if err := utils.DB.Where("email = ?", email).First(user).Error; err != nil {
 		resp := models.Response{Status: false, Message: "Email address not found", Error: err.Error()}
-		return resp
+		return resp, http.StatusUnauthorized
 	}
 	expiresAt := time.Now().Add(time.Minute * time.Duration(utils.Conf.JWTExp)).Unix()
 
 	errf := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if errf != nil || errf == bcrypt.ErrMismatchedHashAndPassword { //Password does not match!
 		resp := models.Response{Status: false, Message: "Invalid login credentials. Please try again", Error: errf.Error()}
-		return resp
+		return resp, http.StatusUnauthorized
 	}
 
 	tk := &models.Token{
@@ -66,13 +74,14 @@ func findOne(email, password string) models.Response {
 
 	tokenString, err := token.SignedString([]byte(utils.Conf.JWTSecret))
 	if err != nil {
-		fmt.Println(err)
+		resp := models.Response{Status: false, Message: "Invalid login credentials. Please try again", Error: err.Error()}
+		return resp, http.StatusInternalServerError
 	}
 
 	resp := models.Response{Status: true, Message: "logged in", Data: tokenString}
 	// resp["token"] = tokenString // Store the token in the response
 	// resp["user"] = user
-	return resp
+	return resp, http.StatusOK
 }
 
 // CreateUser function -- create a new user
@@ -146,6 +155,7 @@ func FetchUsers(w http.ResponseWriter, r *http.Request) {
 	} else {
 		res = utils.DB.Preload("auths").Where("id = ? OR public = ?", userId, true).Find(&users)
 	}
+
 	if res.Error != nil {
 		resp := models.Response{Status: false, Message: "Could not fetch users", Error: res.Error.Error()}
 		w.WriteHeader(http.StatusInternalServerError)
