@@ -97,7 +97,7 @@ func GetVidInfo(path string, filename string, ClientID string, vidId int) (model
 		return vi, err
 	}
 
-	vi.ParseFFprobeData(metadata)
+	vi.ParseFFprobeData(metadata, filename)
 
 	// // random number
 	// rand.Seed(time.Now().UnixNano())

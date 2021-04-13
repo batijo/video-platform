@@ -24,7 +24,13 @@ func ConnectDB() *gorm.DB {
 	databaseHost := os.Getenv("DATABASE_HOST")
 
 	//Define DB connection string
-	dbURI := fmt.Sprintf("host=%s user=%s dbname=%s sslmode=disable password=%s", databaseHost, username, databaseName, password)
+	dbURI := fmt.Sprintf(
+		"host=%s user=%s dbname=%s sslmode=disable password=%s",
+		databaseHost,
+		username,
+		databaseName,
+		password,
+	)
 
 	//connect to db URI
 	db, err := gorm.Open("postgres", dbURI)
@@ -43,6 +49,7 @@ func ConnectDB() *gorm.DB {
 		models.Video{},
 		models.Audio{},
 		models.Sub{},
+		models.Encode{},
 	)
 
 	db.Model(&models.Video{}).AddForeignKey("user_id", "users(id)", "SET NULL", "NO ACTION")
@@ -50,12 +57,16 @@ func ConnectDB() *gorm.DB {
 	db.Model(&models.Vstream{}).AddForeignKey("user_id", "users(id)", "SET NULL", "NO ACTION")
 	db.Model(&models.Audio{}).AddForeignKey("video_id", "videos(id)", "CASCADE", "NO ACTION")
 	db.Model(&models.Sub{}).AddForeignKey("video_id", "videos(id)", "CASCADE", "NO ACTION")
+	// Encode data
+	db.Model(&models.Encode{}).AddForeignKey("video_id", "videos(id)", "CASCADE", "CASCADE")
+	db.Model(&models.Audio{}).AddForeignKey("video_id", "encodes(id)", "CASCADE", "NO ACTION")
+	db.Model(&models.Sub{}).AddForeignKey("video_id", "encodes(id)", "CASCADE", "NO ACTION")
 
 	return db
 }
 
 // InsertVideo adds video to database
-func InsertVideo(vidinfo models.Vidinfo, name string, state string, userID uint, streamID int) (uint, error) {
+func InsertVideo(vidinfo models.Vidinfo, state string, userID uint, streamID int) (uint, error) {
 
 	var (
 		user     models.User
@@ -87,7 +98,7 @@ func InsertVideo(vidinfo models.Vidinfo, name string, state string, userID uint,
 	if streamID < 0 {
 		video = models.Video{
 			StrID:      vidinfo.Videotrack[0].Index,
-			FileName:   name,
+			FileName:   vidinfo.FileName,
 			State:      state,
 			VideoCodec: vidinfo.Videotrack[0].CodecName,
 			Width:      vidinfo.Videotrack[0].Width,
@@ -100,7 +111,7 @@ func InsertVideo(vidinfo models.Vidinfo, name string, state string, userID uint,
 		video = models.Video{
 			VstreamID:  uint(streamID),
 			StrID:      vidinfo.Videotrack[0].Index,
-			FileName:   name,
+			FileName:   vidinfo.FileName,
 			State:      state,
 			VideoCodec: vidinfo.Videotrack[0].CodecName,
 			Width:      vidinfo.Videotrack[0].Width,
@@ -168,7 +179,8 @@ func InsertStream(ndata []models.Vidinfo, names []string, state string, sname st
 	DB.Where("name = ?", sname).First(&stream)
 
 	for i, video := range ndata {
-		InsertVideo(video, names[i], state, userID, int(stream.ID))
+		video.FileName = names[i]
+		InsertVideo(video, state, userID, int(stream.ID))
 	}
 
 }

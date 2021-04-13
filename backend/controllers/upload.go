@@ -108,7 +108,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vidId, err := utils.InsertVideo(data, fileName, "not_transcoded", userID, -1)
+	vidId, err := utils.InsertVideo(data, "not_transcoded", userID, -1)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Sql error", Error: err.Error()}
 		w.WriteHeader(http.StatusInternalServerError)
@@ -129,7 +129,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 
 			// TO DO.. add video to Queue
 
-			go tc.ProcessVodFile(fileName, data, vf, prd, r.RemoteAddr, vidId, userID)
+			go tc.ProcessVodFile(vf, prd, r.RemoteAddr, vidId, userID)
 		}
 	}()
 }

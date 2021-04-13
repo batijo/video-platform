@@ -33,6 +33,7 @@ type subtitle struct {
 
 // Vidinfo json struct with information about video file
 type Vidinfo struct {
+	FileName    string       `json:"filename"`
 	Videotracks int          `json:"videotracks"`
 	Audiotracks int          `json:"audiotracks"`
 	Subtitles   int          `json:"subtitles"`
@@ -46,7 +47,7 @@ func (s Vidinfo) IsEmpty() bool {
 	return reflect.DeepEqual(s, Vidinfo{})
 }
 
-func (v *Vidinfo) ParseFFprobeData(out Ffprobe) {
+func (v *Vidinfo) ParseFFprobeData(out Ffprobe, fileName string) {
 	var (
 		vc = 0
 		ac = 0
@@ -94,6 +95,7 @@ func (v *Vidinfo) ParseFFprobeData(out Ffprobe) {
 			sc = sc + 1
 		}
 	}
+	v.FileName = fileName
 	v.Videotracks = vc
 	v.Audiotracks = ac
 	v.Subtitles = sc

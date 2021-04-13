@@ -1,6 +1,10 @@
 package models
 
-import "github.com/jinzhu/gorm"
+import (
+	"time"
+
+	"github.com/jinzhu/gorm"
+)
 
 type Vstream struct {
 	gorm.Model
@@ -27,6 +31,23 @@ type Video struct {
 	FrameRate   float64
 	AudioT      []Audio `gorm:"ForeignKey:VideoID"`
 	SubtitleT   []Sub   `gorm:"ForeignKey:VideoID"`
+
+	EncData Encode `gorm:"ForeignKey:VideoID"`
+}
+
+func (v *Video) ParseWithEncode(e Encode) {
+	v.StrID = e.StrID
+	v.FileName = e.FileName
+	v.VideoCodec = e.VideoCodec
+	v.Width = e.Width
+	v.Height = e.Height
+	v.FrameRate = e.FrameRate
+	for _, at := range e.AudioT {
+		v.AudioT = append(v.AudioT, at)
+	}
+	for _, st := range e.SubtitleT {
+		v.SubtitleT = append(v.SubtitleT, st)
+	}
 }
 
 type Audio struct {
@@ -43,6 +64,38 @@ type Sub struct {
 	VideoID  uint
 	StreamID int
 	Language string
+}
+
+type Encode struct {
+	ID        uint `gorm:"primary_key"`
+	CreatedAt time.Time
+	VideoID   uint
+
+	StrID      int
+	FileName   string
+	VideoCodec string
+	Width      int
+	Height     int
+	FrameRate  float64
+	AudioT     []Audio `gorm:"ForeignKey:VideoID"`
+	SubtitleT  []Sub   `gorm:"ForeignKey:VideoID"`
+}
+
+type ByCreateDate []Encode
+
+// Forward request for length
+func (p ByCreateDate) Len() int {
+	return len(p)
+}
+
+// Define compare
+func (p ByCreateDate) Less(i, j int) bool {
+	return p[i].CreatedAt.Before(p[j].CreatedAt)
+}
+
+// Define swap over an array
+func (p ByCreateDate) Swap(i, j int) {
+	p[i], p[j] = p[j], p[i]
 }
 
 type Pdata struct {
