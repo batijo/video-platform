@@ -7,8 +7,9 @@ import '../index.css'
 import thumbnail from 'url:../thumbnail.jpg'
 
 import { Login, Register } from './Auth'
-import { Video, VideoList } from './Video'
+import { VideoDetail, VideoList, Video } from './Video'
 import { Profile, Settings } from './User'
+import { TypeFlags } from 'typescript'
 
 const MenuButton = () => (
   <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
@@ -48,46 +49,31 @@ const Navbar = () => (
   </nav>
 )
 
-const Container: React.FC = props => (
+const Container = ({ children }: React.PropsWithChildren<{}>) => (
   <div className="flex-1 min-w-full bg-gray-200">
-    <div className="container mx-auto xl:max-w-screen-xl p-6">
-      {props.children}
+    <div className="container mx-auto xl:max-w-screen-xl 2xl:max-w-screen-2xl p-6">
+      {children}
     </div>
   </div >
 );
 
-const LandingVideos: React.FC = () => {
-  const videos = [];
+const LandingVideos = () => {
+  const videos: Video[] = [];
 
-  for (let i = 1; i < 10; i++) {
-    videos.push(
-      <div className=" bg-white rounded-md">
-        <Link to={`video/${i}`}>
-          <div className="relative">
-            <div className="absolute antialiased font-bold text-white top-2 right-2 bg-gray-800 px-2 rounded-md opacity-80">+</div>
-            <div className="absolute text-white bottom-2 right-2 bg-gray-800 px-1 rounded-md opacity-80">00:00</div>
-            <img className="rounded-t-md" src={thumbnail} />
-          </div>
-        </Link>
-        <div className="p-4 flex flex-row justify-between">
-          <span className="font-bold text-xl" id="title">
-            <Link to="/video">Video about {i}</Link>
-          </span>
-          <span className="text-md" id="title">2021-07-0{i}</span>
-        </div>
-      </div>
-    )
+  for (let i = 1; i < 13; i++) {
+    videos.push({
+      title: `Video about ${i}`,
+      description: 'test_description'
+    })
   }
 
   return (
-    <div className="">
+    <>
       <div className="bg-white p-4 rounded-md mb-4">
         <p className="font-bold text-3xl text-gray-700">Latest Videos</p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {videos}
-      </div>
-    </div>
+      <VideoList videos={videos} />
+    </>
   )
 }
 
@@ -97,21 +83,19 @@ const Footer = () => (
   </footer>
 )
 
-const App: React.FC = () => {
-  return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <Container>
-        <Route exact path="/"><LandingVideos /></Route>
-        <Route exact path="/login"><Login /></Route>
-        <Route exact path="/register"><Register /></Route>
-        <Route exact path="settings"><Settings /></Route>
-        <Route path="/video"><Video /></Route>
-        <Route path="/user"><Profile /></Route>
-      </Container>
-      <Footer />
-    </div>
-  )
-}
+const App = () => (
+  <div className="flex flex-col min-h-screen">
+    <Navbar />
+    <Container>
+      <Route exact path="/"><LandingVideos /></Route>
+      <Route exact path="/login"><Login /></Route>
+      <Route exact path="/register"><Register /></Route>
+      <Route exact path="settings"><Settings /></Route>
+      <Route path="/video"><VideoDetail filename="idk" title="test_title" description="test_description" /></Route>
+      <Route path="/user"><Profile /></Route>
+    </Container>
+    <Footer />
+  </div>
+)
 
 export default App;
