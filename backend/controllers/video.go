@@ -194,6 +194,8 @@ func GetVideo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch true {
+	case video.Public:
+		break
 	case userId == video.UserID:
 		break
 	case admin:
