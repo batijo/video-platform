@@ -14,12 +14,15 @@ import (
 )
 
 func GetUserID(r *http.Request) (uint, bool, error) {
-	var header = strings.Split(r.Header.Get("Authorization"), " ")[1] //Grab the token from the header
-	header = strings.TrimSpace(header)
-
 	tk := &models.Token{}
 
-	_, err := jwt.ParseWithClaims(header, tk, func(token *jwt.Token) (interface{}, error) {
+	//Grab the token from the header
+	token, err := parseAuthHeader(r)
+	if err != nil {
+		return tk.UserID, false, err
+	}
+
+	_, err = jwt.ParseWithClaims(token, tk, func(token *jwt.Token) (interface{}, error) {
 		return []byte(utils.Conf.JWTSecret), nil
 	})
 	if err != nil {
@@ -70,21 +73,19 @@ func JwtVerify(next http.Handler) http.Handler {
 }
 
 func jwtParser(w http.ResponseWriter, r *http.Request) (models.Token, error) {
-
 	tk := &models.Token{}
 
-	var header = strings.Split(r.Header.Get("Authorization"), " ")[1] //Grab the token from the header
-	header = strings.TrimSpace(header)
-
-	if header == "" {
+	//Grab the token from the header
+	token, err := parseAuthHeader(r)
+	if err != nil {
 		//Token is missing, returns with error code 403 Unauthorized
-		w.WriteHeader(http.StatusForbidden)
-		resp := models.Response{Status: false, Message: "Missing auth token"}
+		w.WriteHeader(http.StatusUnauthorized)
+		resp := models.Response{Status: false, Error: err.Error()}
 		json.NewEncoder(w).Encode(resp)
-		return *tk, errors.New("Missing auth token")
+		return *tk, err
 	}
 
-	_, err := jwt.ParseWithClaims(header, tk, func(token *jwt.Token) (interface{}, error) {
+	_, err = jwt.ParseWithClaims(token, tk, func(token *jwt.Token) (interface{}, error) {
 		return []byte(utils.Conf.JWTSecret), nil
 	})
 
@@ -96,4 +97,20 @@ func jwtParser(w http.ResponseWriter, r *http.Request) (models.Token, error) {
 	}
 
 	return *tk, nil
+}
+
+func parseAuthHeader(r *http.Request) (string, error) {
+	header := r.Header.Get("Authorization")
+	if header == "" {
+		return "", errors.New("Missing auth token")
+	}
+
+	splitHeader := strings.Split(header, " ")
+	if len(splitHeader) != 2 {
+		return "", errors.New("Wrong header format")
+	}
+
+	token := strings.TrimSpace(splitHeader[1])
+
+	return token, nil
 }
