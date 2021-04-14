@@ -135,8 +135,8 @@ func InsertVideo(vidinfo models.Vidinfo, state string, userID uint, streamID int
 
 // Unfinished
 func UpdateVideo(id uint, updatedVideo models.Video) error {
-	var video models.Video
-	if err := DB.First(&video, id).Error; err != nil {
+	var video = models.Video{Model: gorm.Model{ID: id}}
+	if err := DB.Model(&video).Update(updatedVideo).Error; err != nil {
 		return err
 	}
 	return nil

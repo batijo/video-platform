@@ -35,6 +35,31 @@ type Video struct {
 	EncData Encode `gorm:"ForeignKey:VideoID"`
 }
 
+func (v *Video) ParseWithVidinfo(i Vidinfo) {
+	v.FileName = i.FileName
+	for _, t := range i.Videotrack {
+		v.StrID = t.Index
+		v.VideoCodec = t.CodecName
+		v.Width = t.Width
+		v.Height = t.Height
+		v.FrameRate = t.FrameRate
+	}
+	for _, t := range i.Audiotrack {
+		var at Audio
+		at.StreamID = t.Index
+		at.AtCodec = t.CodecName
+		at.Language = t.Language
+		at.Channels = t.Channels
+		v.AudioT = append(v.AudioT, at)
+	}
+	for _, t := range i.Subtitle {
+		var st Sub
+		st.StreamID = t.Index
+		st.Language = t.Language
+		v.SubtitleT = append(v.SubtitleT, st)
+	}
+}
+
 func (v *Video) ParseWithEncode(e Encode) {
 	v.StrID = e.StrID
 	v.FileName = e.FileName
@@ -53,7 +78,7 @@ func (v *Video) ParseWithEncode(e Encode) {
 type Audio struct {
 	ID      int `json:"id,primary_key"`
 	VideoID uint
-	EncID   uint `json:"enc_id"`
+	EncID   uint `gorm:"DEFAULT:NULL"`
 
 	StreamID int
 	AtCodec  string
@@ -64,7 +89,7 @@ type Audio struct {
 type Sub struct {
 	ID      int `json:"id,primary_key"`
 	VideoID uint
-	EncID   uint `json:"enc_id"`
+	EncID   uint `gorm:"DEFAULT:NULL"`
 
 	StreamID int
 	Language string

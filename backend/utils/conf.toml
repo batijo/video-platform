@@ -42,4 +42,4 @@ TNTS = "00:00:15"
 Presets = false
 
 # Available file formats to be uploaded
-FileTypes = [".mkv", ".mp4", ".avi", ".mov", ".mpg", ".wmv"]
+FileTypes = [".mkv", ".mp4", ".avi", ".mov", ".mpg", ".wmv", ".webm"]

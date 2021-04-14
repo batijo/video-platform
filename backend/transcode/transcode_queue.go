@@ -43,16 +43,19 @@ func startTranscoder(video models.Video) {
 	for {
 		var clientData models.Video
 		clientData.ParseWithEncode(video.EncData)
+		clientData.State = video.State
 
 		// Start procesing file
 		go processVodFile(clientData, models.Pdata{}, "", video.ID, video.UserID)
-		<-finished
+		resp := <-finished
 
 		// Remove transcoded video from queue
-		err := removeFromQueue(video.ID)
-		if err != nil {
-			active = false
-			log.Panicln(err)
+		if resp {
+			err := removeFromQueue(video.ID)
+			if err != nil {
+				active = false
+				log.Panicln(err)
+			}
 		}
 
 		// Get new video id for transcoding if there is none, stop transcoder
@@ -107,7 +110,7 @@ func nextInQueue() (int, error) {
 	var encVideos []models.Encode
 
 	resp := utils.DB.Find(&encVideos)
-	if resp.Error != nil || len(encVideos) < 0 {
+	if resp.Error != nil || len(encVideos) < 1 {
 		return -1, resp.Error
 	}
 	sort.Sort(models.ByCreateDate(encVideos))

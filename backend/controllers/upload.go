@@ -16,8 +16,7 @@ import (
 
 // VideoUpload upload handler which only allows to upload video
 func VideoUpload(w http.ResponseWriter, r *http.Request) {
-
-	//Starts readig file by chuncking
+	//Starts reading file by chuncking <- NOPE
 	r.ParseMultipartForm(32 << 20)
 	file, handler, err := r.FormFile("file")
 	if err != nil {
@@ -117,23 +116,13 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(resp)
 	} else {
-		resp := models.Response{Status: true, Message: fileName, Data: data}
+		var videoData models.Video
+		videoData.ParseWithVidinfo(data)
+		videoData.ID = vidId
+		resp := models.Response{Status: true, Message: fileName, Data: videoData}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(resp)
 	}
-
-	// Deprecate this shit
-	// go func() {
-	// 	dat := <-vfnprd
-	// 	if dat.Err == nil {
-	// 		if err := tc.AddToQueue(vidId, dat.Enc); err != nil {
-	// 			log.Println(err)
-	// 			removeVideo(utils.Conf.SD+fileName, int(vidId), r.RemoteAddr)
-	// 			utils.WLog("Error: Failed to add video to queue for transcoding", r.RemoteAddr)
-	// 			return
-	// 		}
-	// 	}
-	// }()
 }
 
 func removeVideo(path string, vidId int, ClientID string) error {

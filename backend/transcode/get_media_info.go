@@ -87,10 +87,8 @@ func GetVidInfo(path string, filename string, ClientID string, vidId int) (model
 	wg.Wait()
 
 	// Unmarshal data into Ffprobe struct
-	//var raw map[string]interface{}
 	var metadata models.Ffprobe
 	err = json.Unmarshal(infob, &metadata)
-	//info, err := json.Marshal(raw)
 	if err != nil {
 		utils.WLog("Error: failed to unmarshal json file", ClientID)
 		removeVideo(path+filename, vidId, ClientID)
@@ -99,61 +97,5 @@ func GetVidInfo(path string, filename string, ClientID string, vidId int) (model
 
 	vi.ParseFFprobeData(metadata, filename)
 
-	// // random number
-	// rand.Seed(time.Now().UnixNano())
-	// prefix := fmt.Sprint(rand.Intn(10000))
-	// tempSoureFileName := fmt.Sprintf(utils.Conf.SourceJson, prefix)
-
-	// err = ioutil.WriteFile(tempSoureFileName, info, 0666)
-	// if err != nil {
-	// 	utils.WLog("Error: could not create json file", ClientID)
-	// 	removeVideo(path, filename, ClientID)
-	// 	return vi, err
-	// }
-
-	// // Run python script to get nesessary data from json file
-	// gpath, err := filepath.Abs(utils.Conf.DataGen)
-	// wg.Add(1)
-	// err = generateDataFile(&wg, gpath, prefix)
-	// wg.Wait()
-	// if err != nil {
-	// 	utils.WLog("Error: failed to generate video data", ClientID)
-	// 	removeVideo(path, filename, ClientID)
-	// 	return vi, err
-	// }
-
-	// // Write data to Vidinfo struct
-	// tempDataFileName := fmt.Sprintf(utils.Conf.DataJson, prefix)
-	// vi, err = parseFile(tempDataFileName)
-	// if err != nil || vi.IsEmpty() {
-	// 	utils.WLog("Error: failed parsing data file", ClientID)
-	// 	removeVideo(path, filename, ClientID)
-	// 	return vi, err
-	// }
-
 	return vi, nil
 }
-
-// func parseFile(f string) (models.Vidinfo, error) {
-// 	var (
-// 		vi models.Vidinfo
-// 	)
-// 	file, err := os.Open(f)
-// 	if err != nil {
-// 		return vi, err
-// 	}
-// 	defer file.Close()
-// 	defer os.Remove(f)
-
-// 	byteValue, err := ioutil.ReadAll(file)
-// 	if err != nil {
-// 		return vi, err
-// 	}
-
-// 	err = json.Unmarshal(byteValue, &vi)
-// 	if err != nil {
-// 		return vi, err
-// 	}
-
-// 	return vi, nil
-// }

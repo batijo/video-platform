@@ -35,13 +35,26 @@ func processVodFile(clientData models.Video, presetData models.Pdata, ClientID s
 		// All temporary destination files of preset
 		tempdfs []string
 		// All temporary destination files of preset put in one string
-		dfsline string
-		video   = models.Video{Model: gorm.Model{ID: vidId}}
+		dfsline      string
+		video        = models.Video{Model: gorm.Model{ID: vidId}}
+		newVideoData models.Video
+		path         = map[string]string{
+			"not_transcoded": utils.Conf.SD,
+			"transcoded":     utils.Conf.DD,
+		}
 	)
+
+	// Gather video data
+	data, err = GetVidInfo(path[clientData.State], clientData.FileName, ClientID, int(vidId))
+	if err != nil {
+		log.Println(err)
+		finished <- false
+		return
+	}
 
 	// Checks if source file exists
 	if data.FileName != "" {
-		if _, err := os.Stat(utils.Conf.SD + data.FileName); err == nil {
+		if _, err := os.Stat(path[clientData.State] + data.FileName); err == nil {
 			utils.WLog("File found", ClientID)
 		} else if os.IsNotExist(err) {
 			utils.WLog("Error: file does not exist", ClientID)
@@ -50,30 +63,22 @@ func processVodFile(clientData models.Video, presetData models.Pdata, ClientID s
 		} else {
 			log.Println(err)
 			utils.WLog("Error: file may or may not exist", ClientID)
-			removeVideo(utils.Conf.SD+data.FileName, int(vidId), ClientID)
+			removeVideo(path[clientData.State]+data.FileName, int(vidId), ClientID)
 			finished <- false
 			return
 		}
 	} else {
-		removeVideo(utils.Conf.SD+data.FileName, int(vidId), ClientID)
-		finished <- false
-		return
-	}
-
-	// Gather video data
-	data, err = GetVidInfo(utils.Conf.SD, clientData.FileName, ClientID, int(vidId))
-	if err != nil {
-		log.Println(err)
+		utils.WLog("Error: Missing file name in data", ClientID)
 		finished <- false
 		return
 	}
 
 	// Full source file name
-	fullSourceFilePathAndName, err = filepath.EvalSymlinks(utils.Conf.SD + data.FileName)
+	fullSourceFilePathAndName, err = filepath.EvalSymlinks(path[clientData.State] + data.FileName)
 	if err != nil {
 		log.Println(err)
 		utils.WLog("Error: failed to get full file path", ClientID)
-		removeVideo(utils.Conf.SD+data.FileName, int(vidId), ClientID)
+		removeVideo(path[clientData.State]+data.FileName, int(vidId), ClientID)
 		finished <- false
 		return
 	}
@@ -96,12 +101,12 @@ func processVodFile(clientData models.Video, presetData models.Pdata, ClientID s
 	// Checks if transcoded file with the same name already exists
 	if _, err := os.Stat(tempfile); err == nil {
 		utils.WLog(fmt.Sprintf("Error: file \"%v\" already transcoding", sourceFileNameWithoutExt+".mp4"), ClientID)
-		removeVideo(utils.Conf.SD+data.FileName, int(vidId), ClientID)
+		removeVideo(path[clientData.State]+data.FileName, int(vidId), ClientID)
 		finished <- false
 		return
 	} else if _, err := os.Stat(destinationFile); err == nil {
 		utils.WLog(fmt.Sprintf("Error: file \"%v\" already exist in transcoded folder", sourceFileNameWithoutExt+".mp4"), ClientID)
-		removeVideo(utils.Conf.SD+data.FileName, int(vidId), ClientID)
+		removeVideo(path[clientData.State]+data.FileName, int(vidId), ClientID)
 		finished <- false
 		return
 	}
@@ -110,10 +115,10 @@ func processVodFile(clientData models.Video, presetData models.Pdata, ClientID s
 
 	// If data is empty get video info
 	if data.IsEmpty() {
-		data, err = GetVidInfo(utils.Conf.SD, data.FileName, ClientID, int(vidId))
+		data, err = GetVidInfo(path[clientData.State], data.FileName, ClientID, int(vidId))
 		if err != nil {
 			log.Println(err)
-			removeVideo(utils.Conf.SD+data.FileName, int(vidId), ClientID)
+			removeVideo(path[clientData.State]+data.FileName, int(vidId), ClientID)
 			finished <- false
 			return
 		}
@@ -141,7 +146,7 @@ func processVodFile(clientData models.Video, presetData models.Pdata, ClientID s
 		cmd, tempdfs, err = generatePresetCmdLine(
 			presetData,
 			data,
-			utils.Conf.SD+data.FileName,
+			path[clientData.State]+data.FileName,
 			fullSourceFilePathAndName,
 			fmt.Sprintf("%v%v", utils.Conf.TD, sourceFileNameWithoutExt))
 
@@ -149,7 +154,7 @@ func processVodFile(clientData models.Video, presetData models.Pdata, ClientID s
 		if err != nil {
 			utils.WLog("Error: failed to generate cmd line", ClientID)
 			log.Println(err)
-			removeVideo(utils.Conf.SD+data.FileName, int(vidId), ClientID)
+			removeVideo(path[clientData.State]+data.FileName, int(vidId), ClientID)
 			finished <- false
 			return
 		}
@@ -157,7 +162,7 @@ func processVodFile(clientData models.Video, presetData models.Pdata, ClientID s
 		cmd = generateClientCmdLine(
 			clientData,
 			data,
-			utils.Conf.SD+data.FileName,
+			path[clientData.State]+data.FileName,
 			fullSourceFilePathAndName,
 			tempfile)
 	}
@@ -189,7 +194,7 @@ func processVodFile(clientData models.Video, presetData models.Pdata, ClientID s
 	if err != nil {
 		utils.WLog("Error: failed to update state in database", ClientID)
 		log.Println(err)
-		removeVideo(utils.Conf.SD+data.FileName, int(vidId), ClientID)
+		removeVideo(path[clientData.State]+data.FileName, int(vidId), ClientID)
 		finished <- false
 		return
 	}
@@ -202,14 +207,14 @@ func processVodFile(clientData models.Video, presetData models.Pdata, ClientID s
 		log.Println(err)
 		utils.WLog("Error: could not start trancoding", ClientID)
 		log.Printf("Error cmd line: %v", cmd)
-		removeVideo(utils.Conf.SD+data.FileName, int(vidId), ClientID)
+		removeVideo(path[clientData.State]+data.FileName, int(vidId), ClientID)
 		finished <- false
 		return
 	} else if out, err := os.Stat(tempfile); os.IsNotExist(err) || out == nil {
 		log.Println(err)
 		utils.WLog("Error: transcoder failed", ClientID)
 		log.Printf("Error cmd line: %v", cmd)
-		removeVideo(utils.Conf.SD+data.FileName, int(vidId), ClientID)
+		removeVideo(path[clientData.State]+data.FileName, int(vidId), ClientID)
 		finished <- false
 		return
 	} else {
@@ -222,7 +227,7 @@ func processVodFile(clientData models.Video, presetData models.Pdata, ClientID s
 			var (
 				ndata []models.Vidinfo
 			)
-			removeVideo(utils.Conf.SD+data.FileName, int(vidId), ClientID)
+			removeVideo(path[clientData.State]+data.FileName, int(vidId), ClientID)
 			for i := range tempdfs {
 
 				if newName := utils.ReturnDifNameIfDublicate(dfs[i], utils.Conf.DD); newName != data.FileName {
@@ -284,15 +289,15 @@ func processVodFile(clientData models.Video, presetData models.Pdata, ClientID s
 				dfn = newName
 			}
 
-			removeVideo(utils.Conf.SD+data.FileName, -1, ClientID)
-			if err := utils.MoveFile(tempfile, destinationFile); err != nil {
+			removeVideo(path[clientData.State]+data.FileName, -1, ClientID)
+			if err := utils.MoveFile(utils.Conf.TD+dfn, destinationFile); err != nil {
 				log.Println(err)
 				removeVideo(utils.Conf.TD+dfn, int(vidId), ClientID)
 				finished <- false
 				return
 			}
 
-			ndata, err := GetVidInfo(utils.Conf.DD, dfn, ClientID, int(vidId))
+			newData, err := GetVidInfo(utils.Conf.DD, dfn, ClientID, int(vidId))
 			if err != nil {
 				utils.WLog("Error: failed getting video data", ClientID)
 				log.Println(err)
@@ -300,9 +305,12 @@ func processVodFile(clientData models.Video, presetData models.Pdata, ClientID s
 				finished <- false
 				return
 			}
-			_, err = utils.InsertVideo(ndata, "transcoded", userID, -1)
+
+			newVideoData.ParseWithVidinfo(newData)
+			newVideoData.State = "transcoded"
+			utils.UpdateVideo(vidId, newVideoData)
 			if err != nil {
-				utils.WLog("Error: failed to insert video data in database", ClientID)
+				utils.WLog("Error: failed to update video data in database", ClientID)
 				log.Println(err)
 				removeVideo(utils.Conf.DD+dfn, int(vidId), ClientID)
 				finished <- false
@@ -316,6 +324,5 @@ func processVodFile(clientData models.Video, presetData models.Pdata, ClientID s
 				ClientID)
 		}
 	}
-
 	finished <- true
 }
