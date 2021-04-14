@@ -134,7 +134,7 @@ type VideoStream struct {
 
 type VfNPrd struct {
 	Pdata Pdata
-	Video Video
+	Enc   Encode
 	Err   error
 }
 

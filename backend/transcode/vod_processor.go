@@ -20,7 +20,7 @@ var (
 )
 
 // ProcessVodFile ...
-func ProcessVodFile(clientData models.Video, presetData models.Pdata, ClientID string, vidId, userID uint) {
+func processVodFile(clientData models.Video, presetData models.Pdata, ClientID string, vidId, userID uint) {
 	utils.WLog("Starting VOD Processor..", ClientID)
 	var (
 		err                       error

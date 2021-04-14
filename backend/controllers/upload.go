@@ -124,12 +124,12 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		dat := <-vfnprd
 		if dat.Err == nil {
-			vf := dat.Video
-			prd := dat.Pdata
-
-			// TO DO.. add video to Queue
-
-			go tc.ProcessVodFile(vf, prd, r.RemoteAddr, vidId, userID)
+			if err := tc.AddToQueue(vidId, dat.Enc); err != nil {
+				log.Println(err)
+				removeVideo(utils.Conf.SD+fileName, int(vidId), r.RemoteAddr)
+				utils.WLog("Error: Failed to add video to queue for transcoding", r.RemoteAddr)
+				return
+			}
 		}
 	}()
 }

@@ -56,7 +56,7 @@ func TranscodeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var (
-		vf  models.Video
+		vf  models.Encode
 		prd models.Pdata
 	)
 
@@ -85,7 +85,7 @@ func TranscodeHandler(w http.ResponseWriter, r *http.Request) {
 
 	data := models.VfNPrd{
 		Pdata: prd,
-		Video: vf,
+		Enc:   vf,
 		Err:   err,
 	}
 

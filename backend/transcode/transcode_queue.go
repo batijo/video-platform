@@ -45,7 +45,7 @@ func startTranscoder(video models.Video) {
 		clientData.ParseWithEncode(video.EncData)
 
 		// Start procesing file
-		go ProcessVodFile(video, models.Pdata{}, "", video.ID, video.UserID)
+		go processVodFile(clientData, models.Pdata{}, "", video.ID, video.UserID)
 		<-finished
 
 		// Remove transcoded video from queue
