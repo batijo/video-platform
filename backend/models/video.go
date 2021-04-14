@@ -51,8 +51,10 @@ func (v *Video) ParseWithEncode(e Encode) {
 }
 
 type Audio struct {
-	ID       int `json:"id,primary_key"`
-	VideoID  uint
+	ID      int `json:"id,primary_key"`
+	VideoID uint
+	EncID   uint `json:"enc_id"`
+
 	StreamID int
 	AtCodec  string
 	Language string
@@ -60,8 +62,10 @@ type Audio struct {
 }
 
 type Sub struct {
-	ID       int `json:"id,primary_key"`
-	VideoID  uint
+	ID      int `json:"id,primary_key"`
+	VideoID uint
+	EncID   uint `json:"enc_id"`
+
 	StreamID int
 	Language string
 }
@@ -77,8 +81,8 @@ type Encode struct {
 	Width      int
 	Height     int
 	FrameRate  float64
-	AudioT     []Audio `gorm:"ForeignKey:VideoID"`
-	SubtitleT  []Sub   `gorm:"ForeignKey:VideoID"`
+	AudioT     []Audio `gorm:"ForeignKey:EncID"`
+	SubtitleT  []Sub   `gorm:"ForeignKey:EncID"`
 }
 
 type ByCreateDate []Encode

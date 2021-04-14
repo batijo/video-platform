@@ -191,7 +191,12 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userId != user.ID || !admin {
+	switch true {
+	case userId == user.ID:
+		break
+	case admin:
+		break
+	default:
 		resp := models.Response{Status: false, Message: "You have no privilage to perform this action"}
 		w.WriteHeader(http.StatusForbidden)
 		json.NewEncoder(w).Encode(resp)

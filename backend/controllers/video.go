@@ -66,7 +66,12 @@ func UpdateVideo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userId != video.UserID || !admin {
+	switch true {
+	case userId == video.UserID:
+		break
+	case admin:
+		break
+	default:
 		resp := models.Response{Status: false, Message: "You have no privilage to perform this action"}
 		w.WriteHeader(http.StatusForbidden)
 		json.NewEncoder(w).Encode(resp)
@@ -117,7 +122,12 @@ func DeleteVideo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userId != video.UserID || !admin {
+	switch true {
+	case userId == video.UserID:
+		break
+	case admin:
+		break
+	default:
 		resp := models.Response{Status: false, Message: "You have no privilage to perform this action"}
 		w.WriteHeader(http.StatusForbidden)
 		json.NewEncoder(w).Encode(resp)
@@ -183,13 +193,16 @@ func GetVideo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !video.Public || !admin {
-		if userId != video.UserID {
-			resp := models.Response{Status: false, Message: "You have no privilage to perform this action"}
-			w.WriteHeader(http.StatusForbidden)
-			json.NewEncoder(w).Encode(resp)
-			return
-		}
+	switch true {
+	case userId == video.UserID:
+		break
+	case admin:
+		break
+	default:
+		resp := models.Response{Status: false, Message: "You have no privilage to perform this action"}
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(resp)
+		return
 	}
 
 	resp := models.Response{Status: true, Message: "Success", Data: video}

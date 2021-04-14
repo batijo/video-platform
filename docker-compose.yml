@@ -30,6 +30,8 @@ services:
       - PORT=8080
     volumes:
       - ./videos:/videos
+      - ./uploaded:/uploaded
+      - ./transcoding:/transcoding
     networks:
       - internal
     depends_on:

@@ -59,8 +59,8 @@ func ConnectDB() *gorm.DB {
 	db.Model(&models.Sub{}).AddForeignKey("video_id", "videos(id)", "CASCADE", "NO ACTION")
 	// Encode data
 	db.Model(&models.Encode{}).AddForeignKey("video_id", "videos(id)", "CASCADE", "CASCADE")
-	db.Model(&models.Audio{}).AddForeignKey("video_id", "encodes(id)", "CASCADE", "NO ACTION")
-	db.Model(&models.Sub{}).AddForeignKey("video_id", "encodes(id)", "CASCADE", "NO ACTION")
+	db.Model(&models.Audio{}).AddForeignKey("enc_id", "encodes(id)", "CASCADE", "NO ACTION")
+	db.Model(&models.Sub{}).AddForeignKey("enc_id", "encodes(id)", "CASCADE", "NO ACTION")
 
 	return db
 }
