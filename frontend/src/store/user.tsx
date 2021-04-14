@@ -2,18 +2,34 @@ import { store } from '../index'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import axios from 'axios'
 
-type User = {
-  username: string
+import User from '../types/user'
+import Video from '../types/video'
+
+const initialUser: User = {
+  id: 0,
+  createdAt: new Date(0),
+  updatedAt: new Date(),
+  DeletedAt: new Date(),
+  username: '',
+  name: '',
+  lastname: '',
+  email: '',
+  admin: false,
+  public: false,
+  token: '',
 }
 
-const initialState: User[] = [];
+const initialUserList: User[] = [];
 
 export const userSlice = createSlice({
   name: 'users',
-  initialState,
+  initialState: {
+    user: initialUser,
+    userList: initialUserList
+  },
   reducers: {
-    userList: (state, action: PayloadAction<User[]>) => action.payload,
-    userDetail: (state, action: PayloadAction<User>) => { state.push(action.payload) },
+    userList: (state, action: PayloadAction<User[]>) => { state.userList = action.payload },
+    userDetail: (state, action: PayloadAction<User>) => { return { ...action.payload, ...state } },
   }
 })
 
