@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/batijo/video-platform/backend/models"
+	"github.com/batijo/video-platform/backend/transcode"
 	"github.com/batijo/video-platform/backend/utils"
 )
 
@@ -46,52 +47,59 @@ func TcTypeHandler(w http.ResponseWriter, r *http.Request) {
 
 // TranscodeHandler ...
 func TranscodeHandler(w http.ResponseWriter, r *http.Request) {
+	var (
+		encData    models.Encode
+		presetData models.Pdata
+		err        error
+	)
 
-	var err error
-
+	// If you didn't add comments at first, later you don't know what this shit does
 	err = r.ParseForm()
 	if err != nil {
+		resp := models.Response{Status: false, Message: "Some ParseForm do not like you", Error: err.Error()}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
 		return
 	}
 
-	var (
-		vf  models.Encode
-		prd models.Pdata
-	)
-
 	// Decode json file
 	if utils.Conf.Presets {
-		decoder := json.NewDecoder(r.Body)
-		err = decoder.Decode(&prd)
+		err = json.NewDecoder(r.Body).Decode(&presetData)
 		if err != nil {
 			resp := models.Response{Status: false, Message: "Cannot decode json", Error: err.Error()}
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(resp)
 			log.Println(err)
 			return
 		}
 	} else {
-		decoder := json.NewDecoder(r.Body)
-		err = decoder.Decode(&vf)
+		err = json.NewDecoder(r.Body).Decode(&encData)
 		if err != nil {
 			resp := models.Response{Status: false, Message: "Cannot decode json", Error: err.Error()}
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(resp)
 			log.Println(err)
 			return
 		}
 	}
+	// data := models.VfNPrd {
+	// 	Pdata: prd,
+	// 	Enc:   vf,
+	// 	Err:   err,
+	// }
+	// vfnprd <- data
 
-	data := models.VfNPrd{
-		Pdata: prd,
-		Enc:   vf,
-		Err:   err,
+	err = transcode.AddToQueue(encData)
+	if err != nil {
+		resp := models.Response{Status: false, Message: "Error adding to queue", Error: err.Error()}
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(resp)
+		log.Println(err)
+		return
 	}
 
-	vfnprd <- data
-
-	resp := models.Response{Status: true, Message: "Starting to transcode"}
+	resp := models.Response{Status: true, Message: "Adding video to transcoder queue"}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)
 }

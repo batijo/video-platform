@@ -14,10 +14,6 @@ import (
 	"github.com/batijo/video-platform/backend/utils/auth"
 )
 
-var (
-	vfnprd = make(chan models.VfNPrd)
-)
-
 // VideoUpload upload handler which only allows to upload video
 func VideoUpload(w http.ResponseWriter, r *http.Request) {
 
@@ -80,21 +76,16 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Can not overide response gives superfluous error. Needs to be fixed
-	//resp := models.Response{Status: true, Message: "Upload successful"}
-	//w.WriteHeader(http.StatusAccepted)
-	//json.NewEncoder(w).Encode(resp)
-
 	utils.WLog("Upload successful", r.RemoteAddr)
 
-	data, err := writeJSONResponse(w, fileName, r.RemoteAddr)
+	data, err := tc.GetVidInfo(utils.Conf.SD, fileName, r.RemoteAddr, -1)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Error getting video info", Error: err.Error()}
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
 		removeVideo(utils.Conf.SD+fileName, -1, r.RemoteAddr)
-		utils.WLog("Error: failed send video data to client", r.RemoteAddr)
+		utils.WLog("Error: could not get video info", r.RemoteAddr)
 		return
 	}
 
@@ -120,49 +111,29 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.UpdateMessage(fileName)
-
-	go func() {
-		dat := <-vfnprd
-		if dat.Err == nil {
-			if err := tc.AddToQueue(vidId, dat.Enc); err != nil {
-				log.Println(err)
-				removeVideo(utils.Conf.SD+fileName, int(vidId), r.RemoteAddr)
-				utils.WLog("Error: Failed to add video to queue for transcoding", r.RemoteAddr)
-				return
-			}
-		}
-	}()
-}
-
-// Send json response after file upload
-func writeJSONResponse(w http.ResponseWriter, filename string, ClientID string) (models.Vidinfo, error) {
-	var (
-		data    models.Data
-		vidinfo models.Vidinfo
-		err     error
-	)
-
-	if err != nil {
-		return vidinfo, err
-	}
-
-	vidinfo, err = tc.GetVidInfo(utils.Conf.SD, filename, ClientID, -1)
-	if err != nil {
-		return vidinfo, err
-	}
-
 	if utils.Conf.Presets {
-		data = utils.AddPresetsToJSON(vidinfo)
-		resp := models.Response{Status: true, Message: filename, Data: data}
+		dataWP := utils.AddPresetsToJSON(data)
+		resp := models.Response{Status: true, Message: fileName, Data: dataWP}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(resp)
 	} else {
-		resp := models.Response{Status: true, Message: filename, Data: vidinfo}
+		resp := models.Response{Status: true, Message: fileName, Data: data}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(resp)
 	}
 
-	return vidinfo, nil
+	// Deprecate this shit
+	// go func() {
+	// 	dat := <-vfnprd
+	// 	if dat.Err == nil {
+	// 		if err := tc.AddToQueue(vidId, dat.Enc); err != nil {
+	// 			log.Println(err)
+	// 			removeVideo(utils.Conf.SD+fileName, int(vidId), r.RemoteAddr)
+	// 			utils.WLog("Error: Failed to add video to queue for transcoding", r.RemoteAddr)
+	// 			return
+	// 		}
+	// 	}
+	// }()
 }
 
 func removeVideo(path string, vidId int, ClientID string) error {

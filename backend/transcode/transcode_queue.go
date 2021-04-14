@@ -14,13 +14,13 @@ var (
 	active   bool
 )
 
-func AddToQueue(vidId uint, encData models.Encode) error {
+func AddToQueue(encData models.Encode) error {
 	var (
 		video models.Video
 		resp  *gorm.DB
 	)
 
-	resp = utils.DB.Where("id = ?", vidId).First(&video)
+	resp = utils.DB.Where("id = ?", encData.VideoID).First(&video)
 	if resp.Error != nil {
 		return resp.Error
 	}

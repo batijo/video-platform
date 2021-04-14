@@ -99,6 +99,7 @@ func (p ByCreateDate) Swap(i, j int) {
 }
 
 type Pdata struct {
+	VideoID  uint
 	FileName string
 	Save     bool
 	Streams  []Stream
