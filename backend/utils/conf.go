@@ -17,10 +17,7 @@ type Config struct {
 	Debug      bool
 	DebugStart string
 	DebugEnd   string
-	SourceJson string
-	DataJson   string
 	VBW        int
-	DataGen    string
 	LogP       string
 	TNTS       string
 	Presets    bool
