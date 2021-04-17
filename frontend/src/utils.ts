@@ -9,7 +9,6 @@ export const toCamelCase = (str: string): string => {
 
 export const toCamelCaseObj = (obj: any): any => {
   for (let key in obj) {
-    let oldKey = key
     let newKey = toCamelCase(key)
 
     Object.assign(obj, { [newKey]: obj[key] })[key]
