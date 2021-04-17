@@ -1,26 +1,51 @@
-type Video = {
+export type Video = {
+  id: number
+  createdAt: Date
+  updatedAt: Date
   title: string
   description: string
-  userID: number
+  userId: number
   public: boolean
-  strID: number
-  filename: string
+  vstreamId:  number
+  strId: number
+  fileName: string
   state: string
-  codec: string
+  videoCodec: string
   width: number
   height: number
-  framerate: number
+  frameRate: number
+  audioT: Array<Audio>
+  subtitleT: Array<Subtitle>
+  encData: Encode
 }
 
-type Audio = {
+export type Encode = {
   id: number
-  videoID: number
-  streamID: number
-  codec: string,
-  language: string,
+  createdAt: Date
+  videoId: number
+  strId: number
+  fileName: string
+  videoCodec: string
+  width: number
+  height: number
+  frameRate: number
+  audioT: Array<Audio>
+  subtitleT: Array<Subtitle>
+}
+
+export type Audio = {
+  id: number
+  videoId: number
+  streamId: number
+  codec: string
+  language: string
   channels: number
 }
 
-
-
-export default Video
+export type Subtitle = {
+  id: number
+  videoId: number
+  encId: number
+  streamId: number
+  language: string
+}
