@@ -28,11 +28,20 @@ type Config struct {
 var Conf Config
 
 // GetConf load and return config file
-func GetConf() (Config, error) {
+func getConf() (Config, error) {
 	var conf Config
 	if _, err := toml.DecodeFile("./utils/conf.toml", &conf); err != nil {
 		log.Println("error geting conf.toml")
 		return conf, err
 	}
 	return conf, nil
+}
+
+func (c *Config) Load() error {
+	conf, err := getConf()
+	if err != nil {
+		return err
+	}
+	(*c) = conf
+	return nil
 }

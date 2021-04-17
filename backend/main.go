@@ -16,23 +16,20 @@ func main() {
 	utils.NewSseServer()
 
 	// Load config file
-	var err error
-	config, err := utils.GetConf()
-	if err != nil {
+	if err := utils.Conf.Load(); err != nil {
 		log.Println("Error: failed to load config file")
 		log.Println(err)
 		return
 	}
-	utils.Conf = config
 
 	// Connect to database
 	utils.DB = utils.ConnectDB()
 	defer utils.DB.Close()
 
 	// Insert presets to database
-	err = utils.InsertPresets()
-	if err != nil {
+	if err := utils.InsertPresets(); err != nil {
 		log.Println(err)
+		return
 	}
 
 	port := os.Getenv("PORT")
