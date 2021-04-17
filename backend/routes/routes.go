@@ -37,6 +37,7 @@ func Handlers() *mux.Router {
 
 	s.HandleFunc("/upload", controllers.VideoUpload).Methods("POST")
 	s.HandleFunc("/transcode/{id}", controllers.TranscodeHandler).Methods("POST")
+	s.HandleFunc("/queue", controllers.ReturnQueue).Methods("GET")
 
 	a := r.PathPrefix("/admin").Subrouter()
 	a.Use(auth.AdminVerify)
