@@ -19,3 +19,24 @@ type User struct {
 	Video  []Video   `gorm:"ForeignKey:UserID" json:"video"`
 	Stream []Vstream `gorm:"ForeignKey:UserID" json:"stream"`
 }
+
+func (u *User) Serialize(full bool) {
+	u.Password = ""
+
+	if full {
+		return
+	} else if !u.Public {
+		u.CreatedAt = time.Time{}
+		u.Email = ""
+		u.Name = ""
+		u.LastName = ""
+	}
+	u.UpdatedAt = time.Time{}
+	u.ID = 0
+
+	for i, v := range u.Video {
+		if !v.Public {
+			u.Video[i] = Video{}
+		}
+	}
+}

@@ -150,12 +150,7 @@ func FetchUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if admin {
-		res = utils.DB.Find(&users)
-	} else {
-		res = utils.DB.Where("id = ? OR public = ?", userId, true).Find(&users)
-	}
-
+	res = utils.DB.Find(&users)
 	if res.Error != nil {
 		resp := models.Response{Status: false, Message: "Could not fetch users", Error: res.Error.Error()}
 		w.WriteHeader(http.StatusInternalServerError)
@@ -163,9 +158,25 @@ func FetchUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if admin {
+		serializeUsers(&users, admin, userId)
+	} else {
+		serializeUsers(&users, false, userId)
+	}
+
 	resp := models.Response{Status: true, Message: "Success", Data: users}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)
+}
+
+func serializeUsers(users *[]models.User, full bool, userID uint) {
+	for i, u := range *users {
+		if u.ID == userID {
+			(*users)[i].Serialize(true)
+		} else {
+			(*users)[i].Serialize(full)
+		}
+	}
 }
 
 // UpdateUser ...
@@ -239,6 +250,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user.Serialize(true)
 	resp := models.Response{Status: true, Message: "User updated", Data: user}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)
@@ -283,6 +295,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user.Serialize(true)
 	resp := models.Response{Status: true, Message: "User deleted", Data: user}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)
@@ -311,13 +324,10 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !user.Public || !admin {
-		if userId != user.ID {
-			resp := models.Response{Status: false, Message: "You have no privilage to perform this action"}
-			w.WriteHeader(http.StatusForbidden)
-			json.NewEncoder(w).Encode(resp)
-			return
-		}
+	if userId == user.ID || admin {
+		user.Serialize(true)
+	} else {
+		user.Serialize(false)
 	}
 
 	resp := models.Response{Status: true, Message: "Success", Data: user}
