@@ -8,7 +8,6 @@ import (
 
 	"github.com/batijo/video-platform/backend/models"
 	"github.com/batijo/video-platform/backend/utils"
-	"github.com/batijo/video-platform/backend/utils/auth"
 	"github.com/jinzhu/gorm"
 
 	"github.com/gorilla/mux"
@@ -20,7 +19,7 @@ func FetchVideos(w http.ResponseWriter, r *http.Request) {
 		videos []models.Video
 		res    *gorm.DB
 	)
-	userId, admin, err := auth.GetUserID(r)
+	userId, admin, err := utils.GetUserID(r)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Could not authorise user", Error: err.Error()}
 		w.WriteHeader(http.StatusUnauthorized)
@@ -50,7 +49,7 @@ func UpdateVideo(w http.ResponseWriter, r *http.Request) {
 	video := &models.Video{}
 	var id = mux.Vars(r)["id"]
 
-	userId, admin, err := auth.GetUserID(r)
+	userId, admin, err := utils.GetUserID(r)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Could not authorise user", Error: err.Error()}
 		w.WriteHeader(http.StatusUnauthorized)
@@ -106,7 +105,7 @@ func DeleteVideo(w http.ResponseWriter, r *http.Request) {
 		video models.Video
 	)
 
-	userId, admin, err := auth.GetUserID(r)
+	userId, admin, err := utils.GetUserID(r)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Could not authorise user", Error: err.Error()}
 		w.WriteHeader(http.StatusUnauthorized)
@@ -177,7 +176,7 @@ func GetVideo(w http.ResponseWriter, r *http.Request) {
 		video models.Video
 	)
 
-	userId, admin, err := auth.GetUserID(r)
+	userId, admin, err := utils.GetUserID(r)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Could not authorise user", Error: err.Error()}
 		w.WriteHeader(http.StatusUnauthorized)

@@ -50,7 +50,7 @@ func startTranscoder(video models.Video) {
 		clientData.State = video.State
 
 		// Start procesing file
-		go processVodFile(clientData, models.Pdata{}, "", video.ID, video.UserID)
+		go processVodFile(clientData, models.Pdata{}, video.UserID, video.ID, video.UserID)
 		<-finished
 
 		// Remove transcoded video from queue

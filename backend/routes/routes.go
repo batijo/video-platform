@@ -5,11 +5,10 @@ import (
 
 	"github.com/batijo/video-platform/backend/controllers"
 	"github.com/batijo/video-platform/backend/utils"
-	"github.com/batijo/video-platform/backend/utils/auth"
 	"github.com/gorilla/mux"
 )
 
-func Handlers() *mux.Router {
+func SetupRoutes() *mux.Router {
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.Use(commonMiddleware)
@@ -23,7 +22,7 @@ func Handlers() *mux.Router {
 
 	// Auth route
 	s := r.PathPrefix("/auth").Subrouter()
-	s.Use(auth.JwtVerify)
+	s.Use(utils.JwtVerify)
 
 	s.HandleFunc("/user", controllers.FetchUsers).Methods("GET")
 	s.HandleFunc("/user/{id}", controllers.GetUser).Methods("GET")
@@ -41,7 +40,7 @@ func Handlers() *mux.Router {
 
 	// Admin route
 	a := r.PathPrefix("/admin").Subrouter()
-	a.Use(auth.AdminVerify)
+	a.Use(utils.AdminVerify)
 
 	// s.HandleFunc("/tc", controllers.TcTypeHandler).Methods("POST")
 

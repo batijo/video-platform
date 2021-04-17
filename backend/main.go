@@ -12,16 +12,8 @@ import (
 
 func main() {
 
-	// Make a new Broker instance for SSE
-	utils.B = &utils.Broker{
-		Clients:        make(map[chan string]string),
-		NewClients:     make(chan utils.Client),
-		DefunctClients: make(chan (chan string)),
-		Messages:       make(chan utils.Message),
-	}
-
 	// Start processing events
-	utils.B.Start()
+	utils.NewSseServer()
 
 	// Load config file
 	var err error
@@ -46,7 +38,7 @@ func main() {
 	port := os.Getenv("PORT")
 
 	// Handle routes
-	http.Handle("/", routes.Handlers())
+	http.Handle("/", routes.SetupRoutes())
 
 	// serve
 	log.Printf("Server up on port '%s'", port)

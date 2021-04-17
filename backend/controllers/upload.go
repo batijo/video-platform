@@ -11,7 +11,6 @@ import (
 	"github.com/batijo/video-platform/backend/models"
 	tc "github.com/batijo/video-platform/backend/transcode"
 	"github.com/batijo/video-platform/backend/utils"
-	"github.com/batijo/video-platform/backend/utils/auth"
 )
 
 // VideoUpload upload handler which only allows to upload video
@@ -88,7 +87,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, _, err := auth.GetUserID(r)
+	userID, _, err := utils.GetUserID(r)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Could not verify user", Error: err.Error()}
 		w.WriteHeader(http.StatusUnauthorized)
