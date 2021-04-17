@@ -27,7 +27,6 @@ func handlers() *mux.Router {
 	r.HandleFunc("/login", controllers.Login).Methods("POST")
 
 	r.Handle("/sse/dashboard", utils.B)
-
 	// r.HandleFunc("/ngx/mapping/{name}", controllers.NginxMappingHandler).Methods("GET")
 
 	// Auth route
@@ -45,7 +44,7 @@ func handlers() *mux.Router {
 	s.HandleFunc("/video/delete/{id}", controllers.DeleteVideo).Methods("POST")
 
 	s.HandleFunc("/upload", controllers.VideoUpload).Methods("POST")
-	s.HandleFunc("/transcode", controllers.TranscodeHandler).Methods("POST")
+	s.HandleFunc("/transcode/{id}", controllers.TranscodeHandler).Methods("POST")
 
 	a := r.PathPrefix("/admin").Subrouter()
 	a.Use(auth.AdminVerify)
@@ -91,15 +90,6 @@ func main() {
 		return
 	}
 	utils.Conf = config
-
-	// Write all logs to file
-	// err = utils.OpenLogFile(config.LogP)
-	// if err != nil {
-	// 	log.Println("Error: failed open log file")
-	// 	log.Panicln(err)
-	// 	return
-	// }
-	//defer utils.LogFile.Close()
 
 	// Connect to database
 	utils.DB = utils.ConnectDB()

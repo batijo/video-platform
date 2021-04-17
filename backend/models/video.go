@@ -2,12 +2,12 @@ package models
 
 import (
 	"time"
-
-	"github.com/jinzhu/gorm"
 )
 
 type Vstream struct {
-	gorm.Model
+	ID        uint      `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 
 	UserID uint
 	Name   string
@@ -15,24 +15,26 @@ type Vstream struct {
 }
 
 type Video struct {
-	gorm.Model
+	ID        uint      `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 
-	Title       string
-	Description string
-	UserID      uint
-	Public      bool
-	VstreamID   uint `gorm:"DEFAULT:NULL"`
-	StrID       int
-	FileName    string
-	State       string
-	VideoCodec  string
-	Width       int
-	Height      int
-	FrameRate   float64
-	AudioT      []Audio `gorm:"ForeignKey:VideoID"`
-	SubtitleT   []Sub   `gorm:"ForeignKey:VideoID"`
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	UserID      uint    `json:"user_id"`
+	Public      bool    `json:"public"`
+	VstreamID   uint    `gorm:"DEFAULT:NULL" json:"vstream_id"`
+	StrID       int     `json:"str_id"`
+	FileName    string  `json:"file_name"`
+	State       string  `json:"state"`
+	VideoCodec  string  `json:"video_codec"`
+	Width       int     `json:"width"`
+	Height      int     `json:"height"`
+	FrameRate   float64 `json:"frame_rate"`
+	AudioT      []Audio `gorm:"ForeignKey:VideoID" json:"audio_t"`
+	SubtitleT   []Sub   `gorm:"ForeignKey:VideoID" json:"subtitle_t"`
 
-	EncData Encode `gorm:"ForeignKey:VideoID"`
+	EncData Encode `gorm:"ForeignKey:VideoID" json:"enc_data"`
 }
 
 func (v *Video) ParseWithVidinfo(i Vidinfo) {
@@ -76,38 +78,38 @@ func (v *Video) ParseWithEncode(e Encode) {
 }
 
 type Audio struct {
-	ID      int `json:"id,primary_key"`
-	VideoID uint
-	EncID   uint `gorm:"DEFAULT:NULL"`
+	ID      int  `json:"id,primary_key"`
+	VideoID uint `json:"video_id"`
+	EncID   uint `gorm:"DEFAULT:NULL" json:"enc_id"`
 
-	StreamID int
-	AtCodec  string
-	Language string
-	Channels int
+	StreamID int    `json:"stream_id"`
+	AtCodec  string `json:"at_codec"`
+	Language string `json:"language"`
+	Channels int    `json:"channels"`
 }
 
 type Sub struct {
-	ID      int `json:"id,primary_key"`
-	VideoID uint
-	EncID   uint `gorm:"DEFAULT:NULL"`
+	ID      int  `json:"id,primary_key"`
+	VideoID uint `json:"video_id"`
+	EncID   uint `gorm:"DEFAULT:NULL" json:"enc_id"`
 
-	StreamID int
-	Language string
+	StreamID int    `json:"stream_id"`
+	Language string `json:"language"`
 }
 
 type Encode struct {
-	ID        uint `gorm:"primary_key"`
-	CreatedAt time.Time
-	VideoID   uint
+	ID        uint      `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	VideoID   uint      `json:"video_id"`
 
-	StrID      int
-	FileName   string
-	VideoCodec string
-	Width      int
-	Height     int
-	FrameRate  float64
-	AudioT     []Audio `gorm:"ForeignKey:EncID"`
-	SubtitleT  []Sub   `gorm:"ForeignKey:EncID"`
+	StrID      int     `json:"str_id"`
+	FileName   string  `json:"file_name"`
+	VideoCodec string  `json:"video_codec"`
+	Width      int     `json:"width"`
+	Height     int     `json:"height"`
+	FrameRate  float64 `json:"frame_rate"`
+	AudioT     []Audio `gorm:"ForeignKey:EncID" json:"audio_t"`
+	SubtitleT  []Sub   `gorm:"ForeignKey:EncID" json:"subtitle_t"`
 }
 
 type ByCreateDate []Encode

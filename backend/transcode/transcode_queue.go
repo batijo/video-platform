@@ -47,15 +47,13 @@ func startTranscoder(video models.Video) {
 
 		// Start procesing file
 		go processVodFile(clientData, models.Pdata{}, "", video.ID, video.UserID)
-		resp := <-finished
+		<-finished
 
 		// Remove transcoded video from queue
-		if resp {
-			err := removeFromQueue(video.ID)
-			if err != nil {
-				active = false
-				log.Panicln(err)
-			}
+		err := removeFromQueue(video.ID)
+		if err != nil {
+			active = false
+			log.Panicln(err)
 		}
 
 		// Get new video id for transcoding if there is none, stop transcoder

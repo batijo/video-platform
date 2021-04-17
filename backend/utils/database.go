@@ -62,12 +62,12 @@ func ConnectDB() *gorm.DB {
 	db.Model(&models.Audio{}).AddForeignKey("enc_id", "encodes(id)", "CASCADE", "NO ACTION")
 	db.Model(&models.Sub{}).AddForeignKey("enc_id", "encodes(id)", "CASCADE", "NO ACTION")
 
+	db.Exec("DELETE FROM encodes")
 	return db
 }
 
 // InsertVideo adds video to database
 func InsertVideo(vidinfo models.Vidinfo, state string, userID uint, streamID int) (uint, error) {
-
 	var (
 		user     models.User
 		audio    []models.Audio
@@ -75,7 +75,9 @@ func InsertVideo(vidinfo models.Vidinfo, state string, userID uint, streamID int
 		video    models.Video
 	)
 
-	DB.First(&user, userID)
+	if err := DB.First(&user, userID).Error; err != nil {
+		return 0, err
+	}
 
 	for _, a := range vidinfo.Audiotrack {
 		at := models.Audio{
@@ -124,10 +126,8 @@ func InsertVideo(vidinfo models.Vidinfo, state string, userID uint, streamID int
 
 	user.Video = append(user.Video, video)
 
-	res := DB.Save(&user)
-
-	if res.Error != nil {
-		return user.Video[0].ID, res.Error
+	if err := DB.Save(&user).Error; err != nil {
+		return 0, err
 	}
 
 	return user.Video[0].ID, nil
@@ -135,7 +135,7 @@ func InsertVideo(vidinfo models.Vidinfo, state string, userID uint, streamID int
 
 // Unfinished
 func UpdateVideo(id uint, updatedVideo models.Video) error {
-	var video = models.Video{Model: gorm.Model{ID: id}}
+	var video = models.Video{ID: id}
 	if err := DB.Model(&video).Update(updatedVideo).Error; err != nil {
 		return err
 	}

@@ -121,16 +121,16 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	user.Password = string(pass)
 
-	createdUser := utils.DB.Create(user)
+	createdUser := utils.DB.Create(&user)
 	if createdUser.Error != nil {
 		log.Println(createdUser.Error)
-		resp := models.Response{Status: false, Message: "Error ocured while creating user", Error: createdUser.Error.Error(), Data: createdUser}
+		resp := models.Response{Status: false, Message: "Error ocured while creating user", Error: createdUser.Error.Error()}
 		w.WriteHeader(http.StatusConflict)
 		json.NewEncoder(w).Encode(resp)
 		return
 	}
 
-	resp := models.Response{Status: true, Message: "User created", Data: createdUser}
+	resp := models.Response{Status: true, Message: "User created", Data: createdUser.Value}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)
 }
@@ -202,18 +202,6 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(resp)
 		return
 	}
-
-	// Forgot what I wanted to do here
-	// if user.Email != "" {
-	// 	if rows := utils.DB.Where("email = ?", user.Email).First(&user).RowsAffected; rows != 0 && userId != user.ID {
-
-	// 	}
-	// }
-	// if user.Username != "" {
-	// 	if rows := utils.DB.Where("username = ?", user.Email).First(&user).RowsAffected; rows != 0 {
-
-	// 	}
-	// }
 
 	err = json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {

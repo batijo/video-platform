@@ -10,7 +10,6 @@ import (
 
 	"github.com/batijo/video-platform/backend/models"
 	"github.com/batijo/video-platform/backend/utils"
-	"github.com/jinzhu/gorm"
 )
 
 var (
@@ -36,7 +35,7 @@ func processVodFile(clientData models.Video, presetData models.Pdata, ClientID s
 		tempdfs []string
 		// All temporary destination files of preset put in one string
 		dfsline      string
-		video        = models.Video{Model: gorm.Model{ID: vidId}}
+		video        = models.Video{ID: vidId}
 		newVideoData models.Video
 		path         = map[string]string{
 			"not_transcoded": utils.Conf.SD,

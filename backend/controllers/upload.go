@@ -109,6 +109,17 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var videoData models.Video
+	if res := utils.DB.Preload("AudioT").Preload("SubtitleT").Where("id = ?", vidId).First(&videoData); res.Error != nil {
+		resp := models.Response{Status: false, Message: "Sql error", Error: err.Error()}
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(resp)
+		log.Println(err)
+		removeVideo(utils.Conf.SD+fileName, int(vidId), r.RemoteAddr)
+		utils.WLog("Error: failed to retrieve video data in database", r.RemoteAddr)
+		return
+	}
+
 	utils.UpdateMessage(fileName)
 	if utils.Conf.Presets {
 		dataWP := utils.AddPresetsToJSON(data)
@@ -116,9 +127,6 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(resp)
 	} else {
-		var videoData models.Video
-		videoData.ParseWithVidinfo(data)
-		videoData.ID = vidId
 		resp := models.Response{Status: true, Message: fileName, Data: videoData}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(resp)

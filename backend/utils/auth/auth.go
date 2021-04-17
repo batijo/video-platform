@@ -102,15 +102,25 @@ func jwtParser(w http.ResponseWriter, r *http.Request) (models.Token, error) {
 func parseAuthHeader(r *http.Request) (string, error) {
 	header := r.Header.Get("Authorization")
 	if header == "" {
-		return "", errors.New("Missing auth token")
+		return "", errors.New("Missing 'Authorization' header")
 	}
 
+	header = strings.Replace(header, "\n", " ", -1)
 	splitHeader := strings.Split(header, " ")
-	if len(splitHeader) != 2 {
+	switch len(splitHeader) {
+	case 0:
+		return "", errors.New("Missing auth token")
+	case 1:
+		return "", errors.New("Wrong header format")
+	case 2:
+		if strings.TrimSpace(splitHeader[0]) != "Bearer" {
+			return "", errors.New("Wrong header format")
+		} else {
+			break
+		}
+	default:
 		return "", errors.New("Wrong header format")
 	}
 
-	token := strings.TrimSpace(splitHeader[1])
-
-	return token, nil
+	return splitHeader[1], nil
 }

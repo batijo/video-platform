@@ -83,12 +83,6 @@ func TranscodeHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	// data := models.VfNPrd {
-	// 	Pdata: prd,
-	// 	Enc:   vf,
-	// 	Err:   err,
-	// }
-	// vfnprd <- data
 
 	err = transcode.AddToQueue(encData)
 	if err != nil {

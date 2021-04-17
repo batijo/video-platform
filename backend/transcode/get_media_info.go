@@ -3,9 +3,6 @@ package transcode
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"log"
-	"os"
 	"os/exec"
 	"strings"
 	"sync"
@@ -17,56 +14,31 @@ import (
 func getMediaInfoJSON(source string, wg *sync.WaitGroup) ([]byte, error) {
 	defer wg.Done()
 
-	cmd := "ffprobe -v quiet -print_format json -show_streams -show_format"
-	cmd += " " + source
+	if source == "" {
+		return []byte(""), errors.New("no video file provided")
+	}
+
+	cmd := "ffprobe -v quiet -print_format json -show_streams -show_format "
 
 	//Splitting head => g++ parts => rest of the command
-	parts := strings.Fields(cmd)
+	parts := strings.Fields(cmd + source)
 	head := parts[0]
 	parts = parts[1:]
 
 	out, err := exec.Command(head, parts...).Output()
 
-	ej := `{}`
-	if string(out) == ej {
+	if strings.Replace(string(out), "\n", "", -1) == `{}` {
 		return out, errors.New("json data is empty")
 	} else if err != nil {
 		return out, err
 	}
 
 	//checks if data is json file
-	if !json.Valid([]byte(out)) {
+	if !json.Valid(out) {
 		return out, errors.New("data is not valid json file")
 	}
 
 	return out, nil
-}
-
-func generateDataFile(wg *sync.WaitGroup, gpath string, prefix string) error {
-	defer wg.Done()
-
-	parts := []string{gpath, prefix}
-	out, err := exec.Command("python3", parts...).Output()
-	if err != nil {
-		log.Println(err)
-		log.Println("boi")
-		out, err = exec.Command("python", parts...).Output()
-		if err != nil {
-			log.Println(err)
-			if err := os.Remove(fmt.Sprintf(utils.Conf.SourceJson, prefix)); err != nil {
-				log.Println(err)
-			}
-			return err
-		}
-	}
-
-	if string(out) == "False\n" {
-		return errors.New("generate_data.py output False")
-	} else if string(out) != "True\n" {
-		return fmt.Errorf("generate_data.py uknown output: %v", string(out))
-	}
-
-	return nil
 }
 
 // GetVidInfo retruns struct with information about video file

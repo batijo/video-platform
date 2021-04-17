@@ -17,7 +17,14 @@ var prRes = map[string]string{
 	"1080p": "1920x1080",
 }
 
-func generatePresetCmdLine(prdata models.Pdata, videoData models.Vidinfo, sourceFileWithPath string, sourceFileName string, dfwe string) (string, []string, error) {
+func generatePresetCmdLine(
+	prdata models.Pdata,
+	videoData models.Vidinfo,
+	sourceFileWithPath string,
+	sourceFileName string,
+	dfwe string,
+) (string, []string, error) {
+
 	var (
 		cmd       = ""
 		mapping   []string
@@ -83,13 +90,22 @@ func generatePresetCmdLine(prdata models.Pdata, videoData models.Vidinfo, source
 			switch vidpr.Codec {
 
 			case "h264":
-				tempvc += fmt.Sprintf(" -c:v:%[1]v libx264 -profile:v:%[1]v main -b:v:%[1]v %[2]vk -metadata:s:v:%[1]v name=\"%[3]v\"", s.VtId, vidpr.Bitrate, sourceFileName)
+				tempvc += fmt.Sprintf(
+					" -c:v:%[1]v libx264 -profile:v:%[1]v main -b:v:%[1]v %[2]vk -metadata:s:v:%[1]v name=\"%[3]v\"",
+					s.VtId, vidpr.Bitrate, sourceFileName,
+				)
 				break
 
 			case "hevc":
-				templ := fmt.Sprintf(" -c:v:%v libx265 -x265-params \"preset=slower:me=hex:no-rect=1:no-amp=1:rd=4:aq-mode=2:", s.VtId)
+				templ := fmt.Sprintf(
+					" -c:v:%v libx265 -x265-params \"preset=slower:me=hex:no-rect=1:no-amp=1:rd=4:aq-mode=2:",
+					s.VtId,
+				)
 				templ += "aq-strength=0.5:psy-rd=1.0:psy-rdoq=0.2:bframes=3:min-keyint=1\" "
-				templ += fmt.Sprintf("-b:v:0 %vk -metadata:s:v:0 name=\"%v\"", vidpr.Bitrate, sourceFileName)
+				templ += fmt.Sprintf("-b:v:0 %vk -metadata:s:v:0 name=\"%v\"",
+					vidpr.Bitrate,
+					sourceFileName,
+				)
 				tempvc += templ
 
 			case "default":
@@ -108,14 +124,24 @@ func generatePresetCmdLine(prdata models.Pdata, videoData models.Vidinfo, source
 				if !(videoData.Videotrack[0].FrameRate < 25) {
 					tempmp += fmt.Sprintf(" -map 0:%v", at.StreamID)
 				}
-				tempac += fmt.Sprintf(" -c:a:%v libfdk_aac -ac 2 -b:a:%v %vk -metadata language=%v", i, i, audpr.Bitrate, at.Language)
+				tempac += fmt.Sprintf(
+					" -c:a:%v libfdk_aac -ac 2 -b:a:%v %vk -metadata language=%v",
+					i,
+					i,
+					audpr.Bitrate, at.Language,
+				)
 			}
 		} else {
 			for i, at := range videoData.Audiotrack {
 				if !(videoData.Videotrack[0].FrameRate < 25) {
 					tempmp += fmt.Sprintf(" -map 0:%v", at.Index)
 				}
-				tempac += fmt.Sprintf(" -c:a:%v libfdk_aac -ac 2 -b:a:%v %vk -metadata language=%v", i, i, audpr.Bitrate, at.Language)
+				tempac += fmt.Sprintf(
+					" -c:a:%v libfdk_aac -ac 2 -b:a:%v %vk -metadata language=%v",
+					i,
+					i,
+					audpr.Bitrate, at.Language,
+				)
 			}
 		}
 
@@ -163,7 +189,15 @@ func generatePresetCmdLine(prdata models.Pdata, videoData models.Vidinfo, source
 	return cmd, dfs, nil
 }
 
-func generateClientCmdLine(clientData models.Video, videoData models.Vidinfo, sourceFileWithPath string, sourceFileName string, destinationFile string) string {
+// ================================================================================================= //
+func generateClientCmdLine(
+	clientData models.Video,
+	videoData models.Vidinfo,
+	sourceFileWithPath string,
+	sourceFileName string,
+	destinationFile string,
+) string {
+
 	var (
 		cmd       = ""
 		mapping   = ""
@@ -231,15 +265,23 @@ func generateClientCmdLine(clientData models.Video, videoData models.Vidinfo, so
 	}
 
 	// Changes video codec
-	if clientData.VideoCodec != "nochange" {
+	if clientData.VideoCodec != "nochange" || clientData.VideoCodec == videoData.Videotrack[0].CodecName {
 		switch clientData.VideoCodec {
 
 		case "h264":
-			vcode += fmt.Sprintf(" -c:v:%[1]v libx264 -profile:v:%[1]v main -b:v:%[1]v %[2]vk -metadata:s:v:%[1]v name=\"%[3]v\"", clientData.StrID, utils.Conf.VBW, sourceFileName)
+			vcode += fmt.Sprintf(
+				" -c:v:%[1]v libx264 -profile:v:%[1]v main -b:v:%[1]v %[2]vk -metadata:s:v:%[1]v name=\"%[3]v\"",
+				clientData.StrID,
+				utils.Conf.VBW,
+				sourceFileName,
+			)
 			break
 
 		case "h265":
-			templ := fmt.Sprintf(" -c:v:%v libx265 -x265-params \"preset=slower:me=hex:no-rect=1:no-amp=1:rd=4:aq-mode=2:", clientData.StrID)
+			templ := fmt.Sprintf(
+				" -c:v:%v libx265 -x265-params \"preset=slower:me=hex:no-rect=1:no-amp=1:rd=4:aq-mode=2:",
+				clientData.StrID,
+			)
 			templ += "aq-strength=0.5:psy-rd=1.0:psy-rdoq=0.2:bframes=3:min-keyint=1\" "
 			templ += fmt.Sprintf("-b:v:0 %vk -metadata:s:v:0 name=\"%v\"", utils.Conf.VBW, sourceFileName)
 			vcode += templ
@@ -291,7 +333,15 @@ func generateClientCmdLine(clientData models.Video, videoData models.Vidinfo, so
 		scode += fmt.Sprintf(" -c:s:%[1]v copy -metadata:s:s:%[1]v language=%[2]v", st.StreamID, st.Language)
 	}
 
-	cmd = fmt.Sprintf("ffmpeg -i %v %v %v %v %v %v -async 1 -vsync 1 %v", sourceFileWithPath, debugIntr, acode, vcode, scode, mapping, destinationFile)
+	cmd = fmt.Sprintf("ffmpeg -i %v %v %v %v %v %v -async 1 -vsync 1 %v",
+		sourceFileWithPath,
+		debugIntr,
+		acode,
+		vcode,
+		scode,
+		mapping,
+		destinationFile,
+	)
 
 	return cmd
 }
