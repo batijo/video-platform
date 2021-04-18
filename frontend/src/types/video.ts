@@ -6,7 +6,7 @@ export type Video = {
   description: string
   userId: number
   public: boolean
-  vstreamId:  number
+  vstreamId: number
   strId: number
   fileName: string
   state: string

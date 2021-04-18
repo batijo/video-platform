@@ -3,11 +3,11 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import axios from 'axios'
 
 import User from '../types/user'
-import Video from '../types/video'
+// import Video from '../types/video'
 
 const initialUser: User = {
   id: 0,
-  createdAt: new Date(0),
+  createdAt: new Date(),
   updatedAt: new Date(),
   DeletedAt: new Date(),
   username: '',
