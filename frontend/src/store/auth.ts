@@ -1,35 +1,54 @@
-import { store } from '../index'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import axios from 'axios'
 
 import APIResponse from '../types/response'
 import { UserLogin, UserRegister } from '../types/user'
+import { AppDispatch, AppThunk } from '../index'
+
+const initialRegister: APIResponse<{}> = {
+  status: false,
+  message: '',
+  error: '',
+  data: {}
+}
+
+const initialLogin: APIResponse<string> = {
+  status: false,
+  message: '',
+  error: '',
+  data: ''
+}
 
 export const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    register: {},
-    login: {},
+    register: initialRegister,
+    login: initialLogin,
     token: ''
   },
   reducers: {
     register: (state, action: PayloadAction<APIResponse<{}>>) => { state.register = action.payload },
+    resetRegister: (state) => { state.register = initialRegister },
     login: (state, action: PayloadAction<APIResponse<string>>) => { state.login = action.payload; state.token = action.payload.data },
+    resetLogin: (state) => { state.login = initialLogin }
   }
 })
 
-export const register = (credentials: UserLogin) => {
-  axios.post<APIResponse<{}>>(`https://localhost/api/register`)
+export const resetRegister = (): AppThunk => async (dispatch: AppDispatch) => dispatch(authSlice.actions.resetRegister())
+export const resetLogin = (): AppThunk => async (dispatch: AppDispatch) => dispatch(authSlice.actions.resetLogin())
+
+export const register = (credentials: UserRegister): AppThunk => async (dispatch: AppDispatch) => {
+  axios.post<APIResponse<{}>>(`${window.origin}/api/register`, credentials)
     .then(response => {
-      store.dispatch(authSlice.actions.register(response.data))
-    })
+      dispatch(authSlice.actions.register(response.data))
+    }).catch(error => dispatch(authSlice.actions.register(error.response.data)))
 }
 
-export const login = (credentials: UserLogin) => {
-  axios.post<APIResponse<string>>(`https://localhost/api/login`)
+export const login = (credentials: UserLogin): AppThunk => async (dispatch: AppDispatch) => {
+  axios.post<APIResponse<string>>(`${window.origin}/api/login`, credentials)
     .then(response => {
-      store.dispatch(authSlice.actions.login(response.data))
-    })
+      dispatch(authSlice.actions.login(response.data))
+    }).catch(error => dispatch(authSlice.actions.login(error.response.data)))
 }
 
 export default authSlice.reducer
