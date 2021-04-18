@@ -185,12 +185,17 @@ func InsertStream(ndata []models.Vidinfo, names []string, state string, sname st
 
 }
 
-// AddPresetsToJSON ...
-func AddPresetsToJSON(vid models.Vidinfo) models.Data {
+// GetSortedPresets ...
+func GetPresetsWithData(vid models.Vidinfo) (models.Presets, error) {
+	var (
+		presets []models.Preset
+		data    models.Presets
+		video   models.Video
+	)
 
-	presets := getPresets()
-	var data models.Data
-
+	if err := DB.Find(&presets).Error; err != nil {
+		return data, err
+	}
 	for _, p := range presets {
 		if p.Type == 0 {
 			data.Vidpresets = append(data.Vidpresets, p)
@@ -198,29 +203,21 @@ func AddPresetsToJSON(vid models.Vidinfo) models.Data {
 			data.Audpresets = append(data.Audpresets, p)
 		}
 	}
-	data.Vidinfo = vid
+	video.ParseWithVidinfo(vid)
+	data.Video = video
 
-	return data
-}
-
-func getPresets() []models.Preset {
-	var presets []models.Preset
-	DB.Find(&presets)
-
-	return presets
+	return data, nil
 }
 
 // GetPreset returns Preset data from database with given name
 func GetPreset(name string) (models.Preset, error) {
-	presets := getPresets()
+	var preset models.Preset
 
-	for _, p := range presets {
-		if p.Name == name {
-			return p, nil
-		}
+	if err := DB.Where("name = ?", name).First(&preset).Error; err != nil {
+		return preset, err
 	}
 
-	return models.Preset{}, fmt.Errorf("error: no preset found with given name")
+	return preset, nil
 }
 
 // InsertPresets ...

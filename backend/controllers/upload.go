@@ -115,21 +115,14 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
 		removeVideo(utils.Conf.SD+fileName, int(vidId), userID)
-		utils.WLog("Error: failed to retrieve video data in database", userID)
+		utils.WLog("Error: failed to retrieve video data from database", userID)
 		return
 	}
 
 	utils.UpdateUserMessage(fileName, userID)
-	if utils.Conf.Presets {
-		dataWP := utils.AddPresetsToJSON(data)
-		resp := models.Response{Status: true, Message: fileName, Data: dataWP}
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(resp)
-	} else {
-		resp := models.Response{Status: true, Message: fileName, Data: videoData}
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(resp)
-	}
+	resp := models.Response{Status: true, Message: fileName, Data: videoData}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
 }
 
 func removeVideo(path string, vidId int, ClientID uint) error {

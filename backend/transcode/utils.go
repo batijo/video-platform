@@ -10,7 +10,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/batijo/video-platform/backend/models"
 	"github.com/batijo/video-platform/backend/utils"
 )
 
@@ -90,28 +89,6 @@ func runCmdCommand(cmdl string, dur string, wg *sync.WaitGroup, ClientID uint) e
 	}
 
 	return nil
-}
-
-func generateThumbnail(wg *sync.WaitGroup, fileName string, sourcewe string, data models.Vidinfo) error {
-	defer wg.Done()
-
-	//var timeStamp = (durToSec(data.Videotrack[0].Duration)) / utils.Conf.TNNum
-	//var timeStamp = int((float64(durToSec(data.Videotrack[0].Duration)) * data.Videotrack[0].FrameRate) / 10)
-
-	//var baseCmd = "ffmpeg -i %v -vf fps=1/%v %v%v%%03d.jpg"
-	//var baseCmd = "ffmpeg -i %v -vf thumbnail=%v,setpts=N/TB -r 1 -vframes %v %v%v%%03d.jpg"
-
-	var baseCmd = "ffmpeg -i %v -ss %v -vframes 1 %v%v.jpg"
-	cmdl := fmt.Sprintf(baseCmd, fileName, utils.Conf.TNTS, utils.Conf.TND, sourcewe)
-
-	parts := strings.Fields(cmdl)
-	head := parts[0]
-	parts = parts[1:]
-
-	cmd := exec.Command(head, parts...)
-	err := cmd.Run()
-
-	return err
 }
 
 func removeVideo(path string, vidId int, ClientID uint) {
