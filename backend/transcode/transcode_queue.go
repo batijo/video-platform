@@ -38,6 +38,10 @@ func AddToQueue(encData models.Encode) error {
 	return nil
 }
 
+func Active() bool {
+	return active
+}
+
 func startTranscoder(video models.Video) {
 	active = true
 	for {
