@@ -16,7 +16,7 @@ var (
 
 func AddToQueue(enc models.Encode, prData []models.Stream, videoID uint) error {
 	var (
-		encData models.EncodeData
+		encData models.Encodedata
 		video   models.Video
 		resp    *gorm.DB
 	)
@@ -59,7 +59,7 @@ func Active() bool {
 	return active
 }
 
-func startTranscoder(ED models.EncodeData) {
+func startTranscoder(ED models.Encodedata) {
 	active = true
 	for {
 		// Start procesing file
@@ -93,8 +93,8 @@ func startTranscoder(ED models.EncodeData) {
 }
 
 // Returns full video structure
-func getEncData(edID uint) (models.EncodeData, error) {
-	var ED models.EncodeData
+func getEncData(edID uint) (models.Encodedata, error) {
+	var ED models.Encodedata
 
 	err := utils.DB.Preload("Video").Preload("EncData").Preload("Presets").Where("id = ?", edID).First(&ED).Error
 	if err != nil {
@@ -106,7 +106,7 @@ func getEncData(edID uint) (models.EncodeData, error) {
 
 // Removes already transcoded video from queue
 func removeFromQueue(edID uint) error {
-	err := utils.DB.Where("id = ?", edID).Delete(&models.EncodeData{}).Error
+	err := utils.DB.Where("id = ?", edID).Delete(&models.Encodedata{}).Error
 	if err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func removeFromQueue(edID uint) error {
 
 // Retruns id of next video in queue, or -1 if no videos in queue
 func nextInQueue() (int, error) {
-	var encData []models.EncodeData
+	var encData []models.Encodedata
 
 	resp := utils.DB.Find(&encData)
 	if resp.Error != nil || len(encData) < 1 {

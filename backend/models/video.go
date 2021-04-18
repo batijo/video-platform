@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type EncodeData struct {
+type Encodedata struct {
 	ID        uint      `gorm:"primary_key" json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 
@@ -71,7 +71,7 @@ type Sub struct {
 type Encode struct {
 	ID        uint      `gorm:"primary_key" json:"id"`
 	CreatedAt time.Time `json:"created_at"`
-	QueueID   uint      `json:"video_id"`
+	QueueID   uint      `json:"queue_id"`
 
 	StrID      int     `json:"str_id"`
 	FileName   string  `json:"file_name"`
@@ -85,7 +85,7 @@ type Encode struct {
 
 type Stream struct {
 	ID      uint `json:"id"`
-	QueueID uint `json:"video_id"`
+	QueueID uint `json:"queue_id"`
 
 	AudPreset string  `json:"aud_preset"`
 	VidPreset string  `json:"vid_preset"`
@@ -145,7 +145,7 @@ func (v *Video) ParseWithEncode(e Encode, state string) {
 	}
 }
 
-type ByCreateDate []EncodeData
+type ByCreateDate []Encodedata
 
 // Forward request for length
 func (p ByCreateDate) Len() int {

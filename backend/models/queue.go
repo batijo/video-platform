@@ -14,7 +14,7 @@ type queueElement struct {
 	Owns       bool   `json:"owns"`
 }
 
-func (q *Queue) Put(ED []EncodeData, userID uint) {
+func (q *Queue) Put(ED []Encodedata, userID uint) {
 	sort.Sort(ByCreateDate(ED))
 
 	for i, e := range ED {

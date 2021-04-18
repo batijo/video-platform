@@ -45,11 +45,13 @@ func ConnectDB() *gorm.DB {
 	db.AutoMigrate(
 		&models.User{},
 		&models.Preset{},
+		&models.Encodedata{},
 		models.Vstream{},
 		models.Video{},
 		models.Audio{},
 		models.Sub{},
 		models.Encode{},
+		models.Stream{},
 	)
 
 	db.Model(&models.Video{}).AddForeignKey("user_id", "users(id)", "SET NULL", "NO ACTION")
@@ -58,11 +60,14 @@ func ConnectDB() *gorm.DB {
 	db.Model(&models.Audio{}).AddForeignKey("video_id", "videos(id)", "CASCADE", "NO ACTION")
 	db.Model(&models.Sub{}).AddForeignKey("video_id", "videos(id)", "CASCADE", "NO ACTION")
 	// Encode data
-	db.Model(&models.Encode{}).AddForeignKey("video_id", "videos(id)", "CASCADE", "CASCADE")
+	db.Model(&models.Encode{}).AddForeignKey("queue_id", "encodedata(id)", "CASCADE", "CASCADE")
+	db.Model(&models.Stream{}).AddForeignKey("queue_id", "encodedata(id)", "CASCADE", "CASCADE")
+	db.Model(&models.Video{}).AddForeignKey("queue_id", "encodedata(id)", "NO ACTION", "NO ACTION")
 	db.Model(&models.Audio{}).AddForeignKey("enc_id", "encodes(id)", "CASCADE", "NO ACTION")
+	db.Model(&models.Audio{}).AddForeignKey("str_id", "streams(id)", "CASCADE", "NO ACTION")
 	db.Model(&models.Sub{}).AddForeignKey("enc_id", "encodes(id)", "CASCADE", "NO ACTION")
+	db.Model(&models.Sub{}).AddForeignKey("str_id", "streams(id)", "CASCADE", "NO ACTION")
 
-	db.Exec("DELETE FROM encodes")
 	return db
 }
 

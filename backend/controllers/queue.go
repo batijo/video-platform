@@ -11,7 +11,7 @@ import (
 
 func ReturnQueue(w http.ResponseWriter, r *http.Request) {
 	var (
-		ed    []models.EncodeData
+		ed    []models.Encodedata
 		queue models.Queue
 	)
 

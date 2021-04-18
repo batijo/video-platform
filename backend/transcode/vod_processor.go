@@ -18,7 +18,7 @@ var (
 )
 
 // ProcessVodFile ...
-func processVodFile(ED models.EncodeData) {
+func processVodFile(ED models.Encodedata) {
 	var (
 		wg                        sync.WaitGroup
 		err                       error
