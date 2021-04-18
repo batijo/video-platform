@@ -8,7 +8,6 @@ import (
 
 	"github.com/batijo/video-platform/backend/models"
 	"github.com/batijo/video-platform/backend/utils"
-	"github.com/batijo/video-platform/backend/utils/auth"
 	"github.com/jinzhu/gorm"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -142,7 +141,7 @@ func FetchUsers(w http.ResponseWriter, r *http.Request) {
 		res   *gorm.DB
 	)
 
-	userId, admin, err := auth.GetUserID(r)
+	userId, admin, err := utils.GetUserID(r)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Could not authorise user", Error: err.Error()}
 		w.WriteHeader(http.StatusUnauthorized)
@@ -186,7 +185,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		id   = mux.Vars(r)["id"]
 	)
 
-	userId, admin, err := auth.GetUserID(r)
+	userId, admin, err := utils.GetUserID(r)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Could not authorise user", Error: err.Error()}
 		w.WriteHeader(http.StatusUnauthorized)
@@ -263,7 +262,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		user models.User
 	)
 
-	userId, admin, err := auth.GetUserID(r)
+	userId, admin, err := utils.GetUserID(r)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Could not authorise user", Error: err.Error()}
 		w.WriteHeader(http.StatusUnauthorized)
@@ -308,7 +307,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		user models.User
 	)
 
-	userId, admin, err := auth.GetUserID(r)
+	userId, admin, err := utils.GetUserID(r)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Could not authorise user", Error: err.Error()}
 		w.WriteHeader(http.StatusUnauthorized)

@@ -1,4 +1,4 @@
-package auth
+package utils
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/batijo/video-platform/backend/models"
-	"github.com/batijo/video-platform/backend/utils"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )
@@ -23,7 +22,7 @@ func GetUserID(r *http.Request) (uint, bool, error) {
 	}
 
 	_, err = jwt.ParseWithClaims(token, tk, func(token *jwt.Token) (interface{}, error) {
-		return []byte(utils.Conf.JWTSecret), nil
+		return []byte(Conf.JWTSecret), nil
 	})
 	if err != nil {
 		return tk.UserID, false, err
@@ -86,7 +85,7 @@ func jwtParser(w http.ResponseWriter, r *http.Request) (models.Token, error) {
 	}
 
 	_, err = jwt.ParseWithClaims(token, tk, func(token *jwt.Token) (interface{}, error) {
-		return []byte(utils.Conf.JWTSecret), nil
+		return []byte(Conf.JWTSecret), nil
 	})
 
 	if err != nil {

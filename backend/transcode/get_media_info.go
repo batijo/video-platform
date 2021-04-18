@@ -42,7 +42,7 @@ func getMediaInfoJSON(source string, wg *sync.WaitGroup) ([]byte, error) {
 }
 
 // GetVidInfo retruns struct with information about video file
-func GetVidInfo(path string, filename string, ClientID string, vidId int) (models.Vidinfo, error) {
+func GetVidInfo(path string, filename string, ClientID uint, vidId int) (models.Vidinfo, error) {
 	var (
 		wg sync.WaitGroup
 		vi models.Vidinfo

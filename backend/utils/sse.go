@@ -8,7 +8,7 @@ import (
 )
 
 type Broker struct {
-	Clients        map[chan string]string
+	Clients        map[chan string]uint
 	NewClients     chan Client
 	DefunctClients chan chan string
 	Messages       chan Message
@@ -16,12 +16,12 @@ type Broker struct {
 
 type Client struct {
 	ClientChannel chan string
-	ClientId      string
+	ClientId      uint
 }
 
 type Message struct {
 	Msg      string
-	ClientId string
+	ClientId uint
 }
 
 var (
@@ -29,26 +29,39 @@ var (
 	started = false
 )
 
-func (b *Broker) Start() {
+func NewSseServer() {
+	B = &Broker{
+		Clients:        make(map[chan string]uint),
+		NewClients:     make(chan Client),
+		DefunctClients: make(chan (chan string)),
+		Messages:       make(chan Message),
+	}
+	B.start()
+}
+
+func (b *Broker) start() {
 	started = true
 	go func() {
 		for {
 			select {
-			case s := <-b.NewClients:
+			case newCl := <-b.NewClients:
 				// start sending client messages
-				b.Clients[s.ClientChannel] = s.ClientId
+				b.Clients[newCl.ClientChannel] = newCl.ClientId
 
-			case s := <-b.DefunctClients:
+			case defCl := <-b.DefunctClients:
 				// stop sending client messages
-				delete(b.Clients, s)
-				close(s)
+				delete(b.Clients, defCl)
+				close(defCl)
 
 			case msg := <-b.Messages:
 				// there is a new message to send to all clients
-				for s := range b.Clients {
-					s <- msg.Msg
+				for clChan, id := range b.Clients {
+					if msg.ClientId == id {
+						clChan <- msg.Msg
+					} else if msg.ClientId == 0 {
+						clChan <- msg.Msg
+					}
 				}
-				// log.Printf("Broadcast message to %d clients", len(b.Clients))
 			}
 		}
 	}()
@@ -66,14 +79,14 @@ func (b *Broker) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	messageChan := make(chan string)
 
 	// Add this client to the map of those that should receive updates
-	// ClientId, err := auth.GetUserID(r)
-	// if err != nil {
-	// 	http.Error(w, "Error geting client ID", http.StatusInternalServerError)
-	// 	return
-	// }
+	userID, _, err := GetUserID(r)
+	if err != nil {
+		http.Error(w, fmt.Sprint("Error geting user ID for SSE connection: ", err), http.StatusInternalServerError)
+		return
+	}
 	client := Client{
 		messageChan,
-		r.RemoteAddr,
+		userID,
 	}
 	b.NewClients <- client
 
@@ -105,31 +118,30 @@ func (b *Broker) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Flush data as soon as it has been updated
 		f.Flush()
 	}
-
-	//log.Println("Finished HTTP request at ", r.URL.Path)
 }
 
-func UpdateMessage(msg string) {
+func UpdateAllUsersMessage(msg string) {
 	if !started {
 		log.Println("SSE server has not been started")
 		return
 	}
 	message := Message{
 		msg,
-		"",
+		0,
 	}
+
 	B.Messages <- message
 }
 
-func UpdateLogMessage(msg string, ClientID string) {
+func UpdateUserMessage(msg string, ClientID uint) {
 	if !started {
 		log.Println("SSE server has not been started")
 		return
 	}
-	curentTime := time.Now().Format("15:04:05")
 	message := Message{
-		fmt.Sprintf("<%v> %v", curentTime, msg),
+		fmt.Sprintf("<%v> %v", time.Now().Format("15:04:05"), msg),
 		ClientID,
 	}
+
 	B.Messages <- message
 }

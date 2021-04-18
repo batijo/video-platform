@@ -19,7 +19,7 @@ var (
 )
 
 // ProcessVodFile ...
-func processVodFile(clientData models.Video, presetData models.Pdata, ClientID string, vidId, userID uint) {
+func processVodFile(clientData models.Video, presetData models.Pdata, ClientID uint, vidId, userID uint) {
 	utils.WLog("Starting VOD Processor..", ClientID)
 	var (
 		err                       error
@@ -99,12 +99,19 @@ func processVodFile(clientData models.Video, presetData models.Pdata, ClientID s
 
 	// Checks if transcoded file with the same name already exists
 	if _, err := os.Stat(tempfile); err == nil {
-		utils.WLog(fmt.Sprintf("Error: file \"%v\" already transcoding", sourceFileNameWithoutExt+".mp4"), ClientID)
+		utils.WLog(
+			fmt.Sprintf("Error: file \"%v\" already transcoding", sourceFileNameWithoutExt+".mp4"),
+			ClientID,
+		)
 		removeVideo(path[clientData.State]+data.FileName, int(vidId), ClientID)
 		finished <- false
 		return
 	} else if _, err := os.Stat(destinationFile); err == nil {
-		utils.WLog(fmt.Sprintf("Error: file \"%v\" already exist in transcoded folder", sourceFileNameWithoutExt+".mp4"), ClientID)
+		utils.WLog(
+			fmt.Sprintf(
+				"Error: file \"%v\" already exist in transcoded folder", sourceFileNameWithoutExt+".mp4"),
+			ClientID,
+		)
 		removeVideo(path[clientData.State]+data.FileName, int(vidId), ClientID)
 		finished <- false
 		return

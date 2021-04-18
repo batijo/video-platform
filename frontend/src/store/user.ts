@@ -9,7 +9,6 @@ const initialUser: User = {
   id: 0,
   createdAt: new Date(),
   updatedAt: new Date(),
-  DeletedAt: new Date(),
   username: '',
   name: '',
   lastname: '',

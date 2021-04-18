@@ -28,7 +28,7 @@ func durToSec(dur string) (sec int) {
 	return
 }
 
-func getRatio(res string, duration int, ClientID string) {
+func getRatio(res string, duration int, ClientID uint) {
 	i := strings.Index(res, "time=")
 	if i >= 0 {
 		time := res[i+5:]
@@ -38,14 +38,15 @@ func getRatio(res string, duration int, ClientID string) {
 			per := (sec * 100) / duration
 			if lastPer != per {
 				lastPer = per
-				utils.UpdateLogMessage(fmt.Sprintf("Progress: %v %%", per), ClientID)
+				utils.UpdateUserMessage(fmt.Sprintf("Progress: %v %%", per), ClientID)
+				utils.UpdateAllUsersMessage(fmt.Sprintf("Progress: %v %%", per))
 			}
 			allRes = ""
 		}
 	}
 }
 
-func runCmdCommand(cmdl string, dur string, wg *sync.WaitGroup, ClientID string) error {
+func runCmdCommand(cmdl string, dur string, wg *sync.WaitGroup, ClientID uint) error {
 	defer wg.Done()
 
 	if cmdl == "" {
@@ -113,7 +114,7 @@ func generateThumbnail(wg *sync.WaitGroup, fileName string, sourcewe string, dat
 	return err
 }
 
-func removeVideo(path string, vidId int, ClientID string) {
+func removeVideo(path string, vidId int, ClientID uint) {
 	if _, err := os.Stat(path); os.Remove(path) != nil && !os.IsNotExist(err) {
 		utils.WLog("Error: failed removing file", ClientID)
 	}
@@ -126,7 +127,7 @@ func removeVideo(path string, vidId int, ClientID string) {
 	return
 }
 
-func removeStreamVideos(path string, filenames []string, sname string, ClientID string) {
+func removeStreamVideos(path string, filenames []string, sname string, ClientID uint) {
 	for _, filename := range filenames {
 		if os.Remove(path+filename) != nil {
 			utils.WLog("Error: failed removing stream file(s)", ClientID)

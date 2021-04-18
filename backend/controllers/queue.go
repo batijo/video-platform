@@ -7,7 +7,6 @@ import (
 	"github.com/batijo/video-platform/backend/models"
 	"github.com/batijo/video-platform/backend/transcode"
 	"github.com/batijo/video-platform/backend/utils"
-	"github.com/batijo/video-platform/backend/utils/auth"
 )
 
 func ReturnQueue(w http.ResponseWriter, r *http.Request) {
@@ -23,7 +22,7 @@ func ReturnQueue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userId, _, err := auth.GetUserID(r)
+	userId, _, err := utils.GetUserID(r)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Could not authorise user", Error: err.Error()}
 		w.WriteHeader(http.StatusUnauthorized)
