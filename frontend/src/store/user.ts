@@ -32,17 +32,17 @@ export const userSlice = createSlice({
   }
 })
 
-export const getUsers = () => {
-  axios.get<User[]>('https://localhost/api/auth/user')
-    .then(response => {
-      store.dispatch(userSlice.actions.userList(response.data))
-    })
-}
-
 export const getUser = (id: number) => {
   axios.get<User>(`https://localhost/api/auth/user/${id}`)
     .then(response => {
       store.dispatch(userSlice.actions.userDetail(response.data))
+    })
+}
+
+export const getUsers = () => {
+  axios.get<User[]>('https://localhost/api/auth/user')
+    .then(response => {
+      store.dispatch(userSlice.actions.userList(response.data))
     })
 }
 

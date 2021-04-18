@@ -47,7 +47,17 @@ export const videoSlice = createSlice({
     video: initialVideo,
     videoList: initialVideoList
   },
-  reducers: {}
+  reducers: {
+    videoDetail: (state, action: PayloadAction<Video>) => { state.video = action.payload }
+    // TODO (?): videoList:
+  }
 })
+
+export const getVideo = (id: number) => {
+  axios.get<Video>(`https://localhost/api/auth/video/${id}`)
+    .then(response => {
+      store.dispatch(videoSlice.actions.videoDetail(response.data))
+    })
+}
 
 export default videoSlice.reducer
