@@ -1,7 +1,7 @@
 export type Video = {
   id: number
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
   title: string
   description: string
   userId: number
@@ -21,7 +21,7 @@ export type Video = {
 
 export type Encode = {
   id: number
-  createdAt: Date
+  createdAt: string
   videoId: number
   strId: number
   fileName: string

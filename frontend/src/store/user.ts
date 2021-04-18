@@ -8,8 +8,8 @@ import User from '../types/user'
 
 const initialUser: User = {
   id: 0,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  createdAt: '',
+  updatedAt: '',
   username: '',
   name: '',
   lastname: '',

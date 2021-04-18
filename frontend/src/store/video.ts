@@ -7,7 +7,7 @@ import APIResponse from '../types/response'
 
 const initialEncode: Encode = {
   id: 0,
-  createdAt: new Date(),
+  createdAt: '',
   videoId: 0,
   strId: 0,
   fileName: '',
@@ -21,8 +21,8 @@ const initialEncode: Encode = {
 
 const initialVideo: Video = {
   id: 0,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  createdAt: '',
+  updatedAt: '',
   title: '',
   description: '',
   userId: 0,
