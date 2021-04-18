@@ -38,3 +38,16 @@ const initialVideo: Video = {
   subtitleT: [],
   encData: initialEncode
 }
+
+const initialVideoList: Video[] = [];
+
+export const videoSlice = createSlice({
+  name: 'videos',
+  initialState: {
+    video: initialVideo,
+    videoList: initialVideoList
+  },
+  reducers: {}
+})
+
+export default videoSlice.reducer
