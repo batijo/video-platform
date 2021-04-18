@@ -15,6 +15,16 @@ import (
 
 // VideoUpload upload handler which only allows to upload video
 func VideoUpload(w http.ResponseWriter, r *http.Request) {
+	// Gets user ID
+	userID, _, err := utils.GetUserID(r)
+	if err != nil {
+		resp := models.Response{Status: false, Message: "Could not verify user", Error: err.Error()}
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(resp)
+		log.Println(err)
+		return
+	}
+
 	//Starts reading file by chuncking <- NOPE
 	r.ParseMultipartForm(32 << 20)
 	file, handler, err := r.FormFile("file")
@@ -23,7 +33,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		utils.WLog("Error: failed to upload file", r.RemoteAddr)
+		utils.WLog("Error: failed to upload file", userID)
 		return
 	}
 	defer file.Close()
@@ -39,18 +49,18 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		resp := models.Response{Status: false, Message: "This file format is not allowed " + filepath.Ext(handler.Filename)}
 		w.WriteHeader(http.StatusUnsupportedMediaType)
 		json.NewEncoder(w).Encode(resp)
-		utils.WLog("Error: this file format is not allowed: "+filepath.Ext(handler.Filename), r.RemoteAddr)
+		utils.WLog("Error: this file format is not allowed: "+filepath.Ext(handler.Filename), userID)
 		return
 	}
 
 	// Checks if uploaded file with the same name already exists
 	fileName := utils.ReturnDifNameIfDublicate(handler.Filename, utils.Conf.SD)
 	if fileName != handler.Filename {
-		utils.WLog("File with the same name already exist so it has been changed", r.RemoteAddr)
+		utils.WLog("File with the same name already exist so it has been changed", userID)
 	}
 
 	//Create empty file in /videos folder
-	utils.WLog("Creating file", r.RemoteAddr)
+	utils.WLog("Creating file", userID)
 	dst, err := os.OpenFile(utils.Conf.SD+fileName, os.O_WRONLY|os.O_CREATE, 0666)
 	defer dst.Close()
 	if err != nil {
@@ -58,42 +68,32 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		utils.WLog("Error: could not create file", r.RemoteAddr)
+		utils.WLog("Error: could not create file", userID)
 		return
 	}
 
 	//Copies a temporary file to empty file in /videos folder
-	utils.WLog("Writing to file", r.RemoteAddr)
+	utils.WLog("Writing to file", userID)
 	if _, err := io.Copy(dst, file); err != nil {
 		resp := models.Response{Status: false, Message: "Failed to write file", Error: err.Error()}
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeVideo(utils.Conf.SD+fileName, -1, r.RemoteAddr)
-		utils.WLog("Error: failed to write file", r.RemoteAddr)
+		removeVideo(utils.Conf.SD+fileName, -1, userID)
+		utils.WLog("Error: failed to write file", userID)
 		return
 	}
 
-	utils.WLog("Upload successful", r.RemoteAddr)
+	utils.WLog("Upload successful", userID)
 
-	data, err := tc.GetVidInfo(utils.Conf.SD, fileName, r.RemoteAddr, -1)
+	data, err := tc.GetVidInfo(utils.Conf.SD, fileName, userID, -1)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Error getting video info", Error: err.Error()}
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeVideo(utils.Conf.SD+fileName, -1, r.RemoteAddr)
-		utils.WLog("Error: could not get video info", r.RemoteAddr)
-		return
-	}
-
-	userID, _, err := utils.GetUserID(r)
-	if err != nil {
-		resp := models.Response{Status: false, Message: "Could not verify user", Error: err.Error()}
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(resp)
-		log.Println(err)
-		removeVideo(utils.Conf.SD+fileName, -1, r.RemoteAddr)
+		removeVideo(utils.Conf.SD+fileName, -1, userID)
+		utils.WLog("Error: could not get video info", userID)
 		return
 	}
 
@@ -103,8 +103,8 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeVideo(utils.Conf.SD+fileName, int(vidId), r.RemoteAddr)
-		utils.WLog("Error: failed to insert video data in database", r.RemoteAddr)
+		removeVideo(utils.Conf.SD+fileName, int(vidId), userID)
+		utils.WLog("Error: failed to insert video data in database", userID)
 		return
 	}
 
@@ -114,8 +114,8 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
-		removeVideo(utils.Conf.SD+fileName, int(vidId), r.RemoteAddr)
-		utils.WLog("Error: failed to retrieve video data in database", r.RemoteAddr)
+		removeVideo(utils.Conf.SD+fileName, int(vidId), userID)
+		utils.WLog("Error: failed to retrieve video data in database", userID)
 		return
 	}
 
@@ -132,7 +132,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func removeVideo(path string, vidId int, ClientID string) error {
+func removeVideo(path string, vidId int, ClientID uint) error {
 	var err error
 
 	if err = os.Remove(path); err != nil {
