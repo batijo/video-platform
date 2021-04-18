@@ -16,7 +16,6 @@ const initialUser: User = {
   email: '',
   admin: false,
   public: false,
-  token: '',
 }
 
 const initialUserList: User[] = [];

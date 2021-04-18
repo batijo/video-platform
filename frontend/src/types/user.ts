@@ -8,7 +8,6 @@ export type User = {
   email: string
   admin: boolean
   public: boolean
-  token?: string
 }
 
 export type UserLogin = {

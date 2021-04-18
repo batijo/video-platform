@@ -90,9 +90,9 @@ const App = () => (
       <Route exact path="/"><LandingVideos /></Route>
       <Route exact path="/login"><Login /></Route>
       <Route exact path="/register"><Register /></Route>
-      <Route exact path="settings"><Settings /></Route>
-      <Route path="/video"><VideoDetail filename="idk" title="test_title" description="test_description" /></Route>
-      <Route path="/user"><Profile /></Route>
+      <Route exact path="/settings"><Settings /></Route>
+      <Route path="/video/:id"><VideoDetail filename="idk" title="test_title" description="test_description" /></Route>
+      <Route path="/user/:id"><Profile /></Route>
     </Container>
     <Footer />
   </div>
