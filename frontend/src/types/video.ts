@@ -49,3 +49,5 @@ export type Subtitle = {
   streamId: number
   language: string
 }
+
+export default Video

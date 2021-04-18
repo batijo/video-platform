@@ -1,4 +1,4 @@
-type User = {
+export type User = {
   id: number
   createdAt: Date
   updatedAt: Date
@@ -8,7 +8,20 @@ type User = {
   email: string
   admin: boolean
   public: boolean
-  token: string
+  token?: string
+}
+
+export type UserLogin = {
+  email: string
+  password: string
+}
+
+export type UserRegister = {
+  username: string
+  email: string
+  password: string
+  name?: string
+  lastname?: string
 }
 
 export default User
