@@ -119,7 +119,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.UpdateMessage(fileName)
+	utils.UpdateUserMessage(fileName, userID)
 	if utils.Conf.Presets {
 		dataWP := utils.AddPresetsToJSON(data)
 		resp := models.Response{Status: true, Message: fileName, Data: dataWP}

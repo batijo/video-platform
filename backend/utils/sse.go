@@ -58,6 +58,8 @@ func (b *Broker) start() {
 				for clChan, id := range b.Clients {
 					if msg.ClientId == id {
 						clChan <- msg.Msg
+					} else if msg.ClientId == 0 {
+						clChan <- msg.Msg
 					}
 				}
 			}
@@ -118,7 +120,7 @@ func (b *Broker) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func UpdateMessage(msg string) {
+func UpdateAllUsersMessage(msg string) {
 	if !started {
 		log.Println("SSE server has not been started")
 		return
@@ -131,7 +133,7 @@ func UpdateMessage(msg string) {
 	B.Messages <- message
 }
 
-func UpdateLogMessage(msg string, ClientID uint) {
+func UpdateUserMessage(msg string, ClientID uint) {
 	if !started {
 		log.Println("SSE server has not been started")
 		return

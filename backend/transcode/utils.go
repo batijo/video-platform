@@ -38,7 +38,8 @@ func getRatio(res string, duration int, ClientID uint) {
 			per := (sec * 100) / duration
 			if lastPer != per {
 				lastPer = per
-				utils.UpdateLogMessage(fmt.Sprintf("Progress: %v %%", per), ClientID)
+				utils.UpdateUserMessage(fmt.Sprintf("Progress: %v %%", per), ClientID)
+				utils.UpdateAllUsersMessage(fmt.Sprintf("Progress: %v %%", per))
 			}
 			allRes = ""
 		}
