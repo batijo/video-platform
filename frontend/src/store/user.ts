@@ -2,6 +2,7 @@ import { store } from '../index'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import axios from 'axios'
 
+import APIResponse from '../types/response'
 import User from '../types/user'
 // import Video from '../types/video'
 
@@ -33,16 +34,16 @@ export const userSlice = createSlice({
 })
 
 export const getUser = (id: number) => {
-  axios.get<User>(`https://localhost/api/auth/user/${id}`)
+  axios.get<APIResponse<User>>(`https://localhost/api/auth/user/${id}`)
     .then(response => {
-      store.dispatch(userSlice.actions.userDetail(response.data))
+      store.dispatch(userSlice.actions.userDetail(response.data.data))
     })
 }
 
 export const getUsers = () => {
-  axios.get<User[]>('https://localhost/api/auth/user')
+  axios.get<APIResponse<User[]>>('https://localhost/api/auth/user')
     .then(response => {
-      store.dispatch(userSlice.actions.userList(response.data))
+      store.dispatch(userSlice.actions.userList(response.data.data))
     })
 }
 

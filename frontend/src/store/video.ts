@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import axios from 'axios'
 
 import { Video, Encode } from '../types/video'
+import APIResponse from '../types/response'
 
 const initialEncode: Encode = {
   id: 0,
@@ -54,9 +55,9 @@ export const videoSlice = createSlice({
 })
 
 export const getVideo = (id: number) => {
-  axios.get<Video>(`https://localhost/api/auth/video/${id}`)
+  axios.get<APIResponse<Video>>(`https://localhost/api/auth/video/${id}`)
     .then(response => {
-      store.dispatch(videoSlice.actions.videoDetail(response.data))
+      store.dispatch(videoSlice.actions.videoDetail(response.data.data))
     })
 }
 
