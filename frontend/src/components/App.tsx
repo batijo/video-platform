@@ -4,7 +4,7 @@ import { Link, Route, Switch } from 'react-router-dom'
 import 'tailwindcss/tailwind.css'
 import '../index.css'
 
-import thumbnail from 'url:../thumbnail.jpg'
+//import thumbnail from 'url:../thumbnail.jpg'
 
 import { Login, Register } from './Auth'
 import { VideoDetail, VideoList, Video } from './Video'

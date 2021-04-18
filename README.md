@@ -2,9 +2,13 @@
 
 ## Dependencies
 - `go`
-- `python`
+- `npm`
 - `docker`
 - `docker-compose`
+
+## Setup frontend
+- `npm i`
+- `npm start`
 
 ## Setup `docker`
 - `sudo systemctl enable docker --force`

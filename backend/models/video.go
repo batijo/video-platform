@@ -26,7 +26,7 @@ type Video struct {
 	VstreamID   uint    `gorm:"DEFAULT:NULL" json:"vstream_id"`
 	StrID       int     `json:"str_id"`
 	FileName    string  `json:"file_name"`
-	State       string  `json:"state"`
+	State       string  `json:"state"` // Three possible states: not_transcoded, transcoding, transcoded
 	VideoCodec  string  `json:"video_codec"`
 	Width       int     `json:"width"`
 	Height      int     `json:"height"`
