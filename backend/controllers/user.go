@@ -95,17 +95,24 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if user trying to gain admin access
-	if user.Admin {
-		resp := models.Response{Status: false, Message: "You can not make yourself an admin"}
-		w.WriteHeader(http.StatusForbidden)
+	if user.Email == "" || user.Password == "" || user.Username == "" {
+		resp := models.Response{Status: false, Message: "Username, Email and Password must be provided"}
+		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(resp)
 		return
 	}
 
-	if user.Email == "" || user.Password == "" || user.Username == "" {
-		resp := models.Response{Status: false, Message: "Username, Email and Password must be provided"}
-		w.WriteHeader(http.StatusBadRequest)
+	if err := utils.DB.Where("email = ? OR username = ?", user.Email, user.Username).First(&user).Error; err == nil {
+		resp := models.Response{Status: false, Message: "User with the same email or username already exist"}
+		w.WriteHeader(http.StatusConflict)
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+
+	// Check if user trying to gain admin access
+	if user.Admin {
+		resp := models.Response{Status: false, Message: "You can not make yourself an admin"}
+		w.WriteHeader(http.StatusForbidden)
 		json.NewEncoder(w).Encode(resp)
 		return
 	}

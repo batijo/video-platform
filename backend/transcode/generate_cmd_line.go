@@ -18,7 +18,7 @@ var prRes = map[string]string{
 }
 
 func generatePresetCmdLine(
-	prdata models.Pdata,
+	prdata []models.Stream,
 	videoData models.Vidinfo,
 	sourceFileWithPath string,
 	sourceFileName string,
@@ -55,18 +55,18 @@ func generatePresetCmdLine(
 		)
 		fc = "-r 25 -filter_complex [0:v]setpts=%[1]v/25*PTS,split=%[2]v%[3]v;[0:a]atempo=25/%[1]v,asplit=%[2]v%[4]v"
 
-		for i := range prdata.Streams {
+		for i := range prdata {
 			fcmaps = append(fcmaps, fmt.Sprintf(" -map [vo%[1]v] -map [ao%[1]v]", i))
 			vo += fmt.Sprintf("[vo%v]", i)
 			ao += fmt.Sprintf("[ao%v]", i)
 		}
 
-		fc = fmt.Sprintf(fc, videoData.Videotrack[0].FrameRate, len(prdata.Streams), vo, ao)
+		fc = fmt.Sprintf(fc, videoData.Videotrack[0].FrameRate, len(prdata), vo, ao)
 	}
 
 	cmd = fmt.Sprintf("ffmpeg -i %v %v", sourceFileWithPath, fc)
 
-	for i, s := range prdata.Streams {
+	for i, s := range prdata {
 
 		vidpr, err := utils.GetPreset(s.VidPreset)
 		if err != nil {

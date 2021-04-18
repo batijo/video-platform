@@ -14,37 +14,26 @@ type queueElement struct {
 	Owns       bool   `json:"owns"`
 }
 
-func (q *Queue) Put(vids []Video, userID uint) {
-	var (
-		enc []Encode
-	)
-	for _, v := range vids {
-		if v.EncData.VideoID == v.ID {
-			enc = append(enc, v.EncData)
-			if !v.Public {
-				enc[len(enc)-1].FileName = "unknown"
-			} else {
-				enc[len(enc)-1].FileName = v.Title
-			}
-			if v.UserID == userID {
-				enc[len(enc)-1].ID = 1
-			} else {
-				enc[len(enc)-1].ID = 0
-			}
-		}
-	}
-	sort.Sort(ByCreateDate(enc))
+func (q *Queue) Put(ED []Encodedata, userID uint) {
+	sort.Sort(ByCreateDate(ED))
 
-	for i, e := range enc {
+	for i, e := range ED {
 		(*q).Elements = append((*q).Elements,
 			queueElement{
 				Position:   uint(i + 1),
-				VideoTitle: e.FileName,
+				VideoTitle: getTile(e.Video),
 				Owns:       btoi(e.ID),
 			},
 		)
 	}
 
+}
+
+func getTile(v Video) string {
+	if !v.Public {
+		return "unknown"
+	}
+	return v.Title
 }
 
 func btoi(i uint) bool {

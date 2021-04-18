@@ -19,8 +19,6 @@ type Config struct {
 	DebugEnd   string
 	VBW        int
 	LogP       string
-	TNTS       string
-	Presets    bool
 	FileTypes  []string
 }
 

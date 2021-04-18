@@ -27,11 +27,5 @@ VBW = 2500
 # Log file path and name
 LogP = "info.log"
 
-# Thumbnail timestamp
-TNTS = "00:00:15"
-
-# If Presets set to true use Presets as default
-Presets = false
-
 # Available file formats to be uploaded
 FileTypes = [".mkv", ".mp4", ".avi", ".mov", ".mpg", ".wmv", ".webm"]

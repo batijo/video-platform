@@ -11,8 +11,8 @@ import (
 
 func ReturnQueue(w http.ResponseWriter, r *http.Request) {
 	var (
-		videos []models.Video
-		queue  models.Queue
+		ed    []models.Encodedata
+		queue models.Queue
 	)
 
 	if transcode.Active() {
@@ -30,14 +30,14 @@ func ReturnQueue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := utils.DB.Find(&videos).Error; err != nil {
+	if err := utils.DB.Find(&ed).Error; err != nil {
 		resp := models.Response{Status: false, Message: "Sql error", Error: err.Error()}
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		return
 	}
 
-	queue.Put(videos, userId)
+	queue.Put(ed, userId)
 
 	resp := models.Response{Status: true, Message: "Success", Data: queue}
 	w.WriteHeader(http.StatusOK)
