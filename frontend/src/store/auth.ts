@@ -29,13 +29,18 @@ export const authSlice = createSlice({
   reducers: {
     register: (state, action: PayloadAction<APIResponse<{}>>) => { state.register = action.payload },
     resetRegister: (state) => { state.register = initialRegister },
-    login: (state, action: PayloadAction<APIResponse<string>>) => { state.login = action.payload; state.token = action.payload.data },
+    login: (state, action: PayloadAction<APIResponse<string>>) => {
+      state.login = action.payload
+      if (action.payload.data !== null && action.payload.data !== undefined) state.token = action.payload.data
+    },
+    logout: (state) => { state.token = '' },
     resetLogin: (state) => { state.login = initialLogin }
   }
 })
 
 export const resetRegister = (): AppThunk => async (dispatch: AppDispatch) => dispatch(authSlice.actions.resetRegister())
 export const resetLogin = (): AppThunk => async (dispatch: AppDispatch) => dispatch(authSlice.actions.resetLogin())
+export const logout = (): AppThunk => async (dispatch: AppDispatch) => dispatch(authSlice.actions.logout())
 
 export const register = (credentials: UserRegister): AppThunk => async (dispatch: AppDispatch) => {
   axios.post<APIResponse<{}>>(`${window.origin}/api/register`, credentials)
