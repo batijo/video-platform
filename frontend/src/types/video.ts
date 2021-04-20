@@ -50,4 +50,39 @@ export type Subtitle = {
   language: string
 }
 
+export const initialEncode: Encode = {
+  id: 0,
+  createdAt: '',
+  videoId: 0,
+  strId: 0,
+  fileName: '',
+  videoCodec: '',
+  width: 0,
+  height: 0,
+  frameRate: 0.0,
+  audioT: [],
+  subtitleT: []
+}
+
+export const initialVideo: Video = {
+  id: 0,
+  createdAt: '',
+  updatedAt: '',
+  title: '',
+  description: '',
+  userId: 0,
+  public: false,
+  vstreamId: 0,
+  strId: 0,
+  fileName: '',
+  state: '',
+  videoCodec: '',
+  width: 0,
+  height: 0,
+  frameRate: 0.0,
+  audioT: [],
+  subtitleT: [],
+  encData: initialEncode
+}
+
 export default Video
