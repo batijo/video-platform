@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -45,7 +46,7 @@ func getRatio(res string, duration int, ClientID uint) {
 	}
 }
 
-func runCmdCommand(cmdl string, dur string, wg *sync.WaitGroup, ClientID uint) error {
+func runCmdCommand(cmdl string, dur int, wg *sync.WaitGroup, ClientID uint) error {
 	defer wg.Done()
 
 	if cmdl == "" {
@@ -73,13 +74,16 @@ func runCmdCommand(cmdl string, dur string, wg *sync.WaitGroup, ClientID uint) e
 	oneByte := make([]byte, 8)
 
 	// If duration is not provided dont sent progress bar
-	if dur == "" {
+	if dur == 0 {
 		utils.WLog("Progress bar unavailable", ClientID)
 	} else {
-		duration := durToSec(dur)
+		duration := dur
 		for {
 			_, err := stdout.Read(oneByte)
 			if err != nil {
+				if err.Error() == "EOF" {
+					break
+				}
 				log.Println(err)
 				break
 			}
@@ -115,4 +119,12 @@ func removeStreamVideos(path string, filenames []string, sname string, ClientID 
 	}
 
 	return
+}
+
+func fileNameWithoutExt(filename, nameWithPath string) (string, error) {
+	split := strings.Split(filename, filepath.Ext(nameWithPath))
+	if len(split) < 1 {
+		return "", errors.New("split file name is empty array")
+	}
+	return split[0], nil
 }

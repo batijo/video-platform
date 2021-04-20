@@ -8,6 +8,7 @@ import (
 
 	"github.com/batijo/video-platform/backend/models"
 	"github.com/batijo/video-platform/backend/transcode"
+	"github.com/batijo/video-platform/backend/utils"
 	"github.com/gorilla/mux"
 )
 
@@ -90,14 +91,47 @@ func PresetTranscodeHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = transcode.AddToQueue(models.Encode{}, presetData, vidID)
 	if err != nil {
-		resp := models.Response{Status: false, Message: "Error adding to queue", Error: err.Error()}
-		w.WriteHeader(http.StatusInternalServerError)
+		var resp models.Response
+		if err.Error() == "record not found" {
+			resp = models.Response{Status: false, Message: "Video not found", Error: err.Error()}
+			w.WriteHeader(http.StatusBadRequest)
+		} else {
+			resp = models.Response{Status: false, Message: "Error adding to queue", Error: err.Error()}
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
 		return
 	}
 
 	resp := models.Response{Status: true, Message: "Adding video to transcoder queue"}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
+}
+
+func PresetsHandler(w http.ResponseWriter, r *http.Request) {
+	var videoData models.Video
+
+	vidID, err := getId(w, r)
+	if err != nil {
+		return
+	}
+
+	if res := utils.DB.Preload("AudioT").Preload("SubtitleT").Where("id = ?", vidID).First(&videoData); res.Error != nil {
+		resp := models.Response{Status: false, Message: "Error geting video data", Error: err.Error()}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(resp)
+		log.Println(err)
+	}
+	presetsData, err := utils.GetPresetsWithData(videoData)
+	if err != nil {
+		resp := models.Response{Status: false, Message: "Error geting presets", Error: err.Error()}
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(resp)
+		log.Println(err)
+	}
+
+	resp := models.Response{Status: true, Message: "Success", Data: presetsData}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)
 }

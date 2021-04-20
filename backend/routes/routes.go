@@ -36,6 +36,7 @@ func SetupRoutes() *mux.Router {
 
 	s.HandleFunc("/upload", controllers.VideoUpload).Methods("POST")
 	s.HandleFunc("/transcode/{id}", controllers.TranscodeHandler).Methods("POST")
+	s.HandleFunc("/transcode/preset/{id}", controllers.PresetsHandler).Methods("GET")
 	s.HandleFunc("/transcode/preset/{id}", controllers.PresetTranscodeHandler).Methods("POST")
 	s.HandleFunc("/queue", controllers.ReturnQueue).Methods("GET")
 

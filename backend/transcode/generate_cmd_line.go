@@ -9,14 +9,6 @@ import (
 	"github.com/batijo/video-platform/backend/utils"
 )
 
-var prRes = map[string]string{
-	"240p":  "352x240",
-	"576p":  "720x576",
-	"720p":  "1280x720",
-	"360p":  "480x360",
-	"1080p": "1920x1080",
-}
-
 func generatePresetCmdLine(
 	prdata []models.Stream,
 	videoData models.Vidinfo,
@@ -78,8 +70,8 @@ func generatePresetCmdLine(
 		}
 
 		svtres := strconv.Itoa(videoData.Videotrack[0].Width) + "x" + strconv.Itoa(videoData.Videotrack[0].Height)
-		if prRes[vidpr.Resolution] != svtres {
-			tempvc += fmt.Sprintf(" -s %v", prRes[vidpr.Resolution])
+		if models.PresetResolution(vidpr.Resolution) != svtres {
+			tempvc += fmt.Sprintf(" -s %v", models.PresetResolution(vidpr.Resolution))
 		}
 
 		if videoData.Videotrack[0].FrameRate < 25 && i != 0 {
@@ -96,7 +88,7 @@ func generatePresetCmdLine(
 				)
 				break
 
-			case "hevc":
+			case "h265":
 				templ := fmt.Sprintf(
 					" -c:v:%v libx265 -x265-params \"preset=slower:me=hex:no-rect=1:no-amp=1:rd=4:aq-mode=2:",
 					s.VtId,
@@ -163,8 +155,8 @@ func generatePresetCmdLine(
 		}
 
 		// Creates output file names
-		dfpat := "%v-%v-%v-%v%v"
-		dfs = append(dfs, fmt.Sprintf(dfpat, dfwe, vidpr.Resolution, vidpr.Codec, audpr.Codec, ".mp4"))
+		dfpat := "%v%v%v"
+		dfs = append(dfs, fmt.Sprintf(dfpat, dfwe, vidpr.Resolution, ".mp4"))
 
 		vcode = append(vcode, tempvc)
 		acode = append(acode, tempac)
@@ -177,7 +169,7 @@ func generatePresetCmdLine(
 
 		// Create cmd line
 		tcmd := "%v %v %v %v %v %v -async 1 -vsync 1 %v"
-		cmd += fmt.Sprintf(tcmd, debugIntr, fcmaps[i], vcode[i], acode[i], scode[i], mapping[i], dfs[i])
+		cmd += fmt.Sprintf(tcmd, debugIntr, fcmaps[i], vcode[i], acode[i], scode[i], mapping[i], utils.Conf.TD+dfs[i])
 
 		tempvc = ""
 		tempac = ""
@@ -313,6 +305,8 @@ func generateClientCmdLine(
 
 					case 1:
 						channels = " -ac 1"
+					default:
+						channels = ""
 					}
 				}
 

@@ -21,7 +21,7 @@ func AddToQueue(enc models.Encode, prData []models.Stream, videoID uint) error {
 		resp    *gorm.DB
 	)
 
-	if len(encData.Presets) > 0 {
+	if len(prData) > 0 {
 		resp = utils.DB.Where("id = ?", videoID).First(&video)
 		if resp.Error != nil {
 			return resp.Error
