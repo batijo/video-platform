@@ -23,4 +23,16 @@ export type UserRegister = {
   lastname?: string
 }
 
+export const initialUser: User = {
+  id: 0,
+  createdAt: '',
+  updatedAt: '',
+  username: '',
+  name: '',
+  lastname: '',
+  email: '',
+  admin: false,
+  public: false,
+}
+
 export default User

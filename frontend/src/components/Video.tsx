@@ -1,35 +1,34 @@
-import React, { Props } from 'react'
+import React from 'react'
 import thumbnail from 'url:../thumbnail.jpg'
-import { Link, Route, Switch } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import ReactPlayer from 'react-player'
 
-export type Video = {
-  title: string,
-  description: string,
-  filename?: string
+import Video from '../types/video'
+
+export const VideoDetail = ({ video }: { video: Video }) => {
+  return (
+    <>
+      <div className="bg-white p-4 rounded-md mb-4">
+        <p className="font-bold text-3xl text-gray-700">{video.title}</p>
+      </div>
+      <div className="aspect-w-16 aspect-h-9">
+        <ReactPlayer
+          width='100%'
+          height='100%'
+          light={`http://localhost/thumb/${video.fileName}720p.mp4/thumb-5000.jpg`}
+          url={`http://localhost/hls/${video.fileName},360p.mp4,480p.mp4,720p.mp4,.en_US.vtt,.urlset/master.m3u8`}
+          controls
+        />
+      </div>
+    </>
+  )
 }
-
-export const VideoDetail = ({ title, description }: Video) => (
-  <>
-    <div className="bg-white p-4 rounded-md mb-4">
-      <p className="font-bold text-3xl text-gray-700">{title}</p>
-    </div>
-    <div className="flex flex-row">
-      <div className="rounded-md flex-1">
-        {/* TODO: Derive thumbnail URL from video URL */}
-        <img className="rounded-md" src={thumbnail} />
-      </div>
-      <div className="bg-white rounded-md p-4 md:ml-4 flex-grow">
-        <p className="font-bold text-xl text-gray-700">{description}</p>
-      </div>
-    </div>
-  </>
-)
 
 export const VideoList = ({ videos }: { videos: Video[] }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
     {videos.map(v => (
       <div className="bg-white rounded-md">
-        <Link to={`video`}>
+        <Link to={`/video/${v.id}`}>
           <div className="relative">
             <div className="absolute antialiased font-bold text-white top-2 right-2 bg-gray-800 px-2 rounded-md opacity-80">+</div>
             <div className="absolute text-white bottom-2 right-2 bg-gray-800 px-1 rounded-md opacity-80">00:00</div>
@@ -38,7 +37,7 @@ export const VideoList = ({ videos }: { videos: Video[] }) => (
         </Link>
         <div className="p-4 flex flex-row justify-between">
           <span className="font-bold text-xl" id="title">
-            <Link to="/video">{v.title}</Link>
+            <Link to={`/video/${v.id}`}>{v.title}</Link>
           </span>
           <span className="text-md" id="title">2021-07-01</span>
         </div>
