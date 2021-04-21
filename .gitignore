@@ -4,6 +4,7 @@ backups/
 uploaded/*
 transcoding/*
 videos/*
+redis-data/*
 docker-compose.override.yml
 
 node_modules/

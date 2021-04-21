@@ -105,6 +105,12 @@ type Preset struct {
 	Bitrate    string `json:"bitrate"`
 }
 
+type Presets struct {
+	Video      Video
+	Vidpresets []Preset
+	Audpresets []Preset
+}
+
 func (v *Video) ParseWithPreset(vp, ap Preset, frameRate float64, vtID, atID int, atLang string) {
 	v.StrID = vtID
 	v.VideoCodec = vp.Codec
@@ -177,10 +183,4 @@ func (p ByCreateDate) Less(i, j int) bool {
 // Define swap over an array
 func (p ByCreateDate) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
-}
-
-type Presets struct {
-	Video      Video
-	Vidpresets []Preset
-	Audpresets []Preset
 }

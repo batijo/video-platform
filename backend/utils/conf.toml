@@ -1,7 +1,9 @@
 # Configuration file
 
 # Time in minutes when jwt token expires
-JWTExp = 10000
+JWTExp = 60
+# Time in hours when jwt refresh token expires
+JWTRef = 168
 # Secret used to create jwt token
 JWTSecret = "secret"
 
