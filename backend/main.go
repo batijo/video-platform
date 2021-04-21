@@ -8,6 +8,7 @@ import (
 
 	"github.com/batijo/video-platform/backend/routes"
 	"github.com/batijo/video-platform/backend/utils"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -32,7 +33,15 @@ func main() {
 		return
 	}
 
+	if err := godotenv.Load(); err != nil {
+		log.Panicln("No .env file found")
+	}
+
 	port := os.Getenv("PORT")
+
+	if err := utils.CreateSuperUser(os.Getenv("SU_EMAIL"), os.Getenv("SU_PASS"), os.Getenv("SU_USERNAME")); err != nil {
+		log.Panicln(err)
+	}
 
 	// Handle routes
 	http.Handle("/", routes.SetupRoutes())
