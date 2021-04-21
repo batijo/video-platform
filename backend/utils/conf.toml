@@ -18,7 +18,7 @@ APTGD = ""
 
 # Debug only true if project is in development
 Debug = true
-ShowStructs = false
+ShowStructs = true
 
 # If true debug transcoder by transcoding only interval between DebugStart-DebugEnd
 DebugStart = "00:00:00"

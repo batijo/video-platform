@@ -179,19 +179,6 @@ func (p ByCreateDate) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
 }
 
-// ====================================================== //
-
-type VideoData struct {
-	VideoStream []VideoStream
-}
-
-type VideoStream struct {
-	Stream     bool
-	StreamName string
-	State      string
-	Video      []Video
-}
-
 type Presets struct {
 	Video      Video
 	Vidpresets []Preset
