@@ -5,6 +5,8 @@ import { UserLogin, UserRegister } from '../types/user'
 import { useAppSelector, useAppDispatch } from '../index'
 import { useHistory } from 'react-router-dom'
 
+const inputStyle = 'form-input mt-1 block w-full rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0'
+
 export const Login = () => {
   const dispatch = useAppDispatch()
   const history = useHistory()
@@ -42,7 +44,7 @@ export const Login = () => {
   }
 
   return (
-    <>
+    <div className="flex-grow">
       <div className="bg-white p-4 rounded-md mb-4">
         <p className="font-bold text-3xl text-gray-700">Login Form</p>
       </div>
@@ -57,11 +59,11 @@ export const Login = () => {
               }
               <div>
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">Email</label>
-                <input value={email} onChange={handleEmail} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" type="email" placeholder="example@example.com" />
+                <input className={inputStyle} value={email} onChange={handleEmail} id="email" type="email" placeholder="example@example.com" />
               </div>
               <div>
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">Password</label>
-                <input value={password} onChange={handlePassword} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" placeholder="hunter2" />
+                <input className={inputStyle} value={password} onChange={handlePassword} id="password" type="password" placeholder="hunter2" />
               </div>
               <div>
                 <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" type="submit">Sign in</button>
@@ -70,7 +72,7 @@ export const Login = () => {
           </form>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 
@@ -134,7 +136,7 @@ export const Register = () => {
   }
 
   return (
-    <>
+    <div className="flex-grow">
       <div className="bg-white p-4 rounded-md mb-4">
         <p className="font-bold text-3xl text-gray-700">Registration Form</p>
       </div>
@@ -148,28 +150,29 @@ export const Register = () => {
                 </div>
               }
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">Username*</label>
-                <input value={username} onChange={handleUsername} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="username" type="text" placeholder="Username" />
-              </div>
-              <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">Email*</label>
-                <input value={email} onChange={handleEmail} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" type="email" placeholder="example@example.com" />
-              </div>
-              <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">Password*</label>
-                <input value={password} onChange={handlePassword} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" placeholder="hunter2" />
-              </div>
-              <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password2">Password*</label>
-                <input value={passwordRepeat} onChange={handlePasswordRepeat} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="password2" type="password" placeholder="hunter2" />
-              </div>
-              <div>
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">Name</label>
-                <input value={name} onChange={handleName} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" type="text" placeholder="John" />
+                <input className={inputStyle} value={name} onChange={handleName} id="name" type="text" placeholder="John" />
               </div>
               <div>
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="lastname">Lastname</label>
-                <input value={lastname} onChange={handleLastname} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="lastname" type="text" placeholder="Doe" />
+                <input className={inputStyle} value={lastname} onChange={handleLastname} id="lastname" type="text" placeholder="Doe" />
+              </div>
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">Username*</label>
+                {/* <input value={username} onChange={handleUsername} className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="username" type="text" placeholder="Username" /> */}
+                <input className={inputStyle} value={username} onChange={handleUsername} id="username" type="text" placeholder="Username" />
+              </div>
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">Email*</label>
+                <input className={inputStyle} value={email} onChange={handleEmail} id="email" type="email" placeholder="example@example.com" />
+              </div>
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">Password*</label>
+                <input className={inputStyle} value={password} onChange={handlePassword} id="password" type="password" placeholder="hunter2" />
+              </div>
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password2">Repeat Password*</label>
+                <input className={inputStyle} value={passwordRepeat} onChange={handlePasswordRepeat} id="password2" type="password" placeholder="hunter2" />
               </div>
               <div>
                 <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" type="submit">Sign up</button>
@@ -178,6 +181,6 @@ export const Register = () => {
           </form>
         </div>
       </div>
-    </>
+    </div>
   )
 }

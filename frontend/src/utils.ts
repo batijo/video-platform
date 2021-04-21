@@ -30,7 +30,7 @@ export const sseProgress = (): any => {
   var logg = '';
   var currentmsg = '';
 
-  source.onmessage = function(event) {
+  source.onmessage = function (event) {
     if (!event.data.startsWith('<')) {
       localStorage.setItem('filename', event.data)
       //document.getElementById('filename').innerText = `${event.data}, `;
@@ -54,7 +54,7 @@ export const sseProgress = (): any => {
     //document.getElementById('console').innerHTML = logg;
   };
 
-  source.onerror = function(event) {
+  source.onerror = function (event) {
     console.log("Event Source failed.")
   }
 }
