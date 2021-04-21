@@ -71,5 +71,5 @@ type Tags struct {
 	CreationTime string `josn:"creation_time"`
 	HandlerName  string `json:"handler_name"`
 	Language     string `json:"language"`
-	Duration     string `json:"duration"`
+	Duration     string `json:"DURATION"`
 }

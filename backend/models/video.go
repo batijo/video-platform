@@ -28,13 +28,13 @@ type Video struct {
 	ID        uint      `gorm:"primary_key" json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-	QueueID   uint      `json:"queue_id"`
+	QueueID   uint      `gorm:"DEFAULT:NULL" json:"queue_id"`
+	UserID    uint      `json:"user_id"`
+	VstreamID uint      `gorm:"DEFAULT:NULL" json:"vstream_id"`
 
 	Title       string  `json:"title"`
 	Description string  `json:"description"`
-	UserID      uint    `json:"user_id"`
 	Public      bool    `json:"public"`
-	VstreamID   uint    `gorm:"DEFAULT:NULL" json:"vstream_id"`
 	StrID       int     `json:"str_id"`
 	FileName    string  `json:"file_name"`
 	State       string  `json:"state"` // Possible states: "not_transcoded", "transcoding", "transcoded"
@@ -42,15 +42,16 @@ type Video struct {
 	Width       int     `json:"width"`
 	Height      int     `json:"height"`
 	FrameRate   float64 `json:"frame_rate"`
+	Duration    float64 `json:"duration"`
 	AudioT      []Audio `gorm:"ForeignKey:VideoID" json:"audio_t"`
 	SubtitleT   []Sub   `gorm:"ForeignKey:VideoID" json:"subtitle_t"`
 }
 
 type Audio struct {
 	ID      int  `json:"id,primary_key"`
-	VideoID uint `json:"video_id"`
+	VideoID uint `gorm:"DEFAULT:NULL" json:"video_id"`
 	EncID   uint `gorm:"DEFAULT:NULL" json:"enc_id"`
-	StrID   uint `gorm:"DEFAUT:NULL" json:"str_id"`
+	StrID   uint `gorm:"DEFAULT:NULL" json:"str_id"`
 
 	StreamID int    `json:"stream_id"`
 	AtCodec  string `json:"at_codec"`
@@ -60,7 +61,7 @@ type Audio struct {
 
 type Sub struct {
 	ID      int  `json:"id,primary_key"`
-	VideoID uint `json:"video_id"`
+	VideoID uint `gorm:"DEFAULT:NULL" json:"video_id"`
 	EncID   uint `gorm:"DEFAULT:NULL" json:"enc_id"`
 	StrID   uint `gorm:"DEFAUT:NULL" json:"str_id"`
 
@@ -87,8 +88,8 @@ type Stream struct {
 	ID      uint `json:"id"`
 	QueueID uint `json:"queue_id"`
 
-	AudPreset string  `json:"aud_preset"`
 	VidPreset string  `json:"vid_preset"`
+	AudPreset string  `json:"aud_preset"`
 	VtId      int     `json:"vt_id"`
 	AudioT    []Audio `gorm:"ForeignKey:StrID" json:"audio_t"`
 	SubtitleT []Sub   `gorm:"ForeignKey:StrID" json:"subtitle_t"`
@@ -104,6 +105,21 @@ type Preset struct {
 	Bitrate    string `json:"bitrate"`
 }
 
+func (v *Video) ParseWithPreset(vp, ap Preset, frameRate float64, vtID, atID int, atLang string) {
+	v.StrID = vtID
+	v.VideoCodec = vp.Codec
+	v.Width = GetPresetWidth(vp.Resolution)
+	v.Height = GetPresetHeight(vp.Resolution)
+	v.FrameRate = frameRate
+
+	at := Audio{
+		StreamID: atID,
+		AtCodec:  ap.Codec,
+		Language: atLang,
+	}
+	v.AudioT = append(v.AudioT, at)
+}
+
 func (v *Video) ParseWithVidinfo(i Vidinfo) {
 	v.FileName = i.FileName
 	for _, t := range i.Videotrack {
@@ -112,6 +128,7 @@ func (v *Video) ParseWithVidinfo(i Vidinfo) {
 		v.Width = t.Width
 		v.Height = t.Height
 		v.FrameRate = t.FrameRate
+		v.Duration = t.Duration
 	}
 	for _, t := range i.Audiotrack {
 		var at Audio

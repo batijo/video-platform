@@ -7,19 +7,20 @@ import (
 )
 
 type Config struct {
-	JWTExp     int
-	JWTSecret  string
-	SD         string
-	TD         string
-	DD         string
-	TND        string
-	APTGD      string
-	Debug      bool
-	DebugStart string
-	DebugEnd   string
-	VBW        int
-	LogP       string
-	FileTypes  []string
+	JWTExp      int
+	JWTSecret   string
+	SD          string
+	TD          string
+	DD          string
+	TND         string
+	APTGD       string
+	Debug       bool
+	ShowStructs bool
+	DebugStart  string
+	DebugEnd    string
+	VBW         int
+	LogP        string
+	FileTypes   []string
 }
 
 // Conf configuration file

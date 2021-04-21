@@ -1,14 +1,14 @@
 package models
 
 import (
-	"reflect"
+	//"reflect"
 	"strconv"
 	"strings"
 )
 
 type videotrack struct {
 	Index       int     `json:"index"`
-	Duration    string  `json:"duration"`
+	Duration    float64 `json:"duration"`
 	Width       int     `json:"width"`
 	Height      int     `json:"height"`
 	FrameRate   float64 `json:"frameRate"`
@@ -43,11 +43,11 @@ type Vidinfo struct {
 }
 
 // IsEmpty method which checks if Vidinfo is empty struct
-func (s Vidinfo) IsEmpty() bool {
-	return reflect.DeepEqual(s, Vidinfo{})
-}
+// func (s Vidinfo) IsEmpty() bool {
+// 	return reflect.DeepEqual(s, Vidinfo{})
+// }
 
-func (v *Vidinfo) ParseFFprobeData(out Ffprobe, fileName string) {
+func (v *Vidinfo) ParseFFprobeData(out Ffprobe, fileName string) error {
 	var (
 		vc = 0
 		ac = 0
@@ -58,13 +58,27 @@ func (v *Vidinfo) ParseFFprobeData(out Ffprobe, fileName string) {
 			v.Videotrack = append(v.Videotrack, videotrack{})
 			v.Videotrack[vc].Index = s.Index
 			v.Videotrack[vc].CodecName = s.CodecName
-			v.Videotrack[vc].Duration = s.Tags.Duration
+			if out.Format.Duration == "" {
+				v.Videotrack[vc].Duration = 0
+			} else if dur, err := strconv.ParseFloat(out.Format.Duration, 64); err == nil {
+				if err != nil {
+					return err
+				} else {
+					v.Videotrack[vc].Duration = dur
+				}
+			}
 			v.Videotrack[vc].Width = s.Width
 			v.Videotrack[vc].Height = s.Height
 			if s.RFrameRrate != "" {
 				split := strings.Split(s.RFrameRrate, "/")
-				fr, _ := strconv.ParseFloat(split[0], 64)
-				sk, _ := strconv.ParseFloat(split[1], 64)
+				fr, err := strconv.ParseFloat(split[0], 64)
+				if err != nil {
+					return err
+				}
+				sk, err := strconv.ParseFloat(split[1], 64)
+				if err != nil {
+					return err
+				}
 				v.Videotrack[vc].FrameRate = fr / sk
 			} else {
 				v.Videotrack[vc].FrameRate = 0
@@ -99,4 +113,6 @@ func (v *Vidinfo) ParseFFprobeData(out Ffprobe, fileName string) {
 	v.Videotracks = vc
 	v.Audiotracks = ac
 	v.Subtitles = sc
+
+	return nil
 }

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"strings"
@@ -8,10 +9,31 @@ import (
 
 // WLog writes log to info.log file and sends to user
 func WLog(msg string, ClientID uint) {
-	if strings.HasPrefix(msg, "Error:") {
+	if Conf.Debug {
+		log.Println(msg)
+	} else if strings.HasPrefix(msg, "Error:") {
 		log.Println(msg)
 	}
 	UpdateUserMessage(msg, ClientID)
+}
+
+// Prints everything if Conf.Debug == true
+func DebugLog(msg string) {
+	if Conf.Debug {
+		log.Println(msg)
+	}
+}
+
+func PrintStruct(i interface{}, structName string) {
+	if Conf.ShowStructs {
+		j, err := json.Marshal(i)
+		if err != nil {
+			log.Println("PrintStruct")
+			log.Panicln(err)
+		}
+		DebugLog(structName + ":")
+		DebugLog(string(j))
+	}
 }
 
 // OpenLogFile opens log file and/or creates it

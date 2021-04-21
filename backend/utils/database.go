@@ -1,12 +1,15 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strconv"
 
 	"github.com/batijo/video-platform/backend/models"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/BurntSushi/toml"
 	"github.com/jinzhu/gorm"
@@ -54,6 +57,7 @@ func ConnectDB() *gorm.DB {
 		models.Stream{},
 	)
 
+	// Add foreign keys
 	db.Model(&models.Video{}).AddForeignKey("user_id", "users(id)", "SET NULL", "NO ACTION")
 	db.Model(&models.Video{}).AddForeignKey("vstream_id", "vstreams(id)", "CASCADE", "NO ACTION")
 	db.Model(&models.Vstream{}).AddForeignKey("user_id", "users(id)", "SET NULL", "NO ACTION")
@@ -62,13 +66,45 @@ func ConnectDB() *gorm.DB {
 	// Encode data
 	db.Model(&models.Encode{}).AddForeignKey("queue_id", "encodedata(id)", "CASCADE", "CASCADE")
 	db.Model(&models.Stream{}).AddForeignKey("queue_id", "encodedata(id)", "CASCADE", "CASCADE")
-	db.Model(&models.Video{}).AddForeignKey("queue_id", "encodedata(id)", "NO ACTION", "NO ACTION")
+	db.Model(&models.Video{}).AddForeignKey("queue_id", "encodedata(id)", "SET NULL", "SET NULL")
 	db.Model(&models.Audio{}).AddForeignKey("enc_id", "encodes(id)", "CASCADE", "NO ACTION")
 	db.Model(&models.Audio{}).AddForeignKey("str_id", "streams(id)", "CASCADE", "NO ACTION")
 	db.Model(&models.Sub{}).AddForeignKey("enc_id", "encodes(id)", "CASCADE", "NO ACTION")
 	db.Model(&models.Sub{}).AddForeignKey("str_id", "streams(id)", "CASCADE", "NO ACTION")
 
 	return db
+}
+
+// Create admin account
+func CreateSuperUser(email, pass, username string) error {
+	re := regexp.MustCompile(
+		"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
+	)
+	if re.MatchString(email) {
+		return errors.New(fmt.Sprint("email adress is not valid: ", email))
+	} else if len(pass) < 6 {
+		return errors.New("password must be at least 5 characters")
+	} else if username == "" {
+		return errors.New("username must not be empty")
+	}
+
+	hpass, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	var admin = models.User{
+		Username: username,
+		Email:    email,
+		Password: string(hpass),
+		Admin:    true,
+	}
+
+	if err := DB.Create(&admin).Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // InsertVideo adds video to database
@@ -102,31 +138,24 @@ func InsertVideo(vidinfo models.Vidinfo, state string, userID uint, streamID int
 		subtitle = append(subtitle, st)
 	}
 
-	if streamID < 0 {
-		video = models.Video{
-			StrID:      vidinfo.Videotrack[0].Index,
-			FileName:   vidinfo.FileName,
-			State:      state,
-			VideoCodec: vidinfo.Videotrack[0].CodecName,
-			Width:      vidinfo.Videotrack[0].Width,
-			Height:     vidinfo.Videotrack[0].Height,
-			FrameRate:  vidinfo.Videotrack[0].FrameRate,
-			AudioT:     audio,
-			SubtitleT:  subtitle,
-		}
-	} else {
-		video = models.Video{
-			VstreamID:  uint(streamID),
-			StrID:      vidinfo.Videotrack[0].Index,
-			FileName:   vidinfo.FileName,
-			State:      state,
-			VideoCodec: vidinfo.Videotrack[0].CodecName,
-			Width:      vidinfo.Videotrack[0].Width,
-			Height:     vidinfo.Videotrack[0].Height,
-			FrameRate:  vidinfo.Videotrack[0].FrameRate,
-			AudioT:     audio,
-			SubtitleT:  subtitle,
-		}
+	if len(vidinfo.Videotrack) < 1 {
+		return 0, errors.New("InserVideo: length of video track cannot be zero")
+	}
+	video = models.Video{
+		StrID:      vidinfo.Videotrack[0].Index,
+		FileName:   vidinfo.FileName,
+		State:      state,
+		VideoCodec: vidinfo.Videotrack[0].CodecName,
+		Width:      vidinfo.Videotrack[0].Width,
+		Height:     vidinfo.Videotrack[0].Height,
+		FrameRate:  vidinfo.Videotrack[0].FrameRate,
+		Duration:   vidinfo.Videotrack[0].Duration,
+		AudioT:     audio,
+		SubtitleT:  subtitle,
+	}
+
+	if streamID > 0 {
+		video.VstreamID = uint(streamID)
 	}
 
 	user.Video = append(user.Video, video)
@@ -166,36 +195,45 @@ func DeleteStream(name string) error {
 }
 
 // InsertStream ...
-func InsertStream(ndata []models.Vidinfo, names []string, state string, sname string, userID uint) {
+func InsertStream(ndata []models.Vidinfo, names []string, state string, sname string, userID uint) error {
 
 	var (
 		user   models.User
 		stream models.Vstream
 	)
 
-	DB.First(&user, userID)
+	if err := DB.First(&user, userID).Error; err != nil {
+		return err
+	}
 
 	stream = models.Vstream{
 		Name: sname,
 	}
 	user.Stream = append(user.Stream, stream)
-	DB.Save(&user)
+	if err := DB.Save(&user).Error; err != nil {
+		return err
+	}
 
-	DB.Where("name = ?", sname).First(&stream)
+	if err := DB.Where("name = ?", sname).First(&stream).Error; err != nil {
+		return err
+	}
 
 	for i, video := range ndata {
 		video.FileName = names[i]
-		InsertVideo(video, state, userID, int(stream.ID))
+		_, err := InsertVideo(video, state, userID, int(stream.ID))
+		if err != nil {
+			return err
+		}
 	}
 
+	return nil
 }
 
-// GetSortedPresets ...
-func GetPresetsWithData(vid models.Vidinfo) (models.Presets, error) {
+// GetPresetsWithData ...
+func GetPresetsWithData(vid models.Video) (models.Presets, error) {
 	var (
 		presets []models.Preset
 		data    models.Presets
-		video   models.Video
 	)
 
 	if err := DB.Find(&presets).Error; err != nil {
@@ -208,8 +246,7 @@ func GetPresetsWithData(vid models.Vidinfo) (models.Presets, error) {
 			data.Audpresets = append(data.Audpresets, p)
 		}
 	}
-	video.ParseWithVidinfo(vid)
-	data.Video = video
+	data.Video = vid
 
 	return data, nil
 }

@@ -67,7 +67,10 @@ func GetVidInfo(path string, filename string, ClientID uint, vidId int) (models.
 		return vi, err
 	}
 
-	vi.ParseFFprobeData(metadata, filename)
+	err = vi.ParseFFprobeData(metadata, filename)
+	if err != nil {
+		return vi, err
+	}
 
 	return vi, nil
 }

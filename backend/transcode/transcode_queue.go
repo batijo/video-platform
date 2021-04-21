@@ -21,7 +21,7 @@ func AddToQueue(enc models.Encode, prData []models.Stream, videoID uint) error {
 		resp    *gorm.DB
 	)
 
-	if len(encData.Presets) > 0 {
+	if len(prData) > 0 {
 		resp = utils.DB.Where("id = ?", videoID).First(&video)
 		if resp.Error != nil {
 			return resp.Error
@@ -61,6 +61,7 @@ func Active() bool {
 
 func startTranscoder(ED models.Encodedata) {
 	active = true
+	log.Println("Starting trancoder queue")
 	for {
 		// Start procesing file
 		go processVodFile(ED)
@@ -75,10 +76,12 @@ func startTranscoder(ED models.Encodedata) {
 
 		// Get new video id for transcoding if there is none, stop transcoder
 		newEdID, err := nextInQueue()
+		log.Println(newEdID)
 		if err != nil {
 			active = false
 			log.Panicln(err)
 		} else if newEdID < 0 {
+			log.Println("Stoping transcoder queue")
 			break
 		}
 

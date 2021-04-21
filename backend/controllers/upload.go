@@ -99,7 +99,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 
 	vidId, err := utils.InsertVideo(data, "not_transcoded", userID, -1)
 	if err != nil {
-		resp := models.Response{Status: false, Message: "Sql error", Error: err.Error()}
+		resp := models.Response{Status: false, Message: "Database error", Error: err.Error()}
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
@@ -110,7 +110,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 
 	var videoData models.Video
 	if res := utils.DB.Preload("AudioT").Preload("SubtitleT").Where("id = ?", vidId).First(&videoData); res.Error != nil {
-		resp := models.Response{Status: false, Message: "Sql error", Error: err.Error()}
+		resp := models.Response{Status: false, Message: "Database error", Error: err.Error()}
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		log.Println(err)
