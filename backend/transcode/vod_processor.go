@@ -18,6 +18,7 @@ var (
 
 // ProcessVodFile is the shitiest function I've ever writen. Hate it
 func processVodFile(ED models.Encodedata) {
+	utils.PrintStruct(ED, "EncodeData model")
 	var (
 		wg                        sync.WaitGroup
 		err                       error
@@ -68,6 +69,7 @@ func processVodFile(ED models.Encodedata) {
 		finished <- false
 		return
 	}
+	utils.PrintStruct(data, "Source video data")
 
 	// Checks if source file exists
 	if data.FileName != "" {
@@ -99,6 +101,7 @@ func processVodFile(ED models.Encodedata) {
 		finished <- false
 		return
 	}
+	utils.DebugLog("fullSourceFilePathAndName: " + fullSourceFilePathAndName)
 
 	// Source file name without extension
 	sourceFileNameWithoutExt, err = fileNameWithoutExt(data.FileName, fullSourceFilePathAndName)
@@ -109,6 +112,7 @@ func processVodFile(ED models.Encodedata) {
 		finished <- false
 		return
 	}
+	utils.DebugLog("sourceFileNameWithoutExt: " + sourceFileNameWithoutExt)
 
 	// If transcoding directory does not exist creat it
 	if _, err = os.Stat(utils.Conf.TD); os.IsNotExist(err) {
@@ -136,10 +140,12 @@ func processVodFile(ED models.Encodedata) {
 	// File name after transcoding
 	tempfile = fmt.Sprintf("%v%v.mp4", utils.Conf.TD, sourceFileNameWithoutExt)
 	tempfile = utils.ReturnDifNameIfDublicate(tempfile, "")
+	utils.DebugLog("tempfile: " + tempfile)
 
 	// Create new name for file
 	destinationFile = fmt.Sprintf("%v%v.mp4", utils.Conf.DD, sourceFileNameWithoutExt)
 	destinationFile = utils.ReturnDifNameIfDublicate(destinationFile, "")
+	utils.DebugLog("destinationFile: " + destinationFile)
 
 	// Checks if transcoded file with the same name already exists
 	if _, err := os.Stat(tempfile); err == nil {
@@ -163,8 +169,9 @@ func processVodFile(ED models.Encodedata) {
 
 	utils.WLog(fmt.Sprintf("Starting to process %s", data.FileName), clientID)
 
-	// Generate command line
+	// Generate one video if only one preset is given
 	if len(ED.Presets) == 1 {
+		utils.DebugLog("Creating nonpreset cmd line of preset")
 		var (
 			vidEndoceData models.Video
 			vtPreset      models.Preset
@@ -201,7 +208,9 @@ func processVodFile(ED models.Encodedata) {
 			fullSourceFilePathAndName,
 			tempfile,
 		)
+		// Generate CMD based on presets
 	} else if len(ED.Presets) > 1 {
+		utils.DebugLog("Creating preset cmd line")
 		cmd, dfs, err = generatePresetCmdLine(
 			ED.Presets,
 			data,
@@ -210,8 +219,7 @@ func processVodFile(ED models.Encodedata) {
 			//fmt.Sprintf("%v%v", utils.Conf.TD, sourceFileNameWithoutExt),
 			sourceFileNameWithoutExt,
 		)
-		//tempfile = tempdfs[0]
-		if err != nil {
+		if err != nil || len(dfs) < 2 {
 			utils.WLog("Error: failed to generate cmd line", clientID)
 			log.Println(err)
 			removeVideo(path[ED.Video.State]+data.FileName, vidId, clientID)
@@ -230,6 +238,7 @@ func processVodFile(ED models.Encodedata) {
 		}
 
 	} else {
+		utils.DebugLog("Creating nonpreset cmd line")
 		var vidEndoceData models.Video
 		vidEndoceData.ParseWithEncode(ED.EncData, ED.Video.State)
 		cmd = generateClientCmdLine(
@@ -239,6 +248,7 @@ func processVodFile(ED models.Encodedata) {
 			fullSourceFilePathAndName,
 			tempfile)
 	}
+	utils.DebugLog("CMD line: " + cmd)
 
 	// Run generated command line
 	utils.WLog("Starting to transcode", clientID)
@@ -247,6 +257,7 @@ func processVodFile(ED models.Encodedata) {
 	} else {
 		dur = int(data.Videotrack[0].Duration)
 	}
+	utils.DebugLog("dur: " + fmt.Sprint(dur))
 
 	err = utils.DB.Model(&video).Update("state", "transcoding").Error
 	if err != nil {
@@ -268,7 +279,7 @@ func processVodFile(ED models.Encodedata) {
 		removeVideo(path[ED.Video.State]+data.FileName, vidId, clientID)
 		finished <- false
 		return
-	} else if out, err := os.Stat(tempfile); os.IsNotExist(err) || out == nil {
+	} else if out, err := os.Stat(tempdfs[0]); os.IsNotExist(err) || out == nil {
 		log.Println(err)
 		utils.WLog("Error: transcoder failed", clientID)
 		log.Printf("Error cmd line: %v", cmd)
@@ -315,6 +326,7 @@ func processVodFile(ED models.Encodedata) {
 				}
 				ndata = append(ndata, nd)
 			}
+			utils.PrintStruct(ndata, "Preset videos data")
 
 			if err = utils.InsertStream(ndata, dfs, "transcoded", sourceFileNameWithoutExt, clientID); err != nil {
 				utils.WLog("Error: failed to insert stream data in database", clientID)
@@ -359,6 +371,7 @@ func processVodFile(ED models.Encodedata) {
 				finished <- false
 				return
 			}
+			utils.PrintStruct(newData, "New video data")
 
 			newVideoData.ParseWithVidinfo(newData)
 			newVideoData.State = "transcoded"

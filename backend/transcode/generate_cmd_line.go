@@ -99,8 +99,11 @@ func generatePresetCmdLine(
 					sourceFileName,
 				)
 				tempvc += templ
+				if !(videoData.Videotrack[0].FrameRate < 25) {
+					tempmp += fmt.Sprintf(" -map 0:%v", s.VtId)
+				}
 
-			case "default":
+			default:
 				if !(videoData.Videotrack[0].FrameRate < 25) {
 					tempmp += fmt.Sprintf(" -map 0:%v", s.VtId)
 				}

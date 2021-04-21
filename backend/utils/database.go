@@ -66,7 +66,7 @@ func ConnectDB() *gorm.DB {
 	// Encode data
 	db.Model(&models.Encode{}).AddForeignKey("queue_id", "encodedata(id)", "CASCADE", "CASCADE")
 	db.Model(&models.Stream{}).AddForeignKey("queue_id", "encodedata(id)", "CASCADE", "CASCADE")
-	db.Model(&models.Video{}).AddForeignKey("queue_id", "encodedata(id)", "NO ACTION", "NO ACTION")
+	db.Model(&models.Video{}).AddForeignKey("queue_id", "encodedata(id)", "SET NULL", "SET NULL")
 	db.Model(&models.Audio{}).AddForeignKey("enc_id", "encodes(id)", "CASCADE", "NO ACTION")
 	db.Model(&models.Audio{}).AddForeignKey("str_id", "streams(id)", "CASCADE", "NO ACTION")
 	db.Model(&models.Sub{}).AddForeignKey("enc_id", "encodes(id)", "CASCADE", "NO ACTION")
@@ -138,6 +138,9 @@ func InsertVideo(vidinfo models.Vidinfo, state string, userID uint, streamID int
 		subtitle = append(subtitle, st)
 	}
 
+	if len(vidinfo.Videotrack) < 1 {
+		return 0, errors.New("InserVideo: length of video track cannot be zero")
+	}
 	video = models.Video{
 		StrID:      vidinfo.Videotrack[0].Index,
 		FileName:   vidinfo.FileName,
