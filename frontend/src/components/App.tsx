@@ -5,12 +5,13 @@ import { Login, Register } from './Auth'
 import { VideoDetail, VideoList } from './Video'
 import { Profile, Settings } from './User'
 import Navbar from './Navbar'
+import Upload from './Upload'
 
 import { Video, initialVideo, initialEncode } from '../types/video'
 
 const Container = ({ children }: React.PropsWithChildren<{}>) => (
-  <div className="flex-1 min-w-full bg-gray-200">
-    <div className="container mx-auto xl:max-w-screen-xl py-6">
+  <div className="flex flex-1 min-w-full bg-gray-200">
+    <div className="flex flex-grow container mx-auto xl:max-w-screen-xl py-6 px-1">
       {children}
     </div>
   </div >
@@ -27,12 +28,12 @@ const LandingVideos = () => {
   }
 
   return (
-    <>
+    <div className="flex-grow">
       <div className="bg-white p-4 rounded-md mb-4">
         <p className="font-bold text-3xl text-gray-700">Latest Videos</p>
       </div>
       <VideoList videos={videos} />
-    </>
+    </div>
   )
 }
 
@@ -72,6 +73,7 @@ const App = () => {
         <Route exact path="/login"><Login /></Route>
         <Route exact path="/register"><Register /></Route>
         <Route exact path="/settings"><Settings /></Route>
+        <Route exact path="/upload"><Upload /></Route>
         <Route path="/video/:id"><VideoDetail video={devitoVideo} /></Route>
         <Route path="/user/:id"><Profile /></Route>
       </Container>

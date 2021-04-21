@@ -7,7 +7,7 @@ import Video from '../types/video'
 
 export const VideoDetail = ({ video }: { video: Video }) => {
   return (
-    <>
+    <div className="flex-grow">
       <div className="bg-white p-4 rounded-md mb-4">
         <p className="font-bold text-3xl text-gray-700">{video.title}</p>
       </div>
@@ -20,12 +20,12 @@ export const VideoDetail = ({ video }: { video: Video }) => {
           controls
         />
       </div>
-    </>
+    </div>
   )
 }
 
 export const VideoList = ({ videos }: { videos: Video[] }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
     {videos.map(v => (
       <div className="bg-white rounded-md">
         <Link to={`/video/${v.id}`}>
