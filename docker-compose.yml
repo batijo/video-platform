@@ -29,7 +29,6 @@ services:
       - DATABASE_USER=${DB_USER}
       - DATABASE_PASSWORD=${DB_PASSWORD}
       - DATABASE_HOST=db
-      - PORT=8080
     volumes:
       - ./videos:/videos
       - ./uploaded:/uploaded
