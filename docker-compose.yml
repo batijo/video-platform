@@ -11,10 +11,11 @@ services:
     container_name: ${REDIS_CONTAINER_NAME}
     image: redis:alpine
     restart: unless-stopped
-    networks:
-      - internal
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     volumes:
       - ./redis-data:/data
+    networks:
+      - internal
 
   db:
     container_name: ${DB_CONTAINER_NAME}
