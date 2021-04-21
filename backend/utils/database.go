@@ -149,6 +149,7 @@ func InsertVideo(vidinfo models.Vidinfo, state string, userID uint, streamID int
 		Width:      vidinfo.Videotrack[0].Width,
 		Height:     vidinfo.Videotrack[0].Height,
 		FrameRate:  vidinfo.Videotrack[0].FrameRate,
+		Duration:   vidinfo.Videotrack[0].Duration,
 		AudioT:     audio,
 		SubtitleT:  subtitle,
 	}
