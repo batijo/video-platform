@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/batijo/video-platform/backend/models"
 	"github.com/batijo/video-platform/backend/utils"
@@ -202,6 +203,46 @@ func GetVideo(w http.ResponseWriter, r *http.Request) {
 	default:
 		resp := models.Response{Status: false, Message: "You have no privilage to perform this action"}
 		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+
+	resp := models.Response{Status: true, Message: "Success", Data: video}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
+}
+
+func GetUserVideo(w http.ResponseWriter, r *http.Request) {
+	var (
+		idString = mux.Vars(r)["id"]
+		video    []models.Video
+		res      *gorm.DB
+	)
+
+	userID, admin, err := utils.GetUserID(r)
+	if err != nil {
+		resp := models.Response{Status: false, Message: "Could not authorise user", Error: err.Error()}
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+
+	id, err := strconv.ParseUint(idString, 10, 64)
+	if err != nil {
+		resp := models.Response{Status: false, Message: "Wrong id format", Error: err.Error()}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+
+	if userID == uint(id) || admin {
+		res = utils.DB.Preload("AudioT").Preload("SubtitleT").Where("user_id = ?", id).Find(&video)
+	} else {
+		res = utils.DB.Preload("AudioT").Preload("SubtitleT").Where("user_id = ? AND public = ?", id, true).Find(&video)
+	}
+	if res.Error != nil {
+		resp := models.Response{Status: false, Message: "Could not get video", Error: res.Error.Error()}
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(resp)
 		return
 	}

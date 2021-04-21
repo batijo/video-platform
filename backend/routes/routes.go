@@ -31,6 +31,7 @@ func SetupRoutes() *mux.Router {
 
 	s.HandleFunc("/video", controllers.FetchVideos).Methods("GET")
 	s.HandleFunc("/video/{id}", controllers.GetVideo).Methods("GET")
+	s.HandleFunc("/video/user/{id}", controllers.GetUserVideo).Methods("GET")
 	s.HandleFunc("/video/update/{id}", controllers.UpdateVideo).Methods("POST")
 	s.HandleFunc("/video/delete/{id}", controllers.DeleteVideo).Methods("POST")
 
