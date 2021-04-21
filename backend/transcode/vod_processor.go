@@ -226,6 +226,7 @@ func processVodFile(ED models.Encodedata) {
 			finished <- false
 			return
 		}
+		tempfile = tempdfs[0]
 		for _, d := range dfs {
 			tempdfs = append(tempdfs, utils.Conf.TD+d)
 		}
@@ -279,7 +280,7 @@ func processVodFile(ED models.Encodedata) {
 		removeVideo(path[ED.Video.State]+data.FileName, vidId, clientID)
 		finished <- false
 		return
-	} else if out, err := os.Stat(tempdfs[0]); os.IsNotExist(err) || out == nil {
+	} else if out, err := os.Stat(tempfile); os.IsNotExist(err) || out == nil {
 		log.Println(err)
 		utils.WLog("Error: transcoder failed", clientID)
 		log.Printf("Error cmd line: %v", cmd)

@@ -254,9 +254,9 @@ func generateClientCmdLine(
 
 	} else {
 		mapping += fmt.Sprintf(" -map 0:%v", clientData.StrID)
-		for _, at := range clientData.AudioT {
-			mapping += " -map 0:" + strconv.Itoa(at.StreamID)
-		}
+		// for _, at := range clientData.AudioT {
+		// 	mapping += " -map 0:" + strconv.Itoa(at.StreamID)
+		// }
 	}
 
 	// Changes video codec
