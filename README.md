@@ -19,3 +19,8 @@
 docker network create web
 docker-compose up -d
 ```
+
+## Calculate total lines of code
+```sh
+git ls-files | grep -Ev ".json|go.sum|nginx|.md" | xargs wc -l
+```
