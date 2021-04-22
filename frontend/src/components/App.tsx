@@ -12,10 +12,10 @@ import { Video, initialVideo, initialEncode } from '../types/video'
 
 const Container = ({ children }: React.PropsWithChildren<{}>) => (
   <div className="flex flex-1 min-w-full bg-gray-200">
-    <div className="flex flex-grow container mx-auto xl:max-w-screen-xl py-6 px-1">
+    <div className="flex flex-grow container mx-auto xl:max-w-screen-xl py-4 px-1">
       {children}
     </div>
-  </div >
+  </div>
 );
 
 const LandingVideos = () => {
