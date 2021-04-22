@@ -25,30 +25,27 @@ export const toCamelCaseObj = (obj: any): any => {
 
 // SSE To Do ...
 export const sseProgress = (): any => {
-  var source = new EventSource('/sse/dashboard');
+  var source = new EventSource(`${window.origin}/api/sse/dashboard`);
   console.log("Connection to /sse/dashboard established")
-  var logg = '';
+  var log = '';
   var currentmsg = '';
 
   source.onmessage = function (event) {
     if (!event.data.startsWith('<')) {
       localStorage.setItem('filename', event.data)
-      //document.getElementById('filename').innerText = `${event.data}, `;
     } else if (event.data.startsWith('videouri')) {
       var temp = event.data;
-      //manifestUri = temp.replace('videouri: ', '');
+      // manifestUri = temp.replace('videouri: ', '');
     } else if (event.data.indexOf('Error') > -1) {
-      //resetUplodForm();
-      logg += '<span class="error">' + event.data + '</span><br>';
-    } else if (/^[\s\S]*<br>.*?Progress:.*?<br>$/.test(logg) && event.data.includes('Progress:')) {
-      logg = logg.replace(/^([\s\S]*<br>)(.*?Progress:.*?)(<br>)$/, `$1${event.data}$3`);
+      log += '<span class="error">' + event.data + '</span><br>';
+    } else if (/^[\s\S]*<br>.*?Progress:.*?<br>$/.test(log) && event.data.includes('Progress:')) {
+      log = log.replace(/^([\s\S]*<br>)(.*?Progress:.*?)(<br>)$/, `$1${event.data}$3`);
     } else if (event.data.indexOf('Transcoding coplete') > -1 || event.data.indexOf('Transcoding parameters saved') > -1) {
       currentmsg = event.data;
-      logg += currentmsg + '<br>';
-      //resetUplodForm();
+      log += currentmsg + '<br>';
     } else {
       currentmsg = event.data;
-      logg += currentmsg + '<br>';
+      log += currentmsg + '<br>';
     }
 
     //document.getElementById('console').innerHTML = logg;
