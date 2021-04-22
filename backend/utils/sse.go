@@ -84,6 +84,7 @@ func (b *Broker) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	token := mux.Vars(r)["token"]
 	userID, _, err := GetUserIDFromToken(token)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, fmt.Sprint("Error geting user ID for SSE connection: ", err), http.StatusInternalServerError)
 		return
 	}
