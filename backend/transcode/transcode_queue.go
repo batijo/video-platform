@@ -76,7 +76,6 @@ func startTranscoder(ED models.Encodedata) {
 
 		// Get new video id for transcoding if there is none, stop transcoder
 		newEdID, err := nextInQueue()
-		log.Println(newEdID)
 		if err != nil {
 			active = false
 			log.Panicln(err)

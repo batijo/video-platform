@@ -37,7 +37,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-// LogOut ...
+// LogOut removes token uuid from redis DB
 func LogOut(w http.ResponseWriter, r *http.Request) {
 	ad, err := utils.ExtractTokenMetadata(r)
 	if err != nil {

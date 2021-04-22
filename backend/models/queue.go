@@ -21,16 +21,15 @@ func (q *Queue) Put(ED []Encodedata, userID uint) {
 		(*q).Elements = append((*q).Elements,
 			queueElement{
 				Position:   uint(i + 1),
-				VideoTitle: getTile(e.Video),
+				VideoTitle: getTile(e.Video, userID),
 				Owns:       btoi(e.ID),
 			},
 		)
 	}
-
 }
 
-func getTile(v Video) string {
-	if !v.Public {
+func getTile(v Video, userID uint) string {
+	if !v.Public || v.UserID != userID {
 		return "unknown"
 	}
 	return v.Title
