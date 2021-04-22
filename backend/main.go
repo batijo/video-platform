@@ -13,6 +13,7 @@ import (
 
 func main() {
 
+	// Initialize redis connection
 	utils.InitRedisClient()
 
 	// Start processing events
