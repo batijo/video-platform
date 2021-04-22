@@ -19,7 +19,10 @@ const useEventSource = (url: string) => {
 
 const SSE = () => {
   const token = useAppSelector(state => state.auth.token)
-  const data = useEventSource(`${window.origin}/api/sse/dashboard/?token=${token}`)
+  const data = useEventSource(`${window.origin}/api/sse/dashboard/${token}`)
+  if (!data) {
+    return <div />;
+  }
 
   console.log(data)
 

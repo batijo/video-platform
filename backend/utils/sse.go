@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 type Broker struct {
@@ -79,23 +81,15 @@ func (b *Broker) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	messageChan := make(chan string)
 
 	// Add this client to the map of those that should receive updates
-	vals := r.URL.Query()
-	token, ok := vals["token"]
-
-	if !ok {
-		http.Error(w, "token not found", http.StatusBadRequest)
-		return
-	} else if len(token) != 1 {
-		http.Error(w, "token not found or too many values", http.StatusBadRequest)
-	}
-	userID, _, err := GetUserIDFromToken(token[0])
+	token := mux.Vars(r)["token"]
+	userID, _, err := GetUserIDFromToken(token)
 	if err != nil {
 		http.Error(w, fmt.Sprint("Error geting user ID for SSE connection: ", err), http.StatusInternalServerError)
 		return
 	}
 	client := Client{
-		messageChan,
-		userID,
+		ClientChannel: messageChan,
+		ClientId:      userID,
 	}
 	b.NewClients <- client
 
@@ -113,6 +107,7 @@ func (b *Broker) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	// Don't close the connection, instead loop endlessly
 	for {
