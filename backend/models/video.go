@@ -18,8 +18,9 @@ type Vstream struct {
 	ID        uint      `gorm:"primary_key" json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	UserID    uint      `json:"user_id"`
 
-	UserID uint    `json:"user_id"`
+	Public bool    `json:"public"`
 	Name   string  `json:"name"`
 	Video  []Video `gorm:"ForeignKey:VstreamID" json:"video"`
 }

@@ -329,7 +329,7 @@ func processVodFile(ED models.Encodedata) {
 			}
 			utils.PrintStruct(ndata, "Preset videos data")
 
-			if err = utils.InsertStream(ndata, dfs, "transcoded", sourceFileNameWithoutExt, clientID); err != nil {
+			if err = utils.InsertStream(ndata, dfs, "transcoded", sourceFileNameWithoutExt, clientID, ED.Video.Public); err != nil {
 				utils.WLog("Error: failed to insert stream data in database", clientID)
 				log.Println(err)
 				removeStreamVideos(utils.Conf.DD, dfs, sourceFileNameWithoutExt, clientID)

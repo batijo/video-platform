@@ -109,7 +109,7 @@ func CreateSuperUser(email, pass, username string) error {
 }
 
 // InsertVideo adds video to database
-func InsertVideo(vidinfo models.Vidinfo, state string, userID uint, streamID int) (uint, error) {
+func InsertVideo(vidinfo models.Vidinfo, state string, userID uint, streamID int, public bool) (uint, error) {
 	var (
 		user     models.User
 		audio    []models.Audio
@@ -146,6 +146,7 @@ func InsertVideo(vidinfo models.Vidinfo, state string, userID uint, streamID int
 		StrID:      vidinfo.Videotrack[0].Index,
 		FileName:   vidinfo.FileName,
 		State:      state,
+		Public:     public,
 		VideoCodec: vidinfo.Videotrack[0].CodecName,
 		Width:      vidinfo.Videotrack[0].Width,
 		Height:     vidinfo.Videotrack[0].Height,
@@ -196,7 +197,7 @@ func DeleteStream(name string) error {
 }
 
 // InsertStream ...
-func InsertStream(ndata []models.Vidinfo, names []string, state string, sname string, userID uint) error {
+func InsertStream(ndata []models.Vidinfo, names []string, state string, sname string, userID uint, public bool) error {
 
 	var (
 		user   models.User
@@ -208,7 +209,8 @@ func InsertStream(ndata []models.Vidinfo, names []string, state string, sname st
 	}
 
 	stream = models.Vstream{
-		Name: sname,
+		Name:   sname,
+		Public: public,
 	}
 	user.Stream = append(user.Stream, stream)
 	if err := DB.Save(&user).Error; err != nil {
@@ -221,7 +223,7 @@ func InsertStream(ndata []models.Vidinfo, names []string, state string, sname st
 
 	for i, video := range ndata {
 		video.FileName = names[i]
-		_, err := InsertVideo(video, state, userID, int(stream.ID))
+		_, err := InsertVideo(video, state, userID, int(stream.ID), public)
 		if err != nil {
 			return err
 		}

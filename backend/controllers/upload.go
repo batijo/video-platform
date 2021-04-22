@@ -97,7 +97,7 @@ func VideoUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vidId, err := utils.InsertVideo(data, "not_transcoded", userID, -1)
+	vidId, err := utils.InsertVideo(data, "not_transcoded", userID, -1, false)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Database error", Error: err.Error()}
 		w.WriteHeader(http.StatusInternalServerError)
