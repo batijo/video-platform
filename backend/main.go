@@ -8,7 +8,6 @@ import (
 
 	"github.com/batijo/video-platform/backend/routes"
 	"github.com/batijo/video-platform/backend/utils"
-	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -33,12 +32,8 @@ func main() {
 		return
 	}
 
-	if err := godotenv.Load(); err != nil {
-		log.Panicln("No .env file found")
-	}
-
 	// Initialize redis connection
-	utils.InitRedisClient(os.Getenv("REDIS_PORT"))
+	utils.InitRedisClient(os.Getenv("REDIS_PORT"), os.Getenv("REDIS_PASSWORD"))
 
 	if err := utils.CreateSuperUser(os.Getenv("SU_EMAIL"), os.Getenv("SU_PASS"), os.Getenv("SU_USERNAME")); err != nil {
 		log.Panicln(err)

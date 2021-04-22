@@ -97,7 +97,6 @@ COPY --from=builder /src/utils/preset_values.toml .
 WORKDIR /build
 
 COPY --from=builder /src/main .
-COPY --from=builder /src/.env .
 
 EXPOSE 8080
 

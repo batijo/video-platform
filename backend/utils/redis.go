@@ -15,10 +15,10 @@ var (
 	ctx     = context.Background()
 )
 
-func InitRedisClient(port string) {
+func InitRedisClient(port string, pass string) {
 	RedisCl = redis.NewClient(&redis.Options{
 		Addr:     "redis:" + port,
-		Password: "super_secret_123",
+		Password: pass,
 		DB:       0, // use default DB
 	})
 

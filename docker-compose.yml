@@ -12,8 +12,6 @@ services:
     image: redis:alpine
     restart: unless-stopped
     command: redis-server --requirepass ${REDIS_PASSWORD}
-    volumes:
-      - ./redis-data:/data
     networks:
       - internal
     # ports: 
@@ -41,6 +39,13 @@ services:
       - DATABASE_USER=${DB_USER}
       - DATABASE_PASSWORD=${DB_PASSWORD}
       - DATABASE_HOST=db
+      - DATABASE_PORT=${DB_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PORT=${REDIS_PORT}
+      - SU_EMAIL=${SU_EMAIL}
+      - SU_PASS=${SU_PASS}
+      - SU_USERNAME=${SU_USERNAME}
+      - PORT=${PORT}
     volumes:
       - ./videos:/videos
       - ./uploaded:/uploaded

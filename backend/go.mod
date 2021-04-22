@@ -10,7 +10,6 @@ require (
 	github.com/jackc/pgconn v1.8.1
 	github.com/jinzhu/gorm v1.9.16
 	github.com/jinzhu/now v1.1.2 // indirect
-	github.com/joho/godotenv v1.3.0
 	github.com/lib/pq v1.10.0 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/myesui/uuid v1.0.0 // indirect
