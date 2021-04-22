@@ -40,7 +40,6 @@ export const authSlice = createSlice({
 
 export const resetRegister = (): AppThunk => async (dispatch: AppDispatch) => dispatch(authSlice.actions.resetRegister())
 export const resetLogin = (): AppThunk => async (dispatch: AppDispatch) => dispatch(authSlice.actions.resetLogin())
-export const logout = (): AppThunk => async (dispatch: AppDispatch) => dispatch(authSlice.actions.logout())
 
 export const register = (credentials: UserRegister): AppThunk => async (dispatch: AppDispatch) => {
   axios.post<APIResponse<{}>>(`${window.origin}/api/register`, credentials)
@@ -54,6 +53,16 @@ export const login = (credentials: UserLogin): AppThunk => async (dispatch: AppD
     .then(response => {
       dispatch(authSlice.actions.login(response.data))
     }).catch(error => dispatch(authSlice.actions.login(error.response.data)))
+}
+
+export const logout = (): AppThunk => async (dispatch: AppDispatch, getState) => {
+  let token = getState().auth.token
+  let headers = { 'Authorization': `Bearer ${token}` }
+
+  axios.post<APIResponse<{}>>(`${window.origin}/api/auth/logout`, null, { headers })
+    .then(response => {
+      dispatch(authSlice.actions.logout())
+    })
 }
 
 export default authSlice.reducer
