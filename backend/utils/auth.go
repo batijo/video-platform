@@ -6,8 +6,10 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/batijo/video-platform/backend/models"
+	"github.com/twinj/uuid"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )
@@ -53,6 +55,16 @@ func AdminVerify(next http.Handler) http.Handler {
 // JwtVerify Middleware function
 func JwtVerify(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tokenAuth, err := ExtractTokenMetadata(r)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		userID, err := fetchAuth(tokenAuth)
+		if err != nil || userID == 0 {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		var key string
 		tk, err := jwtParser(w, r)
@@ -96,6 +108,65 @@ func jwtParser(w http.ResponseWriter, r *http.Request) (models.Token, error) {
 	}
 
 	return *tk, nil
+}
+
+func verifyToken(r *http.Request) (*models.Token, error) {
+	tokenString, err := parseAuthHeader(r)
+	if err != nil {
+		return nil, err
+	}
+
+	tk := &models.Token{}
+	_, err = jwt.ParseWithClaims(tokenString, tk, func(token *jwt.Token) (interface{}, error) {
+		// if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		// 	return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		// }
+		return []byte(Conf.JWTSecret), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return tk, nil
+}
+
+func CreateToken(user models.User) (*models.TokenDetails, error) {
+	var err error
+
+	atk := &models.Token{
+		UserID:     user.ID,
+		Email:      user.Email,
+		Admin:      user.Admin,
+		AccessUuid: uuid.NewV4().String(),
+		StandardClaims: &jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Minute * time.Duration(Conf.JWTExp)).Unix(),
+		},
+	}
+	atoken := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), atk)
+	token, err := atoken.SignedString([]byte(Conf.JWTSecret))
+	if err != nil {
+		return nil, err
+	}
+
+	td := &models.TokenDetails{
+		AccessToken: token,
+		AccessUuid:  atk.AccessUuid,
+		AtExpires:   atk.ExpiresAt,
+	}
+
+	return td, nil
+}
+
+func ExtractTokenMetadata(r *http.Request) (*models.AccessDetails, error) {
+	token, err := verifyToken(r)
+	if err != nil {
+		return nil, err
+	}
+	accessUuid := token.AccessUuid
+	return &models.AccessDetails{
+		AccessUuid: accessUuid,
+		UserID:     token.UserID,
+	}, nil
 }
 
 func parseAuthHeader(r *http.Request) (string, error) {

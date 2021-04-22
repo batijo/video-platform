@@ -4,13 +4,11 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/batijo/video-platform/backend/models"
 	"github.com/batijo/video-platform/backend/utils"
 	"github.com/jinzhu/gorm"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -41,7 +39,23 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 // LogOut ...
 func LogOut(w http.ResponseWriter, r *http.Request) {
-	// TO DO ...
+	ad, err := utils.ExtractTokenMetadata(r)
+	if err != nil {
+		resp := models.Response{Status: false, Message: "Error geting access metadata", Error: err.Error()}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+	deleted, err := utils.DeleteRedisAuth(ad.AccessUuid)
+	if err != nil || deleted == 0 {
+		resp := models.Response{Status: false, Message: "Unauthorised", Error: err.Error()}
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+	resp := models.Response{Status: true, Message: "Successfully logged out"}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
 }
 
 // FindOne ...
@@ -52,34 +66,26 @@ func findOne(email, password string) (models.Response, int) {
 		resp := models.Response{Status: false, Message: "Email address not found", Error: err.Error()}
 		return resp, http.StatusUnauthorized
 	}
-	expiresAt := time.Now().Add(time.Minute * time.Duration(utils.Conf.JWTExp)).Unix()
 
-	errf := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-	if errf != nil || errf == bcrypt.ErrMismatchedHashAndPassword { //Password does not match!
-		resp := models.Response{Status: false, Message: "Invalid login credentials. Please try again", Error: errf.Error()}
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil || err == bcrypt.ErrMismatchedHashAndPassword { //Password does not match!
+		resp := models.Response{Status: false, Message: "Invalid login credentials. Please try again", Error: err.Error()}
 		return resp, http.StatusUnauthorized
 	}
 
-	tk := &models.Token{
-		UserID: user.ID,
-		Email:  user.Email,
-		Admin:  user.Admin,
-		StandardClaims: &jwt.StandardClaims{
-			ExpiresAt: expiresAt,
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
-
-	tokenString, err := token.SignedString([]byte(utils.Conf.JWTSecret))
+	ts, err := utils.CreateToken(*user)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Invalid login credentials. Please try again", Error: err.Error()}
+		return resp, http.StatusUnauthorized
+	}
+	err = utils.CreateRedisAuth(user.ID, ts)
+	if err != nil {
+		resp := models.Response{Status: false, Message: "Failed to cache token", Error: err.Error()}
 		return resp, http.StatusInternalServerError
 	}
 
-	resp := models.Response{Status: true, Message: "logged in", Data: tokenString}
-	// resp["token"] = tokenString // Store the token in the response
-	// resp["user"] = user
+	resp := models.Response{Status: true, Message: "logged in", Data: ts.AccessToken}
+
 	return resp, http.StatusOK
 }
 

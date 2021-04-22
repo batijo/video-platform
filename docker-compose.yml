@@ -7,6 +7,18 @@ networks:
     external: true
 
 services:
+  redis:
+    container_name: ${REDIS_CONTAINER_NAME}
+    image: redis:alpine
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - ./redis-data:/data
+    networks:
+      - internal
+    ports: 
+      - 6379:6379
+
   db:
     container_name: ${DB_CONTAINER_NAME}
     image: postgres:alpine
@@ -37,6 +49,7 @@ services:
       - internal
     depends_on:
       - db
+      - redis
 
   nginx:
     container_name: ${NGINX_CONTAINER_NAME}

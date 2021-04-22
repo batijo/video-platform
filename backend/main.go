@@ -13,6 +13,8 @@ import (
 
 func main() {
 
+	utils.InitRedisClient()
+
 	// Start processing events
 	utils.NewSseServer()
 

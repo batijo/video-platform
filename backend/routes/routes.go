@@ -24,6 +24,7 @@ func SetupRoutes() *mux.Router {
 	s := r.PathPrefix("/auth").Subrouter()
 	s.Use(utils.JwtVerify)
 
+	s.HandleFunc("/logout", controllers.LogOut).Methods("POST")
 	s.HandleFunc("/user", controllers.FetchUsers).Methods("GET")
 	s.HandleFunc("/user/{id}", controllers.GetUser).Methods("GET")
 	s.HandleFunc("/user/update/{id}", controllers.UpdateUser).Methods("POST")

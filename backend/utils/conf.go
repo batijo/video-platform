@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	JWTExp      int
+	JWTRef      int
 	JWTSecret   string
 	SD          string
 	TD          string
