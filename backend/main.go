@@ -13,9 +13,6 @@ import (
 
 func main() {
 
-	// Initialize redis connection
-	utils.InitRedisClient()
-
 	// Start processing events
 	utils.NewSseServer()
 
@@ -40,7 +37,8 @@ func main() {
 		log.Panicln("No .env file found")
 	}
 
-	port := os.Getenv("PORT")
+	// Initialize redis connection
+	utils.InitRedisClient(os.Getenv("REDIS_PORT"))
 
 	if err := utils.CreateSuperUser(os.Getenv("SU_EMAIL"), os.Getenv("SU_PASS"), os.Getenv("SU_USERNAME")); err != nil {
 		log.Panicln(err)
@@ -50,6 +48,6 @@ func main() {
 	http.Handle("/", routes.SetupRoutes())
 
 	// serve
-	log.Printf("Server up on port '%s'", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Printf("Server up on port '%s'", os.Getenv("PORT"))
+	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), nil))
 }

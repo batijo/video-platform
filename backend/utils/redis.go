@@ -3,7 +3,6 @@ package utils
 import (
 	"context"
 	"log"
-	"os"
 	"strconv"
 	"time"
 
@@ -16,9 +15,9 @@ var (
 	ctx     = context.Background()
 )
 
-func InitRedisClient() {
+func InitRedisClient(port string) {
 	RedisCl = redis.NewClient(&redis.Options{
-		Addr:     "redis:" + os.Getenv("REDIS_PORT"),
+		Addr:     "redis:" + port,
 		Password: "super_secret_123",
 		DB:       0, // use default DB
 	})
