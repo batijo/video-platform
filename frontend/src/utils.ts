@@ -25,7 +25,7 @@ export const toCamelCaseObj = (obj: any): any => {
 
 // SSE To Do ...
 export const sseProgress = (): any => {
-  var source = new EventSource(`${window.origin}/api/sse/dashboard`);
+  var source = new EventSource(`${window.origin}/api/sse/dashboard/`);
   console.log("Connection to /sse/dashboard established")
   var log = '';
   var currentmsg = '';

@@ -81,6 +81,7 @@ func (b *Broker) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Add this client to the map of those that should receive updates
 	vals := r.URL.Query()
 	token, ok := vals["token"]
+
 	if !ok {
 		http.Error(w, "token not found", http.StatusBadRequest)
 		return

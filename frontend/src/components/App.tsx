@@ -52,6 +52,7 @@ const App = () => {
     title: 'How Danny DeVito Eats An Egg on Broadway | Acting Class',
     description: 'Danny DeVito gives an acting class on how he eats an egg while still clearly delivering lines in the play \'The Price\' by Arthur Miller, now on Broadway.',
     userId: 0,
+    queueId: 0,
     public: false,
     vstreamId: 0,
     strId: 0,
