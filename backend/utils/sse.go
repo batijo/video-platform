@@ -79,7 +79,15 @@ func (b *Broker) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	messageChan := make(chan string)
 
 	// Add this client to the map of those that should receive updates
-	userID, _, err := GetUserID(r)
+	vals := r.URL.Query()
+	token, ok := vals["token"]
+	if !ok {
+		http.Error(w, "token not found", http.StatusBadRequest)
+		return
+	} else if len(token) != 1 {
+		http.Error(w, "token not found or too many values", http.StatusBadRequest)
+	}
+	userID, _, err := GetUserIDFromToken(token[0])
 	if err != nil {
 		http.Error(w, fmt.Sprint("Error geting user ID for SSE connection: ", err), http.StatusInternalServerError)
 		return

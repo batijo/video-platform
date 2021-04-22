@@ -15,15 +15,19 @@ import (
 )
 
 func GetUserID(r *http.Request) (uint, bool, error) {
-	tk := &models.Token{}
-
 	//Grab the token from the header
 	token, err := parseAuthHeader(r)
 	if err != nil {
-		return tk.UserID, false, err
+		return 0, false, err
 	}
 
-	_, err = jwt.ParseWithClaims(token, tk, func(token *jwt.Token) (interface{}, error) {
+	return GetUserIDFromToken(token)
+}
+
+func GetUserIDFromToken(token string) (uint, bool, error) {
+	tk := &models.Token{}
+
+	_, err := jwt.ParseWithClaims(token, tk, func(token *jwt.Token) (interface{}, error) {
 		return []byte(Conf.JWTSecret), nil
 	})
 	if err != nil {
