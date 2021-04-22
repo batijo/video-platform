@@ -10,13 +10,13 @@ import "tailwindcss/tailwind.css"
 import './index.css'
 
 import auth from './store/auth'
-import user from './store/user'
+import users from './store/user'
 import video from './store/video'
 
 export const store = configureStore({
   reducer: combineReducers({
     auth,
-    user,
+    users,
     video
   }),
   middleware: (getDefaultMiddleware) => getDefaultMiddleware()

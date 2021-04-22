@@ -50,6 +50,16 @@ export type Subtitle = {
   language: string
 }
 
+export type Preset = {
+  id: number
+  name: string
+  type: number
+  resolution: string
+  codec: string
+  bitrate: string
+}
+
+
 export const initialEncode: Encode = {
   id: 0,
   createdAt: '',
@@ -83,6 +93,15 @@ export const initialVideo: Video = {
   audioT: [],
   subtitleT: [],
   encData: initialEncode
+}
+
+export const initialPreset: Preset = {
+  id: 0,
+  name: '',
+  type: 0,
+  resolution: '',
+  codec: '',
+  bitrate: ''
 }
 
 export default Video

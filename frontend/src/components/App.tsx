@@ -6,6 +6,7 @@ import { VideoDetail, VideoList } from './Video'
 import { Profile, Settings } from './User'
 import Navbar from './Navbar'
 import Upload from './Upload'
+import Transcode from './Transcode'
 
 import { Video, initialVideo, initialEncode } from '../types/video'
 
@@ -74,6 +75,7 @@ const App = () => {
         <Route exact path="/register"><Register /></Route>
         <Route exact path="/settings"><Settings /></Route>
         <Route exact path="/upload"><Upload /></Route>
+        <Route exact path="/transcode"><Transcode /></Route>
         <Route path="/video/:id"><VideoDetail video={devitoVideo} /></Route>
         <Route path="/user/:id"><Profile /></Route>
       </Container>

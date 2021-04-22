@@ -1,9 +1,10 @@
-import { store } from '../index'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import axios from 'axios'
 
 import APIResponse from '../types/response'
 import { User, initialUser } from '../types/user'
+import { AppDispatch, AppThunk } from '../index'
+import { toCamelCaseObj } from '../utils'
 
 const initialUserList: User[] = [];
 
@@ -15,21 +16,26 @@ export const userSlice = createSlice({
   },
   reducers: {
     userList: (state, action: PayloadAction<User[]>) => { state.userList = action.payload },
-    userDetail: (state, action: PayloadAction<User>) => { return { ...action.payload, ...state } },
+    userDetail: (state, action: PayloadAction<User>) => { state.user = action.payload },
   }
 })
 
-export const getUser = (id: number) => {
-  axios.get<APIResponse<User>>(`${window.origin}/api/auth/user/${id}`)
+export const getUser = (id: number): AppThunk => async (dispatch: AppDispatch, getState) => {
+  let token = getState().auth.token
+  let headers = { 'Authorization': `Bearer ${token}` }
+
+  axios.get<APIResponse<User>>(`${window.origin}/api/auth/user/${id}`, { headers })
     .then(response => {
-      store.dispatch(userSlice.actions.userDetail(response.data.data))
+      dispatch(userSlice.actions.userDetail(toCamelCaseObj(response.data.data)))
     })
 }
 
-export const getUsers = () => {
-  axios.get<APIResponse<User[]>>(`${window.origin}/api/auth/user`)
+export const getUsers = (): AppThunk => async (dispatch: AppDispatch, getState) => {
+  let headers = { 'Authorization': `Bearer ${getState().auth.token}` }
+
+  axios.get<APIResponse<User[]>>(`${window.origin}/api/auth/user`, { headers })
     .then(response => {
-      store.dispatch(userSlice.actions.userList(response.data.data))
+      dispatch(userSlice.actions.userList(toCamelCaseObj(response.data.data)))
     })
 }
 

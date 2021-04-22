@@ -4,6 +4,7 @@ import { useDropzone } from 'react-dropzone'
 import { useAppSelector } from '../index'
 import { Video, initialVideo } from '../types/video'
 import { toCamelCaseObj } from '../utils'
+import { Link } from 'react-router-dom'
 
 const dropzoneStyle = 'border-dashed border-2 border-gray-300 h-full w-full font-semibold text-blue-400 justify-center cursor-pointer'
 
@@ -39,6 +40,7 @@ const Upload = () => {
     <div className="flex flex-col flex-grow">
       <div className="bg-white p-4 rounded-md mb-4">
         <p className="font-bold text-3xl text-gray-700">Upload Video</p>
+        <Link to="/transcode">Transcode</Link>
       </div>
       <div className="flex-grow bg-white p-6 rounded-md">
         {isUploaded ?

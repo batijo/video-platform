@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
 	"strconv"
 
 	"github.com/batijo/video-platform/backend/models"
+	"github.com/jackc/pgconn"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/BurntSushi/toml"
@@ -77,12 +77,10 @@ func ConnectDB() *gorm.DB {
 
 // Create admin account
 func CreateSuperUser(email, pass, username string) error {
-	re := regexp.MustCompile(
-		"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
-	)
-	if re.MatchString(email) {
-		return errors.New(fmt.Sprint("email adress is not valid: ", email))
-	} else if len(pass) < 6 {
+
+	if email == "" {
+		return errors.New("email adress cannot be empty")
+	} else if len([]byte(pass)) < 5 {
 		return errors.New("password must be at least 5 characters")
 	} else if username == "" {
 		return errors.New("username must not be empty")
@@ -100,8 +98,11 @@ func CreateSuperUser(email, pass, username string) error {
 		Admin:    true,
 	}
 
-	if err := DB.Create(&admin).Error; err != nil {
-		return err
+	var perr *pgconn.PgError
+	if resp := DB.Create(&admin); resp.Error != nil {
+		if errors.As(resp.Error, &perr) && perr.Code != "23505" {
+			return err
+		}
 	}
 
 	return nil
