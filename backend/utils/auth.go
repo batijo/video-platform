@@ -4,9 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -57,6 +55,16 @@ func AdminVerify(next http.Handler) http.Handler {
 // JwtVerify Middleware function
 func JwtVerify(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tokenAuth, err := ExtractTokenMetadata(r)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		userID, err := fetchAuth(tokenAuth)
+		if err != nil || userID == 0 {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		var key string
 		tk, err := jwtParser(w, r)
@@ -102,135 +110,63 @@ func jwtParser(w http.ResponseWriter, r *http.Request) (models.Token, error) {
 	return *tk, nil
 }
 
-// func JwtVerify2(next http.Handler)http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		tokenAuth, err := extractTokenMetadata(r)
-// 		if err != nil {
-// 			log.Println(err)
-// 			return
-// 		}
-// 		userID, err := fetchAuth(tokenAuth)
-// 		if err != nil{
-// 			log.Println(err)
-// 			return
-// 		}
-
-// 		ctx := context.WithValue(r.Context(), key, tk)
-// 		next.ServeHTTP(w, r.WithContext(ctx))
-// 	})
-// }
-
-func verifyToken(r *http.Request) (*jwt.Token, error) {
+func verifyToken(r *http.Request) (*models.Token, error) {
 	tokenString, err := parseAuthHeader(r)
 	if err != nil {
 		return nil, err
 	}
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
+	tk := &models.Token{}
+	_, err = jwt.ParseWithClaims(tokenString, tk, func(token *jwt.Token) (interface{}, error) {
+		// if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		// 	return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		// }
 		return []byte(Conf.JWTSecret), nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return token, nil
+	return tk, nil
 }
 
-func isTokenValid(r *http.Request) error {
-	token, err := verifyToken(r)
-	if err != nil {
-		return err
-	}
-	if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
-		return errors.New("token is not valid")
-	}
-	return nil
-}
-
-func CreateToken(user models.User) (*models.Tokens, error) {
+func CreateToken(user models.User) (*models.TokenDetails, error) {
 	var err error
-	ts := &models.Tokens{
-		AtExpires:   time.Now().Add(time.Minute * time.Duration(Conf.JWTExp)).Unix(),
-		AccessUuid:  uuid.NewV4().String(),
-		RtExpires:   time.Now().Add(time.Hour * time.Duration(Conf.JWTRef)).Unix(),
-		RefreshUuid: uuid.NewV4().String(),
-	}
 
 	atk := &models.Token{
 		UserID:     user.ID,
 		Email:      user.Email,
 		Admin:      user.Admin,
-		AccessUuid: ts.AccessUuid,
+		AccessUuid: uuid.NewV4().String(),
 		StandardClaims: &jwt.StandardClaims{
-			ExpiresAt: ts.AtExpires,
+			ExpiresAt: time.Now().Add(time.Minute * time.Duration(Conf.JWTExp)).Unix(),
 		},
 	}
 	atoken := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), atk)
-	ts.AccessToken, err = atoken.SignedString([]byte(Conf.JWTSecret))
+	token, err := atoken.SignedString([]byte(Conf.JWTSecret))
 	if err != nil {
 		return nil, err
 	}
 
-	rtk := jwt.MapClaims{}
-	rtk["refresh_uuid"] = ts.RefreshUuid
-	rtk["user_id"] = user.ID
-	rtk["exp"] = ts.RtExpires
-	rtoken := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), rtk)
-	ts.RefreshToken, err = rtoken.SignedString([]byte(Conf.JWTSecret))
-	if err != nil {
-		return nil, err
+	td := &models.TokenDetails{
+		AccessToken: token,
+		AccessUuid:  atk.AccessUuid,
+		AtExpires:   atk.ExpiresAt,
 	}
 
-	return ts, nil
+	return td, nil
 }
 
-func CreateAuth(userID uint, ts *models.Tokens) error {
-	at := time.Unix(ts.AtExpires, 0)
-	rt := time.Unix(ts.RtExpires, 0)
-	now := time.Now()
-	ctx := context.Background()
-
-	err := RedisCl.SetEX(ctx, ts.AccessUuid, strconv.Itoa(int(userID)), at.Sub(now)).Err()
-	if err != nil {
-		return err
-	}
-	errRefresh := RedisCl.SetEX(ctx, ts.RefreshUuid, strconv.Itoa(int(userID)), rt.Sub(now)).Err()
-	if errRefresh != nil {
-		return errRefresh
-	}
-
-	return nil
-}
-
-func extractTokenMetadata(r *http.Request) (*models.AccessDetails, error) {
+func ExtractTokenMetadata(r *http.Request) (*models.AccessDetails, error) {
 	token, err := verifyToken(r)
 	if err != nil {
 		return nil, err
 	}
-	claims, ok := token.Claims.(models.Token)
-	if ok && token.Valid {
-		accessUuid := claims.AccessUuid
-		return &models.AccessDetails{
-			AccessUuid: accessUuid,
-			UserID:     claims.UserID,
-		}, nil
-	}
-	return nil, errors.New("token is not valid")
-}
-
-func fetchAuth(ad *models.AccessDetails) (uint, error) {
-	uid, err := RedisCl.Get(context.Background(), ad.AccessUuid).Result()
-	if err != nil {
-		return 0, err
-	}
-	userID, err := strconv.ParseUint(uid, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return uint(userID), nil
+	accessUuid := token.AccessUuid
+	return &models.AccessDetails{
+		AccessUuid: accessUuid,
+		UserID:     token.UserID,
+	}, nil
 }
 
 func parseAuthHeader(r *http.Request) (string, error) {

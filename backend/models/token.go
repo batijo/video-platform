@@ -11,13 +11,10 @@ type Token struct {
 	*jwt.StandardClaims
 }
 
-type Tokens struct {
-	AccessToken  string
-	RefreshToken string
-	AccessUuid   string
-	RefreshUuid  string
-	AtExpires    int64
-	RtExpires    int64
+type TokenDetails struct {
+	AccessToken string
+	AccessUuid  string
+	AtExpires   int64
 }
 
 type AccessDetails struct {

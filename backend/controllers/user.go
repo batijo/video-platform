@@ -39,7 +39,23 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 // LogOut ...
 func LogOut(w http.ResponseWriter, r *http.Request) {
-	// TO DO ...
+	ad, err := utils.ExtractTokenMetadata(r)
+	if err != nil {
+		resp := models.Response{Status: false, Message: "Error geting access metadata", Error: err.Error()}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+	deleted, err := utils.DeleteRedisAuth(ad.AccessUuid)
+	if err != nil || deleted == 0 {
+		resp := models.Response{Status: false, Message: "Unauthorised", Error: err.Error()}
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+	resp := models.Response{Status: true, Message: "Successfully logged out"}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
 }
 
 // FindOne ...
@@ -62,17 +78,13 @@ func findOne(email, password string) (models.Response, int) {
 		resp := models.Response{Status: false, Message: "Invalid login credentials. Please try again", Error: err.Error()}
 		return resp, http.StatusUnauthorized
 	}
-	err = utils.CreateAuth(user.ID, ts)
+	err = utils.CreateRedisAuth(user.ID, ts)
 	if err != nil {
 		resp := models.Response{Status: false, Message: "Failed to cache token", Error: err.Error()}
 		return resp, http.StatusInternalServerError
 	}
-	tokens := map[string]string{
-		"access_token":  ts.AccessToken,
-		"refresh_token": ts.RefreshToken,
-	}
 
-	resp := models.Response{Status: true, Message: "logged in", Data: tokens}
+	resp := models.Response{Status: true, Message: "logged in", Data: ts.AccessToken}
 
 	return resp, http.StatusOK
 }
