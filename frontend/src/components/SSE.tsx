@@ -8,13 +8,9 @@ const useEventSource = (url: string) => {
   React.useEffect(() => {
     const source = new EventSource(url)
 
-    // source.onmessage = (event) => {
-    //   console.log(event.data)
-    //   updateData(event.data)
-    // }
-
-    source.onmessage = function logEvents(event) {
-      updateData(event.data);
+    source.onmessage = (event) => {
+      console.log(event.data)
+      updateData(event.data)
     }
   }, [])
 
