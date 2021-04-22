@@ -17,8 +17,10 @@ import (
 // FetchVideos return all
 func FetchVideos(w http.ResponseWriter, r *http.Request) {
 	var (
-		videos []models.Video
-		res    *gorm.DB
+		videos  []models.Video
+		streams []models.Vstream
+		vresp   []models.VideoResponse
+		res     *gorm.DB
 	)
 	userId, admin, err := utils.GetUserID(r)
 	if err != nil {
@@ -31,7 +33,8 @@ func FetchVideos(w http.ResponseWriter, r *http.Request) {
 	if admin {
 		res = utils.DB.Preload("AudioT").Preload("SubtitleT").Find(&videos)
 	} else {
-		res = utils.DB.Preload("AudioT").Preload("SubtitleT").Where("user_id = ? OR public = ?", userId, true).Find(&videos)
+		res = utils.DB.Preload("AudioT").Preload("SubtitleT").Where(
+			"public = ? OR user_id = ?", true, userId).Find(&videos)
 	}
 	if res.Error != nil {
 		resp := models.Response{Status: false, Message: "Could not fetch videos", Error: res.Error.Error()}
@@ -39,8 +42,27 @@ func FetchVideos(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(resp)
 		return
 	}
+	if admin {
+		res = utils.DB.Preload("Video").Find(&streams)
+	} else {
+		res = utils.DB.Preload("Video.AudioT").Preload("Video.SubtitleT").Preload("Video").Where("user_id = ? OR public = ?", userId, true).Find(&streams)
+	}
+	if res.Error != nil {
+		resp := models.Response{Status: false, Message: "Could not fetch streams", Error: res.Error.Error()}
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
+	for _, v := range videos {
+		if v.VstreamID == 0 {
+			vresp = append(vresp, models.SerializeWithVideo(v))
+		}
+	}
+	for _, s := range streams {
+		vresp = append(vresp, models.SerializeWithStream(s))
+	}
 
-	resp := models.Response{Status: true, Message: "Success", Data: videos}
+	resp := models.Response{Status: true, Message: "Success", Data: vresp}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)
 }

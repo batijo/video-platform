@@ -3,7 +3,7 @@ import axios from 'axios'
 import { useAppSelector } from '../index'
 
 const useEventSource = (url: string) => {
-  const [data, updateData] = React.useState('')
+  const [data, updateData] = React.useState(null)
 
   React.useEffect(() => {
     const source = new EventSource(url)
@@ -23,8 +23,6 @@ const SSE = () => {
   if (!data) {
     return <div />;
   }
-
-  console.log(data)
 
   return (
     <div>{data}</div>

@@ -226,10 +226,10 @@ func processVodFile(ED models.Encodedata) {
 			finished <- false
 			return
 		}
-		tempfile = tempdfs[0]
 		for _, d := range dfs {
 			tempdfs = append(tempdfs, utils.Conf.TD+d)
 		}
+		tempfile = tempdfs[0]
 		for i, d := range tempdfs {
 			if i != len(tempdfs)-1 {
 				dfsline += d + " "

@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -17,19 +16,22 @@ type VideoResponse struct {
 	Resolution []string `json:"resolution"`
 }
 
-func (vr *VideoResponse) SerializeWithVideo(v Video) {
+func SerializeWithVideo(v Video) VideoResponse {
+	var vr VideoResponse
 	vr.Video = v
+	return vr
 }
 
-func (vr *VideoResponse) SerializeWithStream(s Vstream) error {
+func SerializeWithStream(s Vstream) VideoResponse {
+	var vr VideoResponse
 	if len(s.Video) < 1 {
-		return errors.New("stream must have at least one video element")
+		return VideoResponse{}
 	}
 	vr.Video = s.Video[0]
-	vr.Video.Title = s.Name
+	vr.Video.FileName = s.Name
 	for i := 0; i < len(s.Video); i++ {
-		vr.Resolution = append(vr.Resolution, fmt.Sprintf("%vp", s.Video[i].Width))
+		vr.Resolution = append(vr.Resolution, fmt.Sprintf("%vp", s.Video[i].Height))
 	}
 
-	return nil
+	return vr
 }
