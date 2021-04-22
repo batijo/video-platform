@@ -4,6 +4,8 @@ import axios from 'axios'
 
 import { Video, Encode, initialVideo, initialEncode } from '../types/video'
 import APIResponse from '../types/response'
+import { AppDispatch, AppThunk } from '../index'
+import { toCamelCaseObj } from '../utils'
 
 const initialVideoList: Video[] = [];
 
@@ -11,18 +13,43 @@ export const videoSlice = createSlice({
   name: 'videos',
   initialState: {
     video: initialVideo,
-    videoList: initialVideoList
+    videoList: initialVideoList,
+    userVideoList: initialVideoList
   },
   reducers: {
-    videoDetail: (state, action: PayloadAction<Video>) => { state.video = action.payload }
-    // TODO (?): videoList:
+    videoDetail: (state, action: PayloadAction<Video>) => { state.video = action.payload },
+    videoList: (state, action: PayloadAction<Video[]>) => { state.videoList = action.payload },
+    userVideoList: (state, action: PayloadAction<Video[]>) => { state.userVideoList = action.payload }
   }
 })
 
-export const getVideo = (id: number) => {
-  axios.get<APIResponse<Video>>(`${window.origin}/api/auth/video/${id}`)
+export const getVideo = (id: number): AppThunk => async (dispatch: AppDispatch, getState) => {
+  let token = getState().auth.token
+  let headers = { 'Authorization': `Bearer ${token}` }
+
+  axios.get<APIResponse<Video>>(`${window.origin}/api/auth/video/${id}`, { headers })
     .then(response => {
-      store.dispatch(videoSlice.actions.videoDetail(response.data.data))
+      dispatch(videoSlice.actions.videoDetail(response.data.data))
+    })
+}
+
+export const getVideoList = (): AppThunk => async (dispatch: AppDispatch, getState) => {
+  let token = getState().auth.token
+  let headers = { 'Authorization': `Bearer ${token}` }
+
+  axios.get<APIResponse<Video[]>>(`${window.origin}/api/auth/video`, { headers })
+    .then(response => {
+      dispatch(videoSlice.actions.videoList(toCamelCaseObj(response.data.data)))
+    })
+}
+
+export const getUserVideoList = (id: number): AppThunk => async (dispatch: AppDispatch, getState) => {
+  let token = getState().auth.token
+  let headers = { 'Authorization': `Bearer ${token}` }
+
+  axios.get<APIResponse<Video[]>>(`${window.origin}/api/auth/video/user/${id}`, { headers })
+    .then(response => {
+      dispatch(videoSlice.actions.userVideoList(toCamelCaseObj(response.data.data)))
     })
 }
 

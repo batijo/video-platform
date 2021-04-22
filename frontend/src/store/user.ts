@@ -33,7 +33,7 @@ export const getUser = (id: number): AppThunk => async (dispatch: AppDispatch, g
 export const getUsers = (): AppThunk => async (dispatch: AppDispatch, getState) => {
   let headers = { 'Authorization': `Bearer ${getState().auth.token}` }
 
-  axios.get<APIResponse<User[]>>(`${window.origin}/api/auth/user`)
+  axios.get<APIResponse<User[]>>(`${window.origin}/api/auth/user`, { headers })
     .then(response => {
       dispatch(userSlice.actions.userList(toCamelCaseObj(response.data.data)))
     })
