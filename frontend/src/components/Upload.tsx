@@ -5,12 +5,14 @@ import { useAppSelector } from '../index'
 import { Video, initialVideo } from '../types/video'
 import { toCamelCaseObj } from '../utils'
 import { Link } from 'react-router-dom'
+import SSE from './SSE'
 
 const dropzoneStyle = 'border-dashed border-2 border-gray-300 h-full w-full font-semibold text-blue-400 justify-center cursor-pointer'
 
 const Upload = () => {
 
   const [isUploaded, setIsUploaded] = React.useState(false)
+  const [isUploading, setIsUploading] = React.useState(false)
   const token = useAppSelector(state => state.auth.token)
   const [videoData, setVideoData] = React.useState(initialVideo)
 
@@ -25,16 +27,32 @@ const Upload = () => {
       'Authorization': `Bearer ${token}`
     }
 
+    setIsUploading(true)
+
     axios.post(`${window.origin}/api/auth/upload`, formData, { headers: headers })
       .then(response => {
         // TODO: HANDLE UPLOADED
-        console.log(response.data)
         setVideoData(toCamelCaseObj(response.data.data))
         setIsUploaded(true)
       })
   }, [])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
+
+  const uploadUI = () => {
+    if (isUploading) return <SSE />
+    else return (
+      <div className={dropzoneStyle} {...getRootProps()}>
+        <input {...getInputProps()} />
+        <div className="tems-center justify-center text-2xl p-4 mx-auto">
+          {isDragActive ?
+            <p>Drop here</p> :
+            <p>Drag and drop your video here, or click to select manually</p>
+          }
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col flex-grow">
@@ -43,7 +61,8 @@ const Upload = () => {
         <Link to="/transcode">Transcode</Link>
       </div>
       <div className="flex-grow bg-white p-6 rounded-md">
-        {isUploaded ?
+        {uploadUI()}
+        {/* {isUploaded ?
           <div>
             <p>
               Uploaded<br />
@@ -61,9 +80,7 @@ const Upload = () => {
               }
             </div>
           </div>
-        }
-
-
+        } */}
       </div>
     </div>
   )

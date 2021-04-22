@@ -1,5 +1,6 @@
 import React from 'react'
 import axios from 'axios'
+import { useAppSelector } from '../index'
 
 const useEventSource = (url: string) => {
   const [data, updateData] = React.useState('')
@@ -7,20 +8,27 @@ const useEventSource = (url: string) => {
   React.useEffect(() => {
     const source = new EventSource(url)
 
-    source.onmessage = (event) => updateData(event.data)
+    // source.onmessage = (event) => {
+    //   console.log(event.data)
+    //   updateData(event.data)
+    // }
+
+    source.onmessage = function logEvents(event) {
+      updateData(event.data);
+    }
   }, [])
+
+  return data
 }
 
 const SSE = () => {
+  const token = useAppSelector(state => state.auth.token)
+  const data = useEventSource(`${window.origin}/api/sse/dashboard/?token=${token}`)
 
-  // const updateSSE = async () => {
-  //   let source = new EventSource(`${window.origin}/api/sse/dashboard`);
-  // }
-
-  // React.useEffect(() => { const runSSE = async () => await updateSSE() }, [])
+  console.log(data)
 
   return (
-    <div></div>
+    <div>{data}</div>
   )
 }
 

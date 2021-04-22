@@ -4,8 +4,9 @@ export type Video = {
   updatedAt: string
   title: string
   description: string
-  userId: number
   public: boolean
+  userId: number
+  queueId: number
   vstreamId: number
   strId: number
   fileName: string
@@ -17,6 +18,7 @@ export type Video = {
   audioT: Array<Audio>
   subtitleT: Array<Subtitle>
   encData: Encode
+  resolutions?: string[]
 }
 
 export type Encode = {
@@ -80,8 +82,9 @@ export const initialVideo: Video = {
   updatedAt: '',
   title: '',
   description: '',
-  userId: 0,
   public: false,
+  userId: 0,
+  queueId: 0,
   vstreamId: 0,
   strId: 0,
   fileName: '',
