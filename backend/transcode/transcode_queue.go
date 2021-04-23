@@ -61,7 +61,7 @@ func Active() bool {
 
 func startTranscoder(ED models.Encodedata) {
 	active = true
-	log.Println("Starting trancoder queue")
+	log.Println("Starting trancoder")
 	for {
 		// Start procesing file
 		go processVodFile(ED)
@@ -76,12 +76,11 @@ func startTranscoder(ED models.Encodedata) {
 
 		// Get new video id for transcoding if there is none, stop transcoder
 		newEdID, err := nextInQueue()
-		log.Println(newEdID)
 		if err != nil {
 			active = false
 			log.Panicln(err)
 		} else if newEdID < 0 {
-			log.Println("Stoping transcoder queue")
+			log.Println("Stoping transcoder")
 			break
 		}
 

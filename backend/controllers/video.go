@@ -9,9 +9,8 @@ import (
 
 	"github.com/batijo/video-platform/backend/models"
 	"github.com/batijo/video-platform/backend/utils"
-	"github.com/jinzhu/gorm"
-
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
 )
 
 // FetchVideos return all

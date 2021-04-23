@@ -15,7 +15,7 @@ func ReturnQueue(w http.ResponseWriter, r *http.Request) {
 		queue models.Queue
 	)
 
-	if transcode.Active() {
+	if !transcode.Active() {
 		resp := models.Response{Status: true, Message: "No videos are transcoding"}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(resp)

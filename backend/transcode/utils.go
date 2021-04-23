@@ -40,6 +40,7 @@ func getRatio(res string, duration int, ClientID uint) {
 				lastPer = per
 				utils.UpdateUserMessage(fmt.Sprintf("Progress: %v %%", per), ClientID)
 				utils.UpdateAllUsersMessage(fmt.Sprintf("Progress: %v %%", per))
+				utils.DebugLog(fmt.Sprintf("==%v%%", per))
 			}
 			allRes = ""
 		}

@@ -263,6 +263,15 @@ func generateClientCmdLine(
 	if clientData.VideoCodec != "nochange" || clientData.VideoCodec == videoData.Videotrack[0].CodecName {
 		switch clientData.VideoCodec {
 
+		case "vp9":
+			vcode += fmt.Sprintf(
+				" -c:v:%[1]v libvpx-vp9 -b:v:%[1]v %[2]vk -metadata:s:v:%[1]v name=\"%[3]v\"",
+				clientData.StrID,
+				utils.Conf.VBW,
+				sourceFileName,
+			)
+			break
+
 		case "h264":
 			vcode += fmt.Sprintf(
 				" -c:v:%[1]v libx264 -profile:v:%[1]v main -b:v:%[1]v %[2]vk -metadata:s:v:%[1]v name=\"%[3]v\"",
@@ -292,20 +301,18 @@ func generateClientCmdLine(
 			if cAt.StreamID == sAt.Index {
 
 				channels := ""
-				bline := " -c:a:%[1]v libfdk_aac%[4]v -b:a:%[1]v %[2]vk -metadata language=%[3]v"
+				bline := "%[4]v -c:a:%[1]v libfdk_aac -b:a:%[1]v %[2]vk -metadata language=%[3]v"
 
 				// If frame rates changed do not map
-				if !(clientData.FrameRate != videoData.Videotrack[0].FrameRate) {
+				if !(clientData.FrameRate != videoData.Videotrack[0].FrameRate || crres != svtres) {
 					mapping += fmt.Sprintf(" -map 0:%v", cAt.StreamID)
 				}
 
 				// Change layout to stereo or mono
 				if cAt.Channels != sAt.Channels {
 					switch cAt.Channels {
-
 					case 2:
 						channels = " -ac 2"
-
 					case 1:
 						channels = " -ac 1"
 					default:
@@ -314,7 +321,7 @@ func generateClientCmdLine(
 				}
 
 				// Change audio codec to aac
-				if cAt.AtCodec != sAt.CodecName {
+				if cAt.Codec != sAt.CodecName {
 					acode += fmt.Sprintf(bline, cAt.StreamID, cAt.Channels*64, cAt.Language, channels)
 
 				} else {
