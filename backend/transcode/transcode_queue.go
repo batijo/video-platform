@@ -80,7 +80,7 @@ func startTranscoder(ED models.Encodedata) {
 			active = false
 			log.Panicln(err)
 		} else if newEdID < 0 {
-			log.Println("Stoping transcoder")
+			log.Println("Stopping transcoder")
 			break
 		}
 
