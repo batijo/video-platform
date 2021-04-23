@@ -45,10 +45,10 @@ const Upload = () => {
       <div className="flex-grow bg-white p-6 rounded-md">
         <div className={dropzoneStyle} {...getRootProps()}>
           <input {...getInputProps()} />
-          <div className="tems-center justify-center text-2xl p-4 mx-auto">
+          <div className="items-center justify-center text-2xl p-8 mx-auto font-mono uppercase">
             {isDragActive ?
               <p>Drop here</p> :
-              <p>Drag and drop your video here, or click to select manually</p>
+              <p>To upload a new video, drag and drop your video here, or click to select manually</p>
             }
           </div>
         </div>
@@ -59,8 +59,11 @@ const Upload = () => {
   return (
     <div className="flex flex-col flex-grow">
       <div className="flex flex-row justify-between items-center bg-white p-4 rounded-md mb-4">
-        <span className="font-bold text-3xl text-gray-700">Upload Video</span>
-        <Link className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" to="/transcode" >Transcode</Link>
+        <span className="font-bold text-3xl text-gray-700">Uploads</span>
+        <div>
+          <Link className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded" to="/queue">Queue</Link>
+          <Link className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded ml-3" to="/transcode" >Transcode</Link>
+        </div>
       </div>
       {uploadUI()}
     </div>

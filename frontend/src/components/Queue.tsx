@@ -1,7 +1,9 @@
 import React from 'react'
 
-const Queue = () => (
-  <></>
-)
+const Queue = () => {
+  return (
+    <></>
+  )
+}
 
 export default Queue
