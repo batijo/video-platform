@@ -60,8 +60,10 @@ func processVodFile(ED models.Encodedata) {
 			return
 		} else {
 			if err := utils.MoveFile(
-				utils.Conf.DD+ED.EncData.FileName,
-				utils.Conf.SD+ED.EncData.FileName); err != nil {
+				utils.Conf.DD+ED.Video.FileName,
+				utils.Conf.SD+utils.ReturnDifNameIfDublicate(ED.Video.FileName, utils.Conf.SD),
+			); err != nil {
+
 				log.Println(err)
 				utils.WLog("Error: moving file to source directory", clientID)
 				finished <- false
