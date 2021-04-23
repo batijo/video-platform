@@ -9,6 +9,8 @@ import Upload from './Upload'
 import Transcode from './Transcode'
 
 import { Video, initialVideo, initialEncode } from '../types/video'
+import { useAppDispatch, useAppSelector } from '../index'
+import { getVideoList } from '../store/video'
 
 const Container = ({ children }: React.PropsWithChildren<{}>) => (
   <div className="flex flex-1 min-w-full bg-gray-200">
@@ -19,14 +21,18 @@ const Container = ({ children }: React.PropsWithChildren<{}>) => (
 );
 
 const LandingVideos = () => {
-  const videos: Video[] = []
+  const dispatch = useAppDispatch()
 
-  for (let i = 1; i < 13; i++) {
-    let v = { ...initialVideo }
-    v.title = `Video about ${i}`
-    v.description = 'test_description'
-    videos.push(v)
-  }
+  dispatch(getVideoList())
+
+  const videos: Video[] = useAppSelector(state => state.video.videoList)
+
+  // for (let i = 1; i < 13; i++) {
+  //   let v = { ...initialVideo }
+  //   v.title = `Video about ${i}`
+  //   v.description = 'test_description'
+  //   videos.push(v)
+  // }
 
   return (
     <div className="flex-grow">
