@@ -101,7 +101,7 @@ COPY --from=build /usr/local/nginx /usr/local/nginx
 ENV PATH "${PATH}:/usr/local/nginx/sbin"
 COPY ./nginx.conf /usr/local/nginx/conf/nginx.conf.template
 RUN mkdir -p /opt/data && mkdir /www
-COPY ./static /www/static
+# COPY ./static /www/static
 
 EXPOSE 1935
 EXPOSE 80
