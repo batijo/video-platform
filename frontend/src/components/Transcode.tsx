@@ -5,6 +5,7 @@ import { getUserVideoList } from '../store/video'
 import { Video, Audio, Subtitle, Encode } from '../types/video'
 import APIResponse from '../types/response'
 import axios from 'axios'
+import { toSnakeCaseObj } from '../utils'
 
 const selectStyle = 'block w-full mt-1 rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0'
 
@@ -149,23 +150,23 @@ const Transcode = () => {
         videoCodec: videoCodec,
         width: Number(resolution.split(':')[0]),
         height: Number(resolution.split(':')[1]),
-        frameRate: Number(framerate),
+        frameRate: framerate === 'nochange' ? videoDetail.frameRate : Number(framerate),
         audioT: audioTracks,
         subtitleT: subtitleTracks
       }
 
-      encode.videoId = videoDetail.id
-      encode.fileName = videoDetail.fileName
-      encode.videoCodec = videoCodec
-      encode.width = Number(resolution.split(':')[0])
-      encode.height = Number(resolution.split(':')[1])
-      encode.frameRate = Number(framerate)
-      encode.audioT = audioTracks
-      encode.subtitleT = subtitleTracks
+      // encode.videoId = videoDetail.id
+      // encode.fileName = videoDetail.fileName
+      // encode.videoCodec = videoCodec
+      // encode.width = Number(resolution.split(':')[0])
+      // encode.height = Number(resolution.split(':')[1])
+      // encode.frameRate = Number(framerate)
+      // encode.audioT = audioTracks
+      // encode.subtitleT = subtitleTracks
 
       console.log(encode)
 
-      axios.post<APIResponse<{}>>(`${window.origin}/api/auth/transcode/${video}`, encode, { headers })
+      axios.post<APIResponse<{}>>(`${window.origin}/api/auth/transcode/${video}`, toSnakeCaseObj(encode), { headers })
         .then(response => {
           console.log(response.data)
         })

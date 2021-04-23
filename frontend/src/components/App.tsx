@@ -22,9 +22,7 @@ const Container = ({ children }: React.PropsWithChildren<{}>) => (
 
 const LandingVideos = () => {
   const dispatch = useAppDispatch()
-
-  dispatch(getVideoList())
-
+  React.useEffect(() => dispatch(getVideoList()), [])
   const videos: Video[] = useAppSelector(state => state.video.videoList)
 
   // for (let i = 1; i < 13; i++) {
