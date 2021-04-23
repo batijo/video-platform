@@ -11,7 +11,7 @@ import Transcode from './Transcode'
 import { Video, initialVideo, initialEncode } from '../types/video'
 import { useAppDispatch, useAppSelector } from '../index'
 import { getVideoList } from '../store/video'
-import Queue from './Queue'
+import VideoQueue from './Queue'
 
 const Container = ({ children }: React.PropsWithChildren<{}>) => (
   <div className="flex flex-1 min-w-full bg-gray-200">
@@ -83,7 +83,7 @@ const App = () => {
         <Route exact path="/settings"><Settings /></Route>
         <Route exact path="/upload"><Upload /></Route>
         <Route exact path="/transcode"><Transcode /></Route>
-        <Route exact path="/queue"><Queue /></Route>
+        <Route exact path="/queue"><VideoQueue /></Route>
         <Route path="/video/:id"><VideoDetail /></Route>
         <Route path="/user/:id"><Profile /></Route>
       </Container>

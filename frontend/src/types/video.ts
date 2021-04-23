@@ -62,6 +62,12 @@ export type Preset = {
   bitrate: string
 }
 
+export type Queue = {
+  position: number
+  videoTitle: string
+  owns: boolean
+}
+
 
 export const initialEncode: Encode = {
   id: 0,
