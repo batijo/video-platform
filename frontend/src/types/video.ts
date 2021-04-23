@@ -22,10 +22,10 @@ export type Video = {
 }
 
 export type Encode = {
-  id: number
-  createdAt: string
+  id?: number
+  createdAt?: string
   videoId: number
-  strId: number
+  strId?: number
   fileName: string
   videoCodec: string
   width: number
@@ -36,8 +36,8 @@ export type Encode = {
 }
 
 export type Audio = {
-  id: number
-  videoId: number
+  id?: number
+  videoId?: number
   streamId: number
   codec: string
   language: string
