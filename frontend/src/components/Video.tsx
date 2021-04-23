@@ -58,9 +58,11 @@ export const VideoList = ({ videos }: { videos: Video[] }) => {
         <div className="bg-white rounded-md" key={v.id}>
           <Link to={`/video/${v.id}`}>
             <div className="relative">
+              <div className="relative aspect-w-16 aspect-h-9">
+                <img className="rounded-t-md" src={thumbnail(v)} />
+              </div>
               <div className="absolute antialiased font-bold text-white top-2 right-2 bg-gray-800 px-2 rounded-md opacity-80">+</div>
               <div className="absolute text-white bottom-2 right-2 bg-gray-800 px-1 rounded-md opacity-80">{duration(v)}</div>
-              <img className="rounded-t-md" src={thumbnail(v)} />
             </div>
           </Link>
           <div className="p-4 flex flex-row justify-between">
