@@ -18,7 +18,8 @@ export type Video = {
   audioT: Array<Audio>
   subtitleT: Array<Subtitle>
   encData: Encode
-  resolutions?: string[]
+  resolutions?: string[],
+  duration: number
 }
 
 export type Encode = {
@@ -95,7 +96,8 @@ export const initialVideo: Video = {
   frameRate: 0.0,
   audioT: [],
   subtitleT: [],
-  encData: initialEncode
+  encData: initialEncode,
+  duration: 0.0
 }
 
 export const initialPreset: Preset = {

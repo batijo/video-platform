@@ -20,6 +20,10 @@ const url = (video: Video) => {
     return `http://localhost/hls/${video.fileName},.urlset/master.m3u8`
 }
 
+const duration = (video: Video) => {
+  return `${Math.floor(Math.floor(video.duration) / 60)}:${Math.floor(video.duration) % 60}`
+}
+
 export const VideoDetail = () => {
   const dispatch = useAppDispatch()
   const { id }: any = useParams()
@@ -55,7 +59,7 @@ export const VideoList = ({ videos }: { videos: Video[] }) => {
           <Link to={`/video/${v.id}`}>
             <div className="relative">
               <div className="absolute antialiased font-bold text-white top-2 right-2 bg-gray-800 px-2 rounded-md opacity-80">+</div>
-              <div className="absolute text-white bottom-2 right-2 bg-gray-800 px-1 rounded-md opacity-80">00:00</div>
+              <div className="absolute text-white bottom-2 right-2 bg-gray-800 px-1 rounded-md opacity-80">{duration(v)}</div>
               <img className="rounded-t-md" src={thumbnail(v)} />
             </div>
           </Link>

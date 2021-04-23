@@ -68,7 +68,8 @@ const App = () => {
     frameRate: 0.0,
     audioT: [],
     subtitleT: [],
-    encData: initialEncode
+    encData: initialEncode,
+    duration: 0.0
   }
 
   return (
@@ -81,7 +82,7 @@ const App = () => {
         <Route exact path="/settings"><Settings /></Route>
         <Route exact path="/upload"><Upload /></Route>
         <Route exact path="/transcode"><Transcode /></Route>
-        <Route path="/video/:id"><VideoDetail video={devitoVideo} /></Route>
+        <Route path="/video/:id"><VideoDetail /></Route>
         <Route path="/user/:id"><Profile /></Route>
       </Container>
       <Footer />
