@@ -23,6 +23,24 @@ export const toCamelCaseObj = (obj: any): any => {
   return obj
 }
 
+export const toSnakeCase = (str: string) => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
+
+export const toSnakeCaseObj = (obj: any) => {
+  for (let key in obj) {
+    let newKey = toSnakeCase(key)
+
+    Object.assign(obj, { [newKey]: obj[key] })[key]
+
+    if (typeof obj[newKey] === 'object') {
+      obj[newKey] = toSnakeCaseObj(obj[newKey])
+    }
+
+    if (key !== newKey) delete obj[key]
+  }
+
+  return obj
+}
+
 // SSE To Do ...
 export const sseProgress = (): any => {
   var source = new EventSource(`${window.origin}/api/sse/dashboard/`);
@@ -40,7 +58,7 @@ export const sseProgress = (): any => {
       log += '<span class="error">' + event.data + '</span><br>';
     } else if (/^[\s\S]*<br>.*?Progress:.*?<br>$/.test(log) && event.data.includes('Progress:')) {
       log = log.replace(/^([\s\S]*<br>)(.*?Progress:.*?)(<br>)$/, `$1${event.data}$3`);
-    } else if (event.data.indexOf('Transcoding coplete') > -1 || event.data.indexOf('Transcoding parameters saved') > -1) {
+    } else if (event.data.indexOf('Transcoding complete') > -1 || event.data.indexOf('Transcoding parameters saved') > -1) {
       currentmsg = event.data;
       log += currentmsg + '<br>';
     } else {
