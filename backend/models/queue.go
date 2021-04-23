@@ -29,8 +29,10 @@ func (q *Queue) Put(ED []Encodedata, userID uint) {
 }
 
 func getTile(v Video, userID uint) string {
-	if !v.Public || v.UserID != userID {
-		return "unknown"
+	if !v.Public {
+		if v.UserID != userID {
+			return "unknown"
+		}
 	}
 	return v.Title
 }

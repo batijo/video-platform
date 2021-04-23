@@ -58,6 +58,17 @@ func processVodFile(ED models.Encodedata) {
 			utils.WLog(fmt.Sprintf("Error: unkown video state: '%v'", ED.Video.State), clientID)
 			finished <- false
 			return
+		} else {
+			if err := utils.MoveFile(
+				utils.Conf.DD+ED.EncData.FileName,
+				utils.Conf.SD+ED.EncData.FileName); err != nil {
+				log.Println(err)
+				utils.WLog("Error: moving file to source directory", clientID)
+				finished <- false
+				return
+			} else {
+				ED.Video.State = "not_transcoded"
+			}
 		}
 	}
 
