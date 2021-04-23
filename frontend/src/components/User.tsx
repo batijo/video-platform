@@ -10,9 +10,9 @@ import { getUser } from '../store/user'
 export const Profile = () => {
   const { id }: any = useParams()
   const dispatch = useAppDispatch()
-  const user: User = useAppSelector(state => state.users.user)
 
-  dispatch(getUser(id))
+  React.useEffect(() => dispatch(getUser(id)), [])
+  const user: User = useAppSelector(state => state.users.user)
 
   let videos: Video[] = new Array(8).fill(initialVideo)
   return (

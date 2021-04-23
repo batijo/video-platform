@@ -1,23 +1,43 @@
 import React from 'react'
-import thumbnail from 'url:../thumbnail.jpg'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import ReactPlayer from 'react-player'
 
 import Video from '../types/video'
-import video from '../store/video'
+import { getVideo } from '../store/video'
+import { useAppDispatch, useAppSelector } from '../index'
 
-export const VideoDetail = ({ video }: { video: Video }) => {
+const thumbnail = (video: Video) => {
+  if (video.resolutions !== null && video.resolutions !== undefined)
+    return `http://localhost/thumb/${video.fileName}${video.resolutions[0]}.mp4/thumb-5000.jpg`
+  else
+    return `http://localhost/thumb/${video.fileName}/thumb-5000.jpg`
+}
+
+const url = (video: Video) => {
+  if (video.resolutions !== null && video.resolutions !== undefined)
+    return `http://localhost/hls/${video.fileName},${video.resolutions.join('.mp4,')}.mp4,.urlset/master.m3u8`
+  else
+    return `http://localhost/hls/${video.fileName},.urlset/master.m3u8`
+}
+
+export const VideoDetail = () => {
+  const dispatch = useAppDispatch()
+  const { id }: any = useParams()
+
+  React.useEffect(() => dispatch(getVideo(id)), [])
+  const video = useAppSelector<Video>(state => state.video.video)
+
   return (
     <div className="flex-grow">
       <div className="bg-white p-4 rounded-md mb-4">
-        <p className="font-bold text-3xl text-gray-700">{video.title}</p>
+        <p className="font-bold text-3xl text-gray-700">{video.fileName}</p>
       </div>
       <div className="aspect-w-16 aspect-h-9">
         <ReactPlayer
           width='100%'
           height='100%'
-          light={`http://localhost/thumb/${video.fileName}720p.mp4/thumb-5000.jpg`}
-          url={`http://localhost/hls/${video.fileName},360p.mp4,480p.mp4,720p.mp4,.en_US.vtt,.urlset/master.m3u8`}
+          // light={thumbnail(video)}
+          url={url(video)}
           controls
         />
       </div>
@@ -36,7 +56,7 @@ export const VideoList = ({ videos }: { videos: Video[] }) => {
             <div className="relative">
               <div className="absolute antialiased font-bold text-white top-2 right-2 bg-gray-800 px-2 rounded-md opacity-80">+</div>
               <div className="absolute text-white bottom-2 right-2 bg-gray-800 px-1 rounded-md opacity-80">00:00</div>
-              <img className="rounded-t-md" src={thumbnail} />
+              <img className="rounded-t-md" src={thumbnail(v)} />
             </div>
           </Link>
           <div className="p-4 flex flex-row justify-between">

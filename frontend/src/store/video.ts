@@ -29,7 +29,7 @@ export const getVideo = (id: number): AppThunk => async (dispatch: AppDispatch, 
 
   axios.get<APIResponse<Video>>(`${window.origin}/api/auth/video/${id}`, { headers })
     .then(response => {
-      dispatch(videoSlice.actions.videoDetail(response.data.data))
+      dispatch(videoSlice.actions.videoDetail(toCamelCaseObj(response.data.data)))
     })
 }
 
