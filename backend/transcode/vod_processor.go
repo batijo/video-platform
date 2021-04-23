@@ -299,7 +299,9 @@ func processVodFile(ED models.Encodedata) {
 		log.Println(err)
 		utils.WLog("Error: transcoder failed", clientID)
 		log.Printf("Error cmd line: %v", cmd)
-		//log.Println(allRes)
+		log.Println("==================================FFMPEG_OUTPUT====================================")
+		log.Println(allRes)
+		log.Println("==================================FFMPEG_OUTPUT====================================")
 		removeVideo(path[ED.Video.State]+data.FileName, vidId, clientID)
 		finished <- false
 		return

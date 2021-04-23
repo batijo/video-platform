@@ -231,13 +231,23 @@ func generateClientCmdLine(
 
 		// Change frame rate
 		if clientData.FrameRate != videoData.Videotrack[0].FrameRate {
-			maps = "-map [v] -map [a]"
+			maps = "-map [v]"
+			if len(clientData.AudioT) > 0 {
+				maps += " -map [a]"
+			}
+
 			fps = fmt.Sprintf(" -r %v", clientData.FrameRate)
 			var bline string
 			if vpipe == "scaled" {
-				bline = ";[%[3]v]setpts=%[2]v/%[1]v*PTS[v];[0:a]atempo=%[1]v/%[2]v[a]"
+				bline = ";[%[3]v]setpts=%[2]v/%[1]v*PTS[v]"
+				if len(clientData.AudioT) > 0 {
+					bline += ";[0:a]atempo=%[1]v/%[2]v[a]"
+				}
 			} else {
-				bline = "[%[3]v]setpts=%[2]v/%[1]v*PTS[v];[0:a]atempo=%[1]v/%[2]v[a]"
+				bline = "[%[3]v]setpts=%[2]v/%[1]v*PTS[v]"
+				if len(clientData.AudioT) > 0 {
+					bline += ";[0:a]atempo=%[1]v/%[2]v[a]"
+				}
 			}
 			filterComplex += fmt.Sprintf(bline, clientData.FrameRate, videoData.Videotrack[0].FrameRate, vpipe)
 

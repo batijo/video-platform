@@ -50,6 +50,9 @@ export const VideoDetail = () => {
 }
 
 export const VideoList = ({ videos }: { videos: Video[] }) => {
+  if (videos === null) {
+    return <div />
+  }
   const fVideos: Video[] = [...videos].filter(v => v.state === 'transcoded')
 
   return (
