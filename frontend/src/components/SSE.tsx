@@ -15,7 +15,7 @@ const SSE = () => {
   }, [])
 
   return (
-    <div className="bg-gray-700 text-white p-4 rounded-md font-mono max-h-64 overflow-x-auto">
+    <div className="flex-grow max-h-96 bg-gray-700 text-white p-4 rounded-md font-mono overflow-x-auto">
       {data.map(line =>
         <span className="block">{line}</span>
       )}

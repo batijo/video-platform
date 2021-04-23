@@ -6,6 +6,7 @@ import { Video, Audio, Subtitle, Encode } from '../types/video'
 import APIResponse from '../types/response'
 import axios from 'axios'
 import { toSnakeCaseObj } from '../utils'
+import SSE from './SSE'
 
 const selectStyle = 'block w-full mt-1 rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0'
 
@@ -129,6 +130,7 @@ const Transcode = () => {
   const videoList: Video[] = useAppSelector(state => state.video.userVideoList)
   React.useEffect(() => dispatch(getUserVideoList(user.user_id)), [])
 
+  const [isTranscoding, setIsTranscoding] = React.useState(false)
   const [video, setVideo] = React.useState('none')
   const [videoCodec, setVideoCodec] = React.useState('nochange')
   const [audioCodec, setAudioCodec] = React.useState('nochange')
@@ -139,11 +141,13 @@ const Transcode = () => {
 
   const handleSubmit = (e: any) => {
     e.preventDefault()
-
     let headers = { 'Authorization': `Bearer ${token}` }
 
     if (manual) {
+      setIsTranscoding(true)
+
       let videoDetail: Video = videoList.filter(v => String(v.id) === video)[0]
+
       let encode: Encode = {
         videoId: videoDetail.id,
         fileName: videoDetail.fileName,
@@ -155,23 +159,12 @@ const Transcode = () => {
         subtitleT: subtitleTracks
       }
 
-      // encode.videoId = videoDetail.id
-      // encode.fileName = videoDetail.fileName
-      // encode.videoCodec = videoCodec
-      // encode.width = Number(resolution.split(':')[0])
-      // encode.height = Number(resolution.split(':')[1])
-      // encode.frameRate = Number(framerate)
-      // encode.audioT = audioTracks
-      // encode.subtitleT = subtitleTracks
-
-      console.log(encode)
-
       axios.post<APIResponse<{}>>(`${window.origin}/api/auth/transcode/${video}`, toSnakeCaseObj(encode), { headers })
         .then(response => {
           console.log(response.data)
         })
     } else {
-      console.log('no')
+      console.log('TODO: Transcoding with Presets frontend')
     }
   }
 
@@ -260,52 +253,56 @@ const Transcode = () => {
           <input onClick={handleManual} checked={manual} className={`form-checkbox rounded bg-gray-200 border-transparent focus:border-transparent text-gray-700 focus:ring-1 focus:ring-offset-2 focus:ring-gray-500 p-3`} type="checkbox" name="preset-mode" />
         </div>
       </div>
-      <div className=" bg-white p-6 rounded-md">
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-4 text-lg">
-            <div className="col-span-2">
-              <label htmlFor="video-select">Select Video</label>
-              <select
-                className={`form-select ${selectStyle}`} name="video-select" defaultValue="none"
-                onChange={e => setVideo(e.target.value)} value={video}
-              >
-                <option value="none">---</option>
-                {videoList.map(video =>
-                  <option key={video.id} value={video.id}>{video.fileName}</option>
-                )}
-              </select>
-            </div>
-            {presetUI()}
-            <div>
-              <label htmlFor="audio-tracks">Audio Tracks</label>
-              <select className={`form-multiselect ${selectStyle}`} multiple name="audio-tracks">
-                <option>---</option>
-                <option>---</option>
-                <option>---</option>
-                <option>---</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="audio-tracks">Subtitle Tracks</label>
-              <select className={`form-multiselect ${selectStyle}`} multiple name="audio-tracks">
-                <option>---</option>
-                <option>---</option>
-                <option>---</option>
-                <option>---</option>
-              </select>
-            </div>
-            <div>
-              <button
-                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-                type="submit" disabled={video === 'none' ? true : false}
-              >
-                Begin Transcoding
+
+      {isTranscoding ?
+        <SSE /> :
+        <div className="bg-white p-6 rounded-md">
+          <form onSubmit={handleSubmit}>
+            <div className="grid grid-cols-2 gap-4 text-lg">
+              <div className="col-span-2">
+                <label htmlFor="video-select">Select Video</label>
+                <select
+                  className={`form-select ${selectStyle}`} name="video-select" defaultValue="none"
+                  onChange={e => setVideo(e.target.value)} value={video}
+                >
+                  <option value="none">---</option>
+                  {videoList.map(video =>
+                    <option key={video.id} value={video.id}>{video.fileName}</option>
+                  )}
+                </select>
+              </div>
+              {presetUI()}
+              <div>
+                <label htmlFor="audio-tracks">Audio Tracks</label>
+                <select className={`form-multiselect ${selectStyle}`} multiple name="audio-tracks">
+                  <option>---</option>
+                  <option>---</option>
+                  <option>---</option>
+                  <option>---</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="audio-tracks">Subtitle Tracks</label>
+                <select className={`form-multiselect ${selectStyle}`} multiple name="audio-tracks">
+                  <option>---</option>
+                  <option>---</option>
+                  <option>---</option>
+                  <option>---</option>
+                </select>
+              </div>
+              <div>
+                <button
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+                  type="submit" disabled={video === 'none' ? true : false}
+                >
+                  Begin Transcoding
               </button>
+              </div>
             </div>
-          </div>
-        </form>
-      </div>
-    </div >
+          </form>
+        </div>
+      }
+    </div>
   )
 }
 

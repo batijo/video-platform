@@ -42,13 +42,15 @@ const Upload = () => {
   const uploadUI = () => {
     if (isUploading) return <SSE />
     else return (
-      <div className={dropzoneStyle} {...getRootProps()}>
-        <input {...getInputProps()} />
-        <div className="tems-center justify-center text-2xl p-4 mx-auto">
-          {isDragActive ?
-            <p>Drop here</p> :
-            <p>Drag and drop your video here, or click to select manually</p>
-          }
+      <div className="flex-grow bg-white p-6 rounded-md">
+        <div className={dropzoneStyle} {...getRootProps()}>
+          <input {...getInputProps()} />
+          <div className="tems-center justify-center text-2xl p-4 mx-auto">
+            {isDragActive ?
+              <p>Drop here</p> :
+              <p>Drag and drop your video here, or click to select manually</p>
+            }
+          </div>
         </div>
       </div>
     )
@@ -56,32 +58,11 @@ const Upload = () => {
 
   return (
     <div className="flex flex-col flex-grow">
-      <div className="bg-white p-4 rounded-md mb-4">
-        <p className="font-bold text-3xl text-gray-700">Upload Video</p>
-        <Link to="/transcode">Transcode</Link>
+      <div className="flex flex-row justify-between items-center bg-white p-4 rounded-md mb-4">
+        <span className="font-bold text-3xl text-gray-700">Upload Video</span>
+        <Link className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" to="/transcode" >Transcode</Link>
       </div>
-      <div className="flex-grow bg-white p-6 rounded-md">
-        {uploadUI()}
-        {/* {isUploaded ?
-          <div>
-            <p>
-              Uploaded<br />
-              {videoData.title}<br />
-              {videoData.videoCodec}<br />
-              {videoData.width}x{videoData.height}
-            </p>
-          </div> :
-          <div className={dropzoneStyle} {...getRootProps()}>
-            <input {...getInputProps()} />
-            <div className="tems-center justify-center text-2xl p-4 mx-auto">
-              {isDragActive ?
-                <p>Drop here</p> :
-                <p>Drag and drop your video here, or click to select manually</p>
-              }
-            </div>
-          </div>
-        } */}
-      </div>
+      {uploadUI()}
     </div>
   )
 }
