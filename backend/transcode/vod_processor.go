@@ -59,9 +59,11 @@ func processVodFile(ED models.Encodedata) {
 			finished <- false
 			return
 		} else {
+			oldName := ED.Video.FileName
+			ED.Video.FileName = utils.ReturnDifNameIfDublicate(ED.Video.FileName, utils.Conf.SD)
 			if err := utils.MoveFile(
-				utils.Conf.DD+ED.Video.FileName,
-				utils.Conf.SD+utils.ReturnDifNameIfDublicate(ED.Video.FileName, utils.Conf.SD),
+				utils.Conf.DD+oldName,
+				utils.Conf.SD+ED.Video.FileName,
 			); err != nil {
 
 				log.Println(err)

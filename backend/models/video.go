@@ -55,7 +55,7 @@ type Audio struct {
 	StrID   uint `gorm:"DEFAULT:NULL" json:"str_id"`
 
 	StreamID int    `json:"stream_id"`
-	AtCodec  string `json:"at_codec"`
+	Codec    string `json:"codec"`
 	Language string `json:"language"`
 	Channels int    `json:"channels"`
 }
@@ -121,7 +121,7 @@ func (v *Video) ParseWithPreset(vp, ap Preset, frameRate float64, vtID, atID int
 
 	at := Audio{
 		StreamID: atID,
-		AtCodec:  ap.Codec,
+		Codec:    ap.Codec,
 		Language: atLang,
 	}
 	v.AudioT = append(v.AudioT, at)
@@ -140,7 +140,7 @@ func (v *Video) ParseWithVidinfo(i Vidinfo) {
 	for _, t := range i.Audiotrack {
 		var at Audio
 		at.StreamID = t.Index
-		at.AtCodec = t.CodecName
+		at.Codec = t.CodecName
 		at.Language = t.Language
 		at.Channels = t.Channels
 		v.AudioT = append(v.AudioT, at)

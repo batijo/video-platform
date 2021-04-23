@@ -321,7 +321,7 @@ func generateClientCmdLine(
 				}
 
 				// Change audio codec to aac
-				if cAt.AtCodec != sAt.CodecName {
+				if cAt.Codec != sAt.CodecName {
 					acode += fmt.Sprintf(bline, cAt.StreamID, cAt.Channels*64, cAt.Language, channels)
 
 				} else {

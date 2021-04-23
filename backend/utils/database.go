@@ -124,7 +124,7 @@ func InsertVideo(vidinfo models.Vidinfo, state string, userID uint, streamID int
 	for _, a := range vidinfo.Audiotrack {
 		at := models.Audio{
 			StreamID: a.Index,
-			AtCodec:  a.CodecName,
+			Codec:    a.CodecName,
 			Language: a.Language,
 			Channels: a.Channels,
 		}
