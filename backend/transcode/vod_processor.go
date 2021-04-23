@@ -353,7 +353,7 @@ func processVodFile(ED models.Encodedata) {
 
 			utils.WLog(
 				fmt.Sprintf(
-					"Transcoding coplete, stream name: %v",
+					"Transcoding complete, stream name: %v",
 					sourceFileNameWithoutExt),
 				clientID)
 
