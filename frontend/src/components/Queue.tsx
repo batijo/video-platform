@@ -5,8 +5,14 @@ import { Queue } from '../types/video'
 
 const VideoQueue = () => {
   const dispatch = useAppDispatch()
-  React.useEffect(() => dispatch(getVideoQueue()), [])
-  const queue: Queue[] = useAppSelector(state => state.video.videoQueue) ?? []
+
+  React.useEffect(() => {
+    dispatch(getVideoQueue())
+    const interval = setInterval(() => dispatch(getVideoQueue()), 2000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const queue: Queue[] = useAppSelector<Queue[]>(state => state.video.videoQueue)
 
   return (
     <div className="flex flex-col flex-grow">
@@ -17,8 +23,8 @@ const VideoQueue = () => {
         {queue.length < 1 &&
           <div className="lg:col-span-2 justify-between items-center bg-white rounded-md p-4">The Queue is currently empty.</div>
         }
-        {queue.map((v, i) =>
-          <div className="flex flex-row justify-between items-center bg-white rounded-md p-4">
+        {queue && queue.map((v, i) =>
+          <div className="flex flex-row justify-between items-center bg-white rounded-md p-4" key={v.position}>
             <span className="bg-gray-500 text-white px-3 py-1 rounded-md font-semibold">{v.position}</span>
             <span>{v.videoTitle ?? ''}</span>
           </div>

@@ -22,7 +22,7 @@ export const videoSlice = createSlice({
     videoDetail: (state, action: PayloadAction<Video>) => { state.video = action.payload },
     videoList: (state, action: PayloadAction<Video[]>) => { state.videoList = action.payload },
     userVideoList: (state, action: PayloadAction<Video[]>) => { state.userVideoList = action.payload },
-    videoQueue: (state, action: PayloadAction<Queue[]>) => { state.videoQueue = action.payload }
+    videoQueue: (state, action: PayloadAction<any>) => { state.videoQueue = action.payload.elements ?? [] }
   }
 })
 
@@ -60,7 +60,7 @@ export const getVideoQueue = (): AppThunk => async (dispatch: AppDispatch, getSt
   let token = getState().auth.token
   let headers = { 'Authorization': `Bearer ${token}` }
 
-  axios.get<APIResponse<Queue[]>>(`${window.origin}/api/auth/queue`, { headers })
+  axios.get<APIResponse<any>>(`${window.origin}/api/auth/queue`, { headers })
     .then(response => {
       dispatch(videoSlice.actions.videoQueue(toCamelCaseObj(response.data.data)))
     })
