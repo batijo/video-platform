@@ -166,6 +166,7 @@ const Transcode = () => {
         width: Number(resolution.split(':')[0]),
         height: Number(resolution.split(':')[1]),
         frameRate: framerate === 'nochange' ? videoDetail.frameRate : Number(framerate),
+        // TODO: filter chosen tracks
         audioT: audioTracks,
         subtitleT: subtitleTracks
       }
