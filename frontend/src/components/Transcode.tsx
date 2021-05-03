@@ -139,6 +139,17 @@ const Transcode = () => {
   const [audioTracks, setAudioTracks] = React.useState<Audio[]>([])
   const [subtitleTracks, setSubtitleTracks] = React.useState<Subtitle[]>([])
 
+  const handleVideo = (id: string) => {
+    setVideo(id.toString())
+
+    videoList.map(v => {
+      if (v.id === parseInt(video)) {
+        setAudioTracks(v.audioT)
+        setSubtitleTracks(v.subtitleT)
+      }
+    })
+  }
+
   const handleSubmit = (e: any) => {
     e.preventDefault()
     let headers = { 'Authorization': `Bearer ${token}` }
@@ -248,10 +259,10 @@ const Transcode = () => {
       <div className="flex flex-row bg-white p-4 rounded-md mb-4 items-center justify-between">
         <p className="font-bold text-3xl text-gray-700">Transcode Video</p>
 
-        <div className="flex items-center">
+        {/* <div className="flex items-center">
           <label className="pr-4 text-lg" htmlFor="preset-mode">Manual Presets?</label>
           <input onClick={handleManual} checked={manual} className={`form-checkbox rounded bg-gray-200 border-transparent focus:border-transparent text-gray-700 focus:ring-1 focus:ring-offset-2 focus:ring-gray-500 p-3`} type="checkbox" name="preset-mode" />
-        </div>
+        </div> */}
       </div>
 
       {isTranscoding ?
@@ -263,7 +274,7 @@ const Transcode = () => {
                 <label htmlFor="video-select">Select Video</label>
                 <select
                   className={`form-select ${selectStyle}`} name="video-select" defaultValue="none"
-                  onChange={e => setVideo(e.target.value)} value={video}
+                  onChange={e => handleVideo(e.target.value)} value={video}
                 >
                   <option value="none">---</option>
                   {videoList.map(video =>
@@ -275,19 +286,15 @@ const Transcode = () => {
               <div>
                 <label htmlFor="audio-tracks">Audio Tracks</label>
                 <select className={`form-multiselect ${selectStyle}`} multiple name="audio-tracks">
-                  <option>---</option>
-                  <option>---</option>
-                  <option>---</option>
-                  <option>---</option>
+                  <option disabled>---</option>
+                  {audioTracks.map(t => <option value={t.id} key={t.id}>Track {t.id} - {t.language}</option>)}
                 </select>
               </div>
               <div>
-                <label htmlFor="audio-tracks">Subtitle Tracks</label>
-                <select className={`form-multiselect ${selectStyle}`} multiple name="audio-tracks">
-                  <option>---</option>
-                  <option>---</option>
-                  <option>---</option>
-                  <option>---</option>
+                <label htmlFor="subtitle-tracks">Subtitle Tracks</label>
+                <select className={`form-multiselect ${selectStyle}`} multiple name="subtitle-tracks">
+                  <option disabled>---</option>
+                  {subtitleTracks.map(t => <option value={t.id} key={t.id}>Track {t.id} - {t.language}</option>)}
                 </select>
               </div>
               <div>

@@ -37,8 +37,8 @@ export type Encode = {
 }
 
 export type Audio = {
-  id?: number
-  videoId?: number
+  id: number
+  videoId: number
   streamId: number
   codec: string
   language: string
