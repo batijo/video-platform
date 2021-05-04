@@ -19,7 +19,11 @@ export const Login = () => {
 
   const loginResponse = useAppSelector(state => state.auth.login)
   const token = useAppSelector(state => state.auth.token)
-  React.useEffect(() => dispatch(resetLogin()), [])
+
+  React.useEffect(() => {
+    dispatch(resetLogin())
+    if (token !== '') history.push('/')
+  }, [token])
 
   const handleSubmit = (e: any) => {
     e.preventDefault()
@@ -84,9 +88,6 @@ export const Register = () => {
   const [name, setName] = React.useState('')
   const [lastname, setLastname] = React.useState('')
 
-  const [message, setMessage] = React.useState('')
-  const [messageColor, setMessageColor] = React.useState('bg-blue-500')
-
   const handleUsername = (e: { target: HTMLInputElement }) => setUsername(e.target.value)
   const handleEmail = (e: { target: HTMLInputElement }) => setEmail(e.target.value)
   const handlePassword = (e: { target: HTMLInputElement }) => setPassword(e.target.value)
@@ -95,7 +96,11 @@ export const Register = () => {
   const handleLastname = (e: { target: HTMLInputElement }) => setLastname(e.target.value)
 
   const registerResponse = useAppSelector((state) => state.auth.register)
+
   React.useEffect(() => dispatch(resetRegister()), [])
+  React.useEffect(() => {
+    if (registerResponse.status === true) history.push('/')
+  }, [registerResponse])
 
   const handleSubmit = (e: any) => {
     e.preventDefault()
@@ -114,10 +119,6 @@ export const Register = () => {
     }
 
     dispatch(register(credentials))
-    setMessage(registerResponse.message)
-
-    if (registerResponse.status === true) setMessageColor('bg-blue-500')
-    else setMessageColor('bg-red-500')
 
     setUsername('')
     setEmail('')
@@ -125,7 +126,6 @@ export const Register = () => {
     setPasswordRepeat('')
     setName('')
     setLastname('')
-
     dispatch(resetRegister())
 
     if (registerResponse.status === true) history.push('/login')
@@ -140,9 +140,9 @@ export const Register = () => {
         <div className="mb-4">
           <form onSubmit={handleSubmit}>
             <div className="p-6 grid grid-cols-2 gap-x-8 gap-y-4">
-              {message !== '' &&
-                <div className={`${messageColor} col-span-2 p-4 rounded text-white`}>
-                  {message}
+              {registerResponse.message !== '' &&
+                <div className={`${registerResponse.status ? 'bg-blue-500' : 'bg-red-500'} col-span-2 p-4 rounded text-white`}>
+                  {registerResponse.message}
                 </div>
               }
               <div>
