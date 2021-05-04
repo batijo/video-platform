@@ -39,7 +39,7 @@ func ReturnQueue(w http.ResponseWriter, r *http.Request) {
 
 	queue.Put(ed, userId)
 
-	resp := models.Response{Status: true, Message: "Success", Data: queue}
+	resp := models.Response{Status: true, Message: "Success", Data: queue.Elements}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)
 }
