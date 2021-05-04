@@ -1,5 +1,6 @@
 import React from 'react'
-import { Route } from 'react-router-dom'
+import { Route, useHistory } from 'react-router-dom'
+
 
 import { Login, Register } from './Auth'
 import { VideoDetail, VideoList } from './Video'
@@ -23,15 +24,15 @@ const Container = ({ children }: React.PropsWithChildren<{}>) => (
 
 const LandingVideos = () => {
   const dispatch = useAppDispatch()
-  React.useEffect(() => dispatch(getVideoList()), [])
-  const videos: Video[] = useAppSelector(state => state.video.videoList)
+  const history = useHistory()
 
-  // for (let i = 1; i < 13; i++) {
-  //   let v = { ...initialVideo }
-  //   v.title = `Video about ${i}`
-  //   v.description = 'test_description'
-  //   videos.push(v)
-  // }
+  const videos: Video[] = useAppSelector(state => state.video.videoList)
+  const token = useAppSelector(state => state.auth.token)
+
+  React.useEffect(() => dispatch(getVideoList()), [])
+  React.useEffect(() => {
+    if (token === '') history.push('/login')
+  }, [token])
 
   return (
     <div className="flex-grow">
