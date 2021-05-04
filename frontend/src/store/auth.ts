@@ -28,13 +28,13 @@ export const authSlice = createSlice({
   },
   reducers: {
     register: (state, action: PayloadAction<APIResponse<{}>>) => { state.register = action.payload },
-    resetRegister: (state) => { state.register = initialRegister },
+    resetRegister: (state) => { state.register = { ...initialRegister } },
     login: (state, action: PayloadAction<APIResponse<string>>) => {
       state.login = action.payload
       if (action.payload.data !== null && action.payload.data !== undefined) state.token = action.payload.data
     },
     logout: (state) => { state.token = '' },
-    resetLogin: (state) => { state.login = initialLogin }
+    resetLogin: (state) => { state.login = { ...initialLogin } }
   }
 })
 

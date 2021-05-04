@@ -14,13 +14,12 @@ export const Login = () => {
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
 
-  const [message, setMessage] = React.useState('')
-  const [messageColor, setMessageColor] = React.useState('bg-blue-500')
-
   const handleEmail = (e: { target: HTMLInputElement }) => setEmail(e.target.value)
   const handlePassword = (e: { target: HTMLInputElement }) => setPassword(e.target.value)
 
   const loginResponse = useAppSelector(state => state.auth.login)
+  const token = useAppSelector(state => state.auth.token)
+  React.useEffect(() => dispatch(resetLogin()), [])
 
   const handleSubmit = (e: any) => {
     e.preventDefault()
@@ -31,16 +30,12 @@ export const Login = () => {
     }
 
     dispatch(login(credentials))
-    setMessage(loginResponse.message)
-
-    if (loginResponse.status === true) setMessageColor('bg-blue-500')
-    else setMessageColor('bg-red-500')
 
     setEmail('')
     setPassword('')
     dispatch(resetLogin())
 
-    if (loginResponse.status === true) history.push("/")
+    if (token !== '') history.push('/')
   }
 
   return (
@@ -52,9 +47,9 @@ export const Login = () => {
         <div className="mb-4">
           <form onSubmit={handleSubmit}>
             <div className="p-6 grid grid-cols-2 gap-x-8 gap-y-4">
-              {message !== '' &&
-                <div className={`${messageColor} col-span-2 p-4 rounded text-white`}>
-                  {message}
+              {loginResponse.message !== '' &&
+                <div className={`${loginResponse.status ? 'bg-blue-500' : 'bg-red-500'} col-span-2 p-4 rounded text-white`}>
+                  {loginResponse.message}
                 </div>
               }
               <div>
@@ -100,6 +95,7 @@ export const Register = () => {
   const handleLastname = (e: { target: HTMLInputElement }) => setLastname(e.target.value)
 
   const registerResponse = useAppSelector((state) => state.auth.register)
+  React.useEffect(() => dispatch(resetRegister()), [])
 
   const handleSubmit = (e: any) => {
     e.preventDefault()
