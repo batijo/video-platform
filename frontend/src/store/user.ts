@@ -21,8 +21,7 @@ export const userSlice = createSlice({
 })
 
 export const getUser = (id: number): AppThunk => async (dispatch: AppDispatch, getState) => {
-  let token = getState().auth.token
-  let headers = { 'Authorization': `Bearer ${token}` }
+  let headers = { 'Authorization': `Bearer ${getState().auth.token}` }
 
   axios.get<APIResponse<User>>(`${window.origin}/api/auth/user/${id}`, { headers })
     .then(response => {
@@ -37,6 +36,17 @@ export const getUsers = (): AppThunk => async (dispatch: AppDispatch, getState) 
     .then(response => {
       dispatch(userSlice.actions.userList(toCamelCaseObj(response.data.data)))
     })
+}
+
+export const editProfile = (id: number, user: any): AppThunk => async (dispatch: AppDispatch, getState) => {
+  let headers = { 'Authorization': `Bearer ${getState().auth.token}`, 'Content-Type': 'application/json' }
+
+  axios({
+    method: 'post',
+    url: `${window.origin}/api/auth/user/update/${id}`,
+    headers,
+    data: user
+  })
 }
 
 export default userSlice.reducer

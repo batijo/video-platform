@@ -194,8 +194,9 @@ func serializeUsers(users *[]models.User, full bool, userID uint) {
 // UpdateUser ...
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var (
-		user models.User
-		id   = mux.Vars(r)["id"]
+		user    models.User
+		oldPass string
+		id      = mux.Vars(r)["id"]
 	)
 
 	userId, admin, err := utils.GetUserID(r)
@@ -213,6 +214,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(resp)
 		return
 	}
+	oldPass = user.Password
 
 	switch true {
 	case userId == user.ID:
@@ -243,7 +245,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create new hash if pasword is changed
-	if user.Password != "" {
+	if user.Password != oldPass {
 		pass, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 		if err != nil {
 			resp := models.Response{Status: false, Message: "Password Encryption failed", Error: err.Error()}
