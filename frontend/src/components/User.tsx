@@ -4,23 +4,34 @@ import { VideoList } from './Video'
 import { Video, initialVideo } from '../types/video'
 import { User } from '../types/user'
 import { useAppDispatch, useAppSelector } from '../index'
-import { getUser } from '../store/user'
+import { getUser, editProfile } from '../store/user'
 import { getUserVideoList } from '../store/video'
-
-
 
 export const Profile = () => {
   const { id }: any = useParams()
   const dispatch = useAppDispatch()
+
+  const user: User = useAppSelector(state => state.users.user)
+  const videos: Video[] = useAppSelector(state => state.video.userVideoList)
+  const token = useAppSelector(state => state.auth.token)
+
+  const [isPublic, setIsPublic] = React.useState(user.public)
+  const [isEdit, setIsEdit] = React.useState(false)
 
   React.useEffect(() => {
     dispatch(getUser(id))
     dispatch(getUserVideoList(id))
   }, [])
 
-  const user: User = useAppSelector(state => state.users.user)
-  const videos: Video[] = useAppSelector(state => state.video.userVideoList)
-  const token = useAppSelector(state => state.auth.token)
+  React.useEffect(() => {
+    dispatch(getUser(id))
+    dispatch(getUserVideoList(id))
+    setName(user.name)
+    setLastname(user.lastname)
+  }, [isEdit])
+
+  const [name, setName] = React.useState(user.name)
+  const [lastname, setLastname] = React.useState(user.lastname)
 
   let tokenInfo = {
     user_id: '',
@@ -32,13 +43,11 @@ export const Profile = () => {
   if (token !== '') tokenInfo = JSON.parse(atob(token.split('.')[1]))
 
   const handleEdit = () => {
+    const newUserProfile = { name, lastname, public: isPublic }
 
+    dispatch(editProfile(user.id, newUserProfile))
+    setIsEdit(!isEdit)
   }
-
-  const [name, setName] = React.useState(user.name ?? 'unspecified')
-  const [lastname, setLastname] = React.useState(user.lastname ?? 'unspecified')
-  const [isPublic, setIsPublic] = React.useState(user.public)
-  const [isEdit, setIsEdit] = React.useState(false)
 
   const inputStyleConst = 'form-input mt-1 block w-full rounded-md border-transparent focus:border-gray-500 focus:bg-white focus:ring-0'
   const inputStyle = `${inputStyleConst} ${!isEdit ? 'bg-white' : 'bg-gray-100'}`
@@ -61,11 +70,11 @@ export const Profile = () => {
           </div>
           <div className="flex flex-row justify-between items-center">
             <label className="pr-4" htmlFor="name" >Name:</label>
-            <input className={inputStyle} disabled={!isEdit} value={name}></input>
+            <input className={inputStyle} disabled={!isEdit} value={name} onChange={e => setName(e.target.value)}></input>
           </div>
           <div className="flex flex-row justify-between items-center">
             <label className="pr-4" htmlFor="lastname">Lastname:</label>
-            <input className={inputStyle} disabled={!isEdit} value={lastname}></input>
+            <input className={inputStyle} disabled={!isEdit} value={lastname} onChange={e => setLastname(e.target.value)}></input>
           </div>
           <div className="flex flex-row justify-between items-center">
             <label className="pr-4" htmlFor="lastname">Public:</label>
@@ -73,7 +82,7 @@ export const Profile = () => {
           </div>
           <div className="flex flex-row justify-between items-center">
             <label htmlFor="lastname" className="pr-4">Admin:</label>
-            <input checked={user.admin} className="form-checkbox rounded bg-gray-200 border-transparent focus:border-transparent text-gray-700 focus:ring-1 focus:ring-offset-2 focus:ring-gray-500 p-3" type="checkbox" name="preset-mode" />
+            <input checked={user.admin} readOnly className="form-checkbox rounded bg-gray-200 border-transparent focus:border-transparent text-gray-700 focus:ring-1 focus:ring-offset-2 focus:ring-gray-500 p-3" type="checkbox" name="preset-mode" />
           </div>
           {isEdit &&
             <div>
