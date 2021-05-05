@@ -29,14 +29,14 @@ const Navbar = () => {
   const history = useHistory()
   const token = useAppSelector(state => state.auth.token)
 
-  let user = {
+  let tokenInfo = {
     user_id: '',
     email: '',
     admin: false,
     exp: 0
   }
 
-  if (token !== '') user = JSON.parse(atob(token.split('.')[1]))
+  if (token !== '') tokenInfo = JSON.parse(atob(token.split('.')[1]))
 
   const authMenu = () => {
     if (token === '') {
@@ -50,7 +50,7 @@ const Navbar = () => {
       return (
         <>
           <Link to="/upload" className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium border border-white">Upload</Link>
-          <Link to={`/user/${user.user_id}`} className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">{user.email}</Link>
+          <Link to={`/user/${tokenInfo.user_id}`} className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">{tokenInfo.email}</Link>
           <button onClick={handleLogout} className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Log out</button>
         </>
       )
